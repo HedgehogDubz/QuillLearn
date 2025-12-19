@@ -2,13 +2,9 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import './learn.css'
 import Header from '../header/header.tsx'
-
+import type { SheetInfo } from '../gaurdian.ts';
 // ============ Types ============
 
-interface SessionInfo {
-  storageKey: string
-  sessionId: string
-}
 
 // Flashcard item with difficulty for spaced repetition
 interface FlashcardItem {
@@ -27,13 +23,14 @@ interface SessionData {
 // ============ Helper Functions ============
 
 // Get all spreadsheet sessions from localStorage
-function getSessionsFromLocalStorage(): SessionInfo[] {
-  const sessions: SessionInfo[] = []
+function getSessionsFromLocalStorage(): SheetInfo[] {
+  const sessions: SheetInfo[] = []
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
     if (key?.startsWith('spreadsheet_session_')) {
       const sessionId = key.replace('spreadsheet_session_', '')
       sessions.push({
+        title: JSON.parse(localStorage.getItem(key) || '').title,
         storageKey: key,
         sessionId: sessionId
       })

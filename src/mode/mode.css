@@ -1,0 +1,148 @@
+/* Modal overlay - covers entire screen */
+.mode_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Modal container */
+.mode_modal {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Modal header */
+.mode_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.mode_title {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.mode_close_btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.mode_close_btn:hover {
+    color: #333;
+}
+
+/* Button grid - 2x2 layout */
+.mode_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Individual mode buttons */
+.mode_btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 140px;
+}
+
+.mode_btn:hover:not(:disabled) {
+    border-color: #4a90d9;
+    background: #f8fafc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 217, 0.15);
+}
+
+.mode_btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.mode_btn_icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
+
+.mode_btn_label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.mode_btn_desc {
+    font-size: 0.8rem;
+    color: #888;
+    text-align: center;
+}
+
+/* Specific button colors */
+.mode_btn_edit:hover:not(:disabled) {
+    border-color: #4a90d9;
+    background: #e8f4fd;
+}
+
+.mode_btn_learn:hover:not(:disabled) {
+    border-color: #4caf50;
+    background: #e8f5e9;
+}
+
+/* Disabled/Coming Soon buttons */
+.mode_btn_disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.mode_btn_disabled .mode_btn_desc {
+    color: #999;
+    font-style: italic;
+}
+

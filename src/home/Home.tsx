@@ -1,11 +1,8 @@
 import { useState } from 'react'
 import './Home.css'
 import Header from '../header/header.tsx'
-
-interface SheetInfo {
-  storageKey: string
-  sessionId: string
-}
+import type { SheetInfo } from '../gaurdian.ts'
+import ModeModal from '../mode/mode.tsx'
 
 function getSheetsFromLocalStorage(): SheetInfo[] {
   const sheets: SheetInfo[] = []
@@ -15,6 +12,7 @@ function getSheetsFromLocalStorage(): SheetInfo[] {
       // Extract the session ID by removing the 'spreadsheet_session_' prefix
       const sessionId = key.replace('spreadsheet_session_', '')
       sheets.push({
+        title: JSON.parse(localStorage.getItem(key) || '').title,
         storageKey: key,
         sessionId: sessionId
       })
@@ -25,11 +23,21 @@ function getSheetsFromLocalStorage(): SheetInfo[] {
 
 function Home() {
   const [sheets, setSheets] = useState<SheetInfo[]>(getSheetsFromLocalStorage())
+  const [selectedSheet, setSelectedSheet] = useState<SheetInfo | null>(null)
 
-  const handleDelete = (storageKey: string) => {
+  const handleDelete = (e: React.MouseEvent, storageKey: string) => {
+    e.stopPropagation() // Prevent opening the modal when clicking delete
     localStorage.removeItem(storageKey)
     // Update the UI by removing the deleted sheet from state
     setSheets(sheets.filter(sheet => sheet.storageKey !== storageKey))
+  }
+
+  const handleSheetClick = (sheet: SheetInfo) => {
+    setSelectedSheet(sheet)
+  }
+
+  const handleCloseModal = () => {
+    setSelectedSheet(null)
   }
 
   return (
@@ -40,11 +48,24 @@ function Home() {
           <a href="/sheets">New Sheet</a>
       </button>
       {sheets.map((sheet) => (
-        <div key={sheet.storageKey}>
-          <a href={`/sheets/${sheet.sessionId}`}>{sheet.sessionId}</a>
-          <button onClick={() => handleDelete(sheet.storageKey)}>Delete</button>
+        <div key={sheet.storageKey} className="home_sheet_item">
+          <span
+            className="home_sheet_link"
+            onClick={() => handleSheetClick(sheet)}
+          >
+            {sheet.title}
+          </span>
+          <button onClick={(e) => handleDelete(e, sheet.storageKey)}>Delete</button>
         </div>
       ))}
+
+      {selectedSheet && (
+        <ModeModal
+          sessionId={selectedSheet.sessionId}
+          title={selectedSheet.title}
+          onClose={handleCloseModal}
+        />
+      )}
     </>
   )
 }

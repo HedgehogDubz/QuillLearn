@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import './InputGrid.css'
+import { loadSheetData, saveSheetData, AUTO_SAVE_DEBOUNCE_MS } from './sheetStorage'
 
 // Constants
 const DRAG_THRESHOLD = 5; // Minimum distance in pixels to count as a drag (not just a click)
@@ -9,7 +10,6 @@ const INITIAL_COLS = 2;
 const INITIAL_COLUMN_COUNT = 6;
 const RIGHT_PADDING = 2000; // Extra scrollable space on the right side to allow unlimited column expansion
 const MAX_HISTORY = 50; // Maximum number of undo states to keep
-const AUTO_SAVE_DEBOUNCE_MS = 1000; // Debounce auto-save by 1000ms (1 second) for better performance
 
 // Types
 type Grid = string[][]
@@ -35,33 +35,9 @@ type ContextMenu = {
     rowIndex: number;
 } | null;
 
-// New row-based data structure for better extensibility
-type RowData = {
-    data: string[];  // The actual cell values for this row
-    // Future fields can be added here without conflicts, e.g.:
-    // metadata?: { created?: number; modified?: number; };
-    // formatting?: { bold?: boolean[]; italic?: boolean[]; };
-};
-
-// Legacy format for backward compatibility
-type LegacySavedSpreadsheetData = {
-    grid: Grid;
-    columnWidths: number[];
-};
-
-// New format with row objects
-type SavedSpreadsheetData = {
-    rows: RowData[];
-    columnWidths: number[];
-};
-
 // Helper functions
 function makeGrid(rows: number, cols: number): Grid {
     return Array.from({ length: rows }, () => Array(cols).fill(''))
-}
-
-function sliceGrid(grid: Grid, startRow: number, endRow: number, startCol: number, endCol: number): Grid {
-    return grid.slice(startRow, endRow).map(row => row.slice(startCol, endCol))
 }
 
 function copyGrid(grid: Grid): Grid {
@@ -153,56 +129,17 @@ interface InputGridProps {
 }
 
 function InputGrid({ sessionId }: InputGridProps) {
-    // Helper function to convert RowData[] to Grid (string[][])
-    const rowDataToGrid = useCallback((rows: RowData[]): Grid => {
-        return rows.map(row => row.data);
-    }, []);
-
-    // Helper function to convert Grid to RowData[]
-    const gridToRowData = useCallback((grid: Grid): RowData[] => {
-        return grid.map(row => ({ data: row }));
-    }, []);
-
-    // Load saved data from localStorage or use defaults
-    const loadSavedData = useCallback((): { grid: Grid; columnWidths: number[] } => {
-        try {
-            const storageKey = `spreadsheet_session_${sessionId}`;
-            const savedData = localStorage.getItem(storageKey);
-
-            if (savedData) {
-                const parsed = JSON.parse(savedData);
-
-                // Check if it's the new format (has 'rows' property)
-                if (parsed.rows && Array.isArray(parsed.rows) && Array.isArray(parsed.columnWidths)) {
-                    const newFormat = parsed as SavedSpreadsheetData;
-                    return {
-                        grid: rowDataToGrid(newFormat.rows),
-                        columnWidths: newFormat.columnWidths
-                    };
-                }
-
-                // Check if it's the legacy format (has 'grid' property)
-                if (parsed.grid && Array.isArray(parsed.grid) && Array.isArray(parsed.columnWidths)) {
-                    const legacyFormat = parsed as LegacySavedSpreadsheetData;
-                    return {
-                        grid: legacyFormat.grid,
-                        columnWidths: legacyFormat.columnWidths
-                    };
-                }
-            }
-        } catch (error) {
-            console.error('Error loading saved spreadsheet data:', error);
-        }
-
-        // Return default data if no saved data or error
-        return {
-            grid: makeGrid(INITIAL_ROWS, INITIAL_COLS),
-            columnWidths: Array(INITIAL_COLUMN_COUNT).fill(DEFAULT_COLUMN_WIDTH)
-        };
-    }, [sessionId, rowDataToGrid]);
+    // Load saved data using the storage utility
+    const loadSavedData = useCallback(() => {
+        const defaultGrid = makeGrid(INITIAL_ROWS, INITIAL_COLS);
+        const defaultColumnWidths = Array(INITIAL_COLUMN_COUNT).fill(DEFAULT_COLUMN_WIDTH);
+        return loadSheetData(sessionId, defaultGrid, defaultColumnWidths);
+    }, [sessionId]);
 
     const [grid, setGrid] = useState<Grid>(() => loadSavedData().grid);
     const [columnWidths, setColumnWidths] = useState<number[]>(() => loadSavedData().columnWidths);
+    const [title, setTitle] = useState<string>(() => loadSavedData().title);
+    const [isSaved, setIsSaved] = useState<boolean>(true);
     const [resizingColumn, setResizingColumn] = useState<number | null>(null);
     const resizeStartX = useRef<number>(0);
     const resizeStartWidth = useRef<number>(0);
@@ -238,37 +175,21 @@ function InputGrid({ sessionId }: InputGridProps) {
     const saveTimeoutRef = useRef<number | null>(null);
     const lastSavedDataRef = useRef<string | null>(null);
 
-    // Memoized save function - only recreated when sessionId changes
+    // Memoized save function using the storage utility
     const saveToLocalStorage = useCallback(() => {
-        try {
-            const storageKey = `spreadsheet_session_${sessionId}`;
-
-            // Convert grid to new row-based format
-            const dataToSave: SavedSpreadsheetData = {
-                rows: gridToRowData(grid),
-                columnWidths
-            };
-
-            // Serialize data
-            const serializedData = JSON.stringify(dataToSave);
-
-            // Only save if data has actually changed (optimization)
-            if (serializedData === lastSavedDataRef.current) {
-                return;
-            }
-
-            localStorage.setItem(storageKey, serializedData);
-            lastSavedDataRef.current = serializedData;
-        } catch (error) {
-            // Handle localStorage quota exceeded or other errors
-            console.error('Error saving spreadsheet data:', error);
-            if (error instanceof Error && error.name === 'QuotaExceededError') {
-                console.warn('localStorage quota exceeded. Data not saved.');
-            }
+        const result = saveSheetData(sessionId, title, grid, columnWidths, lastSavedDataRef.current);
+        if (result.success && result.serializedData) {
+            lastSavedDataRef.current = result.serializedData;
+            setIsSaved(true);
         }
-    }, [sessionId, gridToRowData, grid, columnWidths]);
+    }, [sessionId, title, grid, columnWidths]);
 
-    // Debounced auto-save: save 1000ms after last change
+    // Mark as unsaved when data changes
+    useEffect(() => {
+        setIsSaved(false);
+    }, [grid, columnWidths, title]);
+
+    // Debounced auto-save: save after AUTO_SAVE_DEBOUNCE_MS ms of inactivity
     useEffect(() => {
         // Clear any pending save
         if (saveTimeoutRef.current !== null) {
@@ -286,7 +207,7 @@ function InputGrid({ sessionId }: InputGridProps) {
                 clearTimeout(saveTimeoutRef.current);
             }
         };
-    }, [grid, columnWidths, saveToLocalStorage]);
+    }, [grid, columnWidths, title, saveToLocalStorage]);
 
     // Calculate total table width and dynamic right padding
     const totalTableWidth = useMemo(() => {
@@ -1012,6 +933,18 @@ function InputGrid({ sessionId }: InputGridProps) {
 
     return (
         <div>
+            <div className="sheet_title_bar">
+                <input
+                    type="text"
+                    className="sheet_title_input"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Untitled Sheet"
+                />
+                <span className={`sheet_save_indicator ${isSaved ? 'saved' : 'unsaved'}`}>
+                    {isSaved ? '✓ Saved' : '● Unsaved'}
+                </span>
+            </div>
             <div className="sheet_toolbar">
                 <button className="sheet_btn" onClick={addRow}>+ Row</button>
                 <button className="sheet_btn" onClick={addCol}>+ Column</button>

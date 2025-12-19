@@ -25,7 +25,6 @@ function Sheets() {
     <>
       <Header />
       <h1> Sheets</h1>
-      <input type="text" placeholder = "Untitled Sheet"/>
       <InputGrid sessionId={sessionId} />
     </>
   )

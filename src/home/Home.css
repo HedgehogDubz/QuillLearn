@@ -1,0 +1,20 @@
+/* Sheet item row */
+.home_sheet_item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* Clickable sheet link (now a span, not an anchor) */
+.home_sheet_link {
+  color: #4a90d9;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.home_sheet_link:hover {
+  color: #2a70b9;
+  text-decoration: underline;
+}
