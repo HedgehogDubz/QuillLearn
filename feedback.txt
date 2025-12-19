@@ -1,0 +1,4 @@
+-create writing mode, make toggle that makes you write the answer after you get it wrong
+-settings that show you an image, and you can click it to answer a question
+-create questions based on notes, specific:easy medium hard
+-draw and it can see if its right or not

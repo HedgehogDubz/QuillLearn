@@ -1,0 +1,253 @@
+.sheet_toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sheet_btn {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sheet_btn:hover:not(:disabled) {
+  background: #f7f7f7;
+}
+
+.sheet_btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.sheet_hint {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.sheet_wrap {
+  overflow: auto;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.sheet_table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+}
+
+/* Sticky corner (top-left empty cell) */
+.sheet_corner {
+  position: sticky;
+  left: 0;
+  top: 0;
+  width: 48px;
+  min-width: 48px;
+  background: #f7f7f7;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  z-index: 3;
+}
+
+/* Column headers A, B, C... */
+.sheet_colHeader {
+  position: sticky;
+  top: 0;
+  background: #f7f7f7;
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #eee;
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 12px;
+  z-index: 2;
+  cursor: default;
+  position: relative; /* For absolute positioning of resize handle */
+}
+
+.sheet_colHeader_content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  /* Ensure content doesn't overlap with resize handle */
+  pointer-events: auto;
+}
+
+/* Base styles for both resize handles */
+.sheet_resize_handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 24px; /* Generous width for easy clicking */
+  cursor: col-resize;
+  user-select: none;
+  z-index: 20; /* Higher than header content */
+  background: transparent;
+  transition: all 0.15s ease;
+  pointer-events: auto;
+}
+
+/* Right resize handle - positioned on right border */
+.sheet_resize_handle_right {
+  /* Extra wide clickable area with generous leeway on both sides */
+  /* Centered on the border: 12px on each side = 24px total */
+  right: -12px; /* Centers 24px handle on the right border */
+}
+
+/* Left resize handle - positioned on left border */
+.sheet_resize_handle_left {
+  /* Extra wide clickable area with generous leeway on both sides */
+  /* Centered on the border: 12px on each side = 24px total */
+  left: -12px; /* Centers 24px handle on the left border */
+}
+
+.sheet_resize_handle::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.sheet_resize_handle:hover {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.sheet_resize_handle:hover::before {
+  background: rgba(59, 130, 246, 0.6);
+}
+
+.sheet_resize_handle:active {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.sheet_resize_handle:active::before {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+/* Row headers 1,2,3... */
+.sheet_rowHeader {
+  position: sticky;
+  left: 0;
+  background: #f7f7f7;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #eee;
+  width: 48px;
+  min-width: 48px;
+  text-align: center;
+  font-size: 12px;
+  z-index: 1;
+}
+
+.sheet_cell {
+  border-bottom: 1px solid #eee;
+  border-right: 1px solid #eee;
+  padding: 0;
+  vertical-align: top;
+  position: relative;
+}
+.sheet_cell_row_0 {
+  background: #47cb8b !important;
+}
+
+.sheet_cell_row_0 textarea {
+  background: #47cb8b !important;
+}
+
+/* Selection layer - positioned above textarea to capture mouse events for drag selection */
+.sheet_selection_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  cursor: cell;
+  /* Always capture mouse events to enable selection */
+  pointer-events: auto;
+}
+
+/* Selected cell styling */
+.sheet_cell_selected {
+  border: 2px solid rgba(66, 133, 244, 0.8);
+  z-index: 2;
+}
+
+.sheet_cell_selected .sheet_input {
+  user-select: none;
+}
+
+.sheet_input {
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: none;
+  outline: none;
+  background: #fff;
+  resize: none;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  box-sizing: border-box;
+}
+
+/* Optional: show focus nicely */
+.sheet_input:focus {
+  box-shadow: inset 0 0 0 2px #00000020;
+}
+
+.sheet_debug {
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.8;
+  white-space: pre-wrap;
+}
+
+/* Context menu for row operations */
+.sheet_context_menu {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  min-width: 180px;
+}
+
+.sheet_context_menu_item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.sheet_context_menu_item:hover {
+  background: #f0f0f0;
+}
+
+.sheet_context_menu_item:active {
+  background: #e0e0e0;
+}
+
+/* Make row headers look clickable */
+.sheet_rowHeader {
+  cursor: context-menu;
+  user-select: none;
+}
