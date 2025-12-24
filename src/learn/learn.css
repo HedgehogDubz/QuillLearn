@@ -29,6 +29,54 @@
   text-align: center;
 }
 
+/* Learning Mode Controls */
+.learning_mode_controls {
+  margin-bottom: 16px;
+}
+
+.learn_mode_grid {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.learn_mode_btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.learn_mode_btn:hover {
+  border-color: #aaa;
+  background: #f8f9fa;
+}
+
+.learn_mode_btn.active {
+  border-color: #4a90d9;
+  background: #e8f4fd;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
+}
+
+.learn_mode_btn_icon {
+  font-size: 18px;
+}
+
+.learn_mode_btn_label {
+  font-weight: 500;
+  color: #333;
+}
+
+.learn_mode_btn.active .learn_mode_btn_label {
+  color: #4a90d9;
+}
+
 /* Column Controls */
 .learn_column_controls {
   background: #f8f9fa;
@@ -105,7 +153,7 @@
   gap: 16px;
   margin-bottom: 24px;
   font-size: 13px;
-  color: #666;
+  color: #333;
   flex-wrap: wrap;
 }
 

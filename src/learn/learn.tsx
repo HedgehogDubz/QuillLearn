@@ -8,799 +8,897 @@ import type { SheetInfo } from '../gaurdian.ts';
 
 // Flashcard item with difficulty for spaced repetition
 interface FlashcardItem {
-  data: string[]
-  difficulty: number
-  seen: boolean // Has this card been answered at least once?
-  masteredOnFirstTry: boolean // Was this card marked correct on first attempt?
+    data: string[]
+    difficulty: number
+    seen: boolean // Has this card been answered at least once?
+    masteredOnFirstTry: boolean // Was this card marked correct on first attempt?
 }
 
 // Session data with headers
 interface SessionData {
-  headers: string[]
-  cards: FlashcardItem[]
+    headers: string[]
+    cards: FlashcardItem[]
 }
 
 // ============ Helper Functions ============
 
 // Get all spreadsheet sessions from localStorage
 function getSessionsFromLocalStorage(): SheetInfo[] {
-  const sessions: SheetInfo[] = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key?.startsWith('spreadsheet_session_')) {
-      const sessionId = key.replace('spreadsheet_session_', '')
-      sessions.push({
-        title: JSON.parse(localStorage.getItem(key) || '').title,
-        storageKey: key,
-        sessionId: sessionId
-      })
+    const sessions: SheetInfo[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key?.startsWith('spreadsheet_session_')) {
+            const sessionId = key.replace('spreadsheet_session_', '')
+            sessions.push({
+                title: JSON.parse(localStorage.getItem(key) || '').title,
+                storageKey: key,
+                sessionId: sessionId
+            })
+        }
     }
-  }
-  return sessions
+    return sessions
 }
 
 // Load session data from localStorage - first row is headers, rest are cards
 function loadSessionData(sessionId: string): SessionData | null {
-  try {
-    const storageKey = `spreadsheet_session_${sessionId}`
-    const savedData = localStorage.getItem(storageKey)
+    try {
+        const storageKey = `spreadsheet_session_${sessionId}`
+        const savedData = localStorage.getItem(storageKey)
 
-    if (savedData) {
-      const parsed = JSON.parse(savedData)
-      let rawData: string[][] | null = null
+        if (savedData) {
+            const parsed = JSON.parse(savedData)
+            let rawData: string[][] | null = null
 
-      // Handle new format (has 'rows' property)
-      if (parsed.rows && Array.isArray(parsed.rows)) {
-        rawData = parsed.rows.map((row: { data: string[] }) => row.data)
-      }
-      // Handle legacy format (has 'grid' property)
-      else if (parsed.grid && Array.isArray(parsed.grid)) {
-        rawData = parsed.grid
-      }
+            // Handle new format (has 'rows' property)
+            if (parsed.rows && Array.isArray(parsed.rows)) {
+                rawData = parsed.rows.map((row: { data: string[] }) => row.data)
+            }
+            // Handle legacy format (has 'grid' property)
+            else if (parsed.grid && Array.isArray(parsed.grid)) {
+                rawData = parsed.grid
+            }
 
-      if (rawData && rawData.length > 0) {
-        // First row is headers
-        const headers = rawData[0].map((h, i) => h.trim() || `Column ${i + 1}`)
+            if (rawData && rawData.length > 0) {
+                // First row is headers
+                const headers = rawData[0].map((h, i) => h.trim() || `Column ${i + 1}`)
 
-        // Rest are flashcards (filter out empty rows)
-        const cards: FlashcardItem[] = rawData
-          .slice(1)
-          .filter(row => row.some(cell => cell.trim() !== ''))
-          .map(data => ({ data, difficulty: 0, seen: false, masteredOnFirstTry: false }))
+                // Rest are flashcards (filter out empty rows)
+                const cards: FlashcardItem[] = rawData
+                    .slice(1)
+                    .filter(row => row.some(cell => cell.trim() !== ''))
+                    .map(data => ({ data, difficulty: 0, seen: false, masteredOnFirstTry: false }))
 
-        return { headers, cards }
-      }
+                return { headers, cards }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading session data:', error)
     }
-  } catch (error) {
-    console.error('Error loading session data:', error)
-  }
-  return null
+    return null
 }
 
 // Calculate max difficulty: largest n where 2^n <= data.length
 function calculateMaxDifficulty(dataLength: number): number {
-  if (dataLength <= 1) return 0
-  return Math.floor(Math.log2(dataLength))
+    if (dataLength <= 1) return 0
+    return Math.floor(Math.log2(dataLength))
 }
 
 // Shuffle array using Fisher-Yates algorithm
 function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
 }
 
 
 
-// ============ Flashcard Study Component ============
-
 interface FlashcardStudyProps {
-  initialData: SessionData
-  sessionId: string
+    initialData: SessionData
+    sessionId: string
 }
 
 function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
-  // State for flashcard deck
-  const [deck, setDeck] = useState<FlashcardItem[]>(initialData.cards)
-  const headers = initialData.headers
+    // State for flashcard deck
+    const [deck, setDeck] = useState<FlashcardItem[]>(initialData.cards)
+    const headers = initialData.headers
 
-  // State for column selection (which columns are questions vs answers)
-  const [questionColumns, setQuestionColumns] = useState<Set<number>>(new Set([0]))
-  const [answerColumns, setAnswerColumns] = useState<Set<number>>(new Set([1]))
+    // State for column selection (which columns are questions vs answers)
+    const [questionColumns, setQuestionColumns] = useState<Set<number>>(new Set([0]))
+    const [answerColumns, setAnswerColumns] = useState<Set<number>>(new Set([1]))
 
-  // State for showing/hiding the answer
-  const [showAnswer, setShowAnswer] = useState(false)
+    // State for learning mode
+    const [learningMode, setLearningMode] = useState<'spaced' | 'random' | 'sequential'>('spaced')
 
-  // State for keyboard shortcut visual feedback
-  const [activeKey, setActiveKey] = useState<string | null>(null)
+    // State for showing/hiding the answer
+    const [showAnswer, setShowAnswer] = useState(false)
 
-  // State for showing banned cards modal
-  const [showBanList, setShowBanList] = useState(false)
+    // State for keyboard shortcut visual feedback
+    const [activeKey, setActiveKey] = useState<string | null>(null)
 
-  // State for navigation history (stores deck snapshots for going back)
-  const [cardHistory, setCardHistory] = useState<FlashcardItem[][]>([])
-  const [historyIndex, setHistoryIndex] = useState(-1)
+    // State for showing banned cards modal
+    const [showBanList, setShowBanList] = useState(false)
 
-  // Calculate max difficulty based on deck size
-  const maxDifficulty = useMemo(() => calculateMaxDifficulty(deck.length), [deck.length])
+    // State for navigation history (stores deck snapshots for going back)
+    const [cardHistory, setCardHistory] = useState<FlashcardItem[][]>([])
+    const [historyIndex, setHistoryIndex] = useState(-1)
 
-  // Get the current card (first item in deck)
-  const currentCard = deck.length > 0 ? deck[0] : null
+    // Calculate max difficulty based on deck size
+    const maxDifficulty = useMemo(() => calculateMaxDifficulty(deck.length), [deck.length])
 
-  // Toggle a column between question/answer/neither
-  const toggleQuestionColumn = (colIndex: number) => {
-    const newQuestionCols = new Set(questionColumns)
-    const newAnswerCols = new Set(answerColumns)
+    // Get the current card (first item in deck)
+    const currentCard = deck.length > 0 ? deck[0] : null
 
-    if (questionColumns.has(colIndex)) {
-      newQuestionCols.delete(colIndex)
-    } else {
-      newQuestionCols.add(colIndex)
-      newAnswerCols.delete(colIndex)
+    // Toggle a column between question/answer/neither
+    const toggleQuestionColumn = (colIndex: number) => {
+        const newQuestionCols = new Set(questionColumns)
+        const newAnswerCols = new Set(answerColumns)
+
+        if (questionColumns.has(colIndex)) {
+            newQuestionCols.delete(colIndex)
+        } else {
+            newQuestionCols.add(colIndex)
+            newAnswerCols.delete(colIndex)
+        }
+
+        setQuestionColumns(newQuestionCols)
+        setAnswerColumns(newAnswerCols)
     }
 
-    setQuestionColumns(newQuestionCols)
-    setAnswerColumns(newAnswerCols)
-  }
+    const toggleAnswerColumn = (colIndex: number) => {
+        const newQuestionCols = new Set(questionColumns)
+        const newAnswerCols = new Set(answerColumns)
 
-  const toggleAnswerColumn = (colIndex: number) => {
-    const newQuestionCols = new Set(questionColumns)
-    const newAnswerCols = new Set(answerColumns)
+        if (answerColumns.has(colIndex)) {
+            newAnswerCols.delete(colIndex)
+        } else {
+            newAnswerCols.add(colIndex)
+            newQuestionCols.delete(colIndex)
+        }
 
-    if (answerColumns.has(colIndex)) {
-      newAnswerCols.delete(colIndex)
-    } else {
-      newAnswerCols.add(colIndex)
-      newQuestionCols.delete(colIndex)
+        setQuestionColumns(newQuestionCols)
+        setAnswerColumns(newAnswerCols)
     }
 
-    setQuestionColumns(newQuestionCols)
-    setAnswerColumns(newAnswerCols)
-  }
-
-  // Handle "Correct" button click
-  const handleCorrect = useCallback(() => {
-    if (!currentCard || deck.length === 0) return
-
-    // Save to history before modifying
-    setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
-    setHistoryIndex(prev => prev + 1)
-
-    const newDeck = [...deck]
-    const item = { ...newDeck[0] }
-
-    // Check if this is the first time seeing this card
-    const isFirstAttempt = !item.seen
-    item.seen = true
-
-    // If marked correct on first attempt, track it
-    if (isFirstAttempt) {
-      item.masteredOnFirstTry = true
+    const handleLearningModeChange = (mode: 'spaced' | 'random' | 'sequential') => {
+        setLearningMode(mode)
+        // Shuffle the deck when switching to random mode
+        if (mode === 'random') {
+            setDeck(shuffleArray(deck))
+        }
+        if (mode === 'sequential') {
+            setDeck(initialData.cards)
+        }
     }
 
-    if (item.difficulty === 0) {
-      // Already mastered: move to end
-      newDeck.shift()
-      newDeck.push(item)
-    } else {
-      // Decrease difficulty, then calculate move position
-      // Cards closer to mastery (lower difficulty) move FURTHER back
-      // Formula: 2^(maxDifficulty - newDifficulty)
-      item.difficulty = Math.max(0, item.difficulty - 1)
-      const moveBackPositions = Math.pow(2, maxDifficulty - item.difficulty)
-      newDeck.shift()
-      const insertPosition = Math.min(moveBackPositions, newDeck.length)
-      newDeck.splice(insertPosition, 0, item)
+    // Helper function to insert a card at a random position in the deck
+    const insertAtRandomPosition = (deckWithoutCard: FlashcardItem[], card: FlashcardItem): FlashcardItem[] => {
+        const randomPosition = Math.floor(Math.random() * (deckWithoutCard.length + 1))
+        const newDeck = [...deckWithoutCard]
+        newDeck.splice(randomPosition, 0, card)
+        return newDeck
     }
 
-    setDeck(newDeck)
-    setShowAnswer(false)
-  }, [currentCard, deck, maxDifficulty, historyIndex])
+    // Handle "Correct" button click
+    const handleCorrect = useCallback(() => {
+        if (!currentCard || deck.length === 0) return
 
-  // Handle "Incorrect" button click
-  const handleIncorrect = useCallback(() => {
-    if (!currentCard || deck.length === 0) return
+        // Save to history before modifying
+        setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
+        setHistoryIndex(prev => prev + 1)
 
-    // Save to history before modifying
-    setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
-    setHistoryIndex(prev => prev + 1)
+        const newDeck = [...deck]
+        const item = { ...newDeck[0] }
 
-    const newDeck = [...deck]
-    const item = { ...newDeck[0] }
+        // Check if this is the first time seeing this card
+        const isFirstAttempt = !item.seen
+        item.seen = true
 
-    item.seen = true
-    item.masteredOnFirstTry = false
-    item.difficulty = maxDifficulty
-    const moveBackPositions = 2
+        // If marked correct on first attempt, track it
+        if (isFirstAttempt) {
+            item.masteredOnFirstTry = true
+        }
 
-    newDeck.shift()
-    const insertPosition = Math.min(moveBackPositions, newDeck.length)
-    newDeck.splice(insertPosition, 0, item)
+        // Update difficulty
+        if (item.difficulty > 0) {
+            item.difficulty = Math.max(0, item.difficulty - 1)
+        }
 
-    setDeck(newDeck)
-    setShowAnswer(false)
-  }, [currentCard, deck, maxDifficulty, historyIndex])
+        // Remove card from front
+        newDeck.shift()
 
-  // Handle "Unsure" button click - sets difficulty to maxDifficulty - 2
-  const handleUnsure = useCallback(() => {
-    if (!currentCard || deck.length === 0) return
+        // Position card based on learning mode
+        if (learningMode === 'random') {
+            // Random mode: insert at random position
+            const finalDeck = insertAtRandomPosition(newDeck, item)
+            setDeck(finalDeck)
+        } else if (learningMode === 'sequential') {
+            // Sequential mode: always move to end
+            newDeck.push(item)
+            setDeck(newDeck)
+        } else {
+            // Spaced mode: use spaced repetition algorithm
+            if (item.difficulty === 0) {
+                newDeck.push(item)
+            } else {
+                const moveBackPositions = Math.pow(2, maxDifficulty - item.difficulty)
+                const insertPosition = Math.min(moveBackPositions, newDeck.length)
+                newDeck.splice(insertPosition, 0, item)
+            }
+            setDeck(newDeck)
+        }
 
-    // Save to history before modifying
-    setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
-    setHistoryIndex(prev => prev + 1)
+        setShowAnswer(false)
+    }, [currentCard, deck, maxDifficulty, historyIndex, learningMode])
 
-    const newDeck = [...deck]
-    const item = { ...newDeck[0] }
+    // Handle "Incorrect" button click
+    const handleIncorrect = useCallback(() => {
+        if (!currentCard || deck.length === 0) return
 
-    item.seen = true
-    item.masteredOnFirstTry = false
-    // Set difficulty to max - 2, but at least 0
-    item.difficulty = Math.max(0, maxDifficulty - 2)
+        // Save to history before modifying
+        setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
+        setHistoryIndex(prev => prev + 1)
 
-    // If difficulty is 0, move to end; otherwise use spaced repetition formula
-    newDeck.shift()
-    if (item.difficulty === 0) {
-      newDeck.push(item)
-    } else {
-      const moveBackPositions = Math.pow(2, maxDifficulty - item.difficulty)
-      const insertPosition = Math.min(moveBackPositions, newDeck.length)
-      newDeck.splice(insertPosition, 0, item)
-    }
+        const newDeck = [...deck]
+        const item = { ...newDeck[0] }
 
-    setDeck(newDeck)
-    setShowAnswer(false)
-  }, [currentCard, deck, maxDifficulty, historyIndex])
+        item.seen = true
+        item.masteredOnFirstTry = false
+        item.difficulty = maxDifficulty
 
-  // Handle "Ban" button click - sets difficulty to -1
-  const handleBan = useCallback(() => {
-    if (!currentCard || deck.length === 0) return
+        // Remove card from front
+        newDeck.shift()
 
-    // Save to history before modifying
-    setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
-    setHistoryIndex(prev => prev + 1)
+        // Position card based on learning mode
+        if (learningMode === 'random') {
+            // Random mode: insert at random position
+            const finalDeck = insertAtRandomPosition(newDeck, item)
+            setDeck(finalDeck)
+        } else if (learningMode === 'sequential') {
+            // Sequential mode: always move to end
+            newDeck.push(item)
+            setDeck(newDeck)
+        } else {
+            // Spaced mode: incorrect cards go back 2 positions
+            const moveBackPositions = 2
+            const insertPosition = Math.min(moveBackPositions, newDeck.length)
+            newDeck.splice(insertPosition, 0, item)
+            setDeck(newDeck)
+        }
 
-    const newDeck = [...deck]
-    const item = { ...newDeck[0] }
+        setShowAnswer(false)
+    }, [currentCard, deck, maxDifficulty, historyIndex, learningMode])
 
-    item.difficulty = -1 // Banned
+    // Handle "Unsure" button click - sets difficulty to maxDifficulty - 2
+    const handleUnsure = useCallback(() => {
+        if (!currentCard || deck.length === 0) return
 
-    // Move banned card to end of deck
-    newDeck.shift()
-    newDeck.push(item)
+        // Save to history before modifying
+        setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
+        setHistoryIndex(prev => prev + 1)
 
-    setDeck(newDeck)
-    setShowAnswer(false)
-  }, [currentCard, deck, historyIndex])
+        const newDeck = [...deck]
+        const item = { ...newDeck[0] }
 
-  // Unban a card by index
-  const handleUnban = useCallback((cardIndex: number) => {
-    const newDeck = [...deck]
-    const bannedCards = newDeck.filter(item => item.difficulty === -1)
-    const targetCard = bannedCards[cardIndex]
+        item.seen = true
+        item.masteredOnFirstTry = false
+        // Set difficulty to max - 2, but at least 0
+        item.difficulty = Math.max(0, maxDifficulty - 2)
 
-    if (targetCard) {
-      const deckIndex = newDeck.findIndex(item => item === targetCard)
-      if (deckIndex !== -1) {
-        newDeck[deckIndex] = { ...newDeck[deckIndex], difficulty: 0 }
-        setDeck(newDeck)
-      }
-    }
-  }, [deck])
+        // Remove card from front
+        newDeck.shift()
 
-  // Restart session: reset all difficulties to 0
-  const handleRestart = useCallback(() => {
-    const resetDeck = initialData.cards.map(item => ({ ...item, difficulty: 0 }))
-    setDeck(shuffleArray(resetDeck))
-    setShowAnswer(false)
-  }, [initialData.cards])
+        // Position card based on learning mode
+        if (learningMode === 'random') {
+            // Random mode: insert at random position
+            const finalDeck = insertAtRandomPosition(newDeck, item)
+            setDeck(finalDeck)
+        } else if (learningMode === 'sequential') {
+            // Sequential mode: always move to end
+            newDeck.push(item)
+            setDeck(newDeck)
+        } else {
+            // Spaced mode: use spaced repetition algorithm
+            if (item.difficulty === 0) {
+                newDeck.push(item)
+            } else {
+                const moveBackPositions = Math.pow(2, maxDifficulty - item.difficulty)
+                const insertPosition = Math.min(moveBackPositions, newDeck.length)
+                newDeck.splice(insertPosition, 0, item)
+            }
+            setDeck(newDeck)
+        }
 
-  // Shuffle the deck
-  const handleShuffle = useCallback(() => {
-    setDeck(shuffleArray(deck))
-    setShowAnswer(false)
-  }, [deck])
+        setShowAnswer(false)
+    }, [currentCard, deck, maxDifficulty, historyIndex, learningMode])
 
-  // Toggle answer visibility
-  const handleToggleAnswer = useCallback(() => {
-    setShowAnswer(prev => !prev)
-  }, [])
+    // Handle "Ban" button click - sets difficulty to -1
+    const handleBan = useCallback(() => {
+        if (!currentCard || deck.length === 0) return
 
-  // Navigate to previous card (go back in history)
-  const handlePrevCard = useCallback(() => {
-    if (historyIndex < 0 || cardHistory.length === 0) return
+        // Save to history before modifying
+        setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
+        setHistoryIndex(prev => prev + 1)
 
-    if (historyIndex >= 0) {
-      // Restore previous deck state
-      setDeck(cardHistory[historyIndex])
-      setHistoryIndex(prev => prev - 1)
-      setShowAnswer(false)
-    }
-  }, [historyIndex, cardHistory])
+        const newDeck = [...deck]
+        const item = { ...newDeck[0] }
 
-  // Navigate to next card (without modifying difficulty)
-  const handleNextCard = useCallback(() => {
-    if (!currentCard || deck.length <= 1) return
+        item.difficulty = -1 // Banned
 
-    // Save current state to history
-    setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
-    setHistoryIndex(prev => prev + 1)
+        // Move banned card to end of deck
+        newDeck.shift()
+        newDeck.push(item)
 
-    // Rotate deck: move first card to end
-    const newDeck = [...deck.slice(1), deck[0]]
-    setDeck(newDeck)
-    setShowAnswer(false)
-  }, [currentCard, deck, historyIndex])
-
-  // Check if we can go back
-  const canGoBack = historyIndex >= 0
-
-  // Auto-skip banned cards - if current card is banned, cycle to next
-  useEffect(() => {
-    if (currentCard && currentCard.difficulty === -1) {
-      // Find the next non-banned card
-      const nonBannedIndex = deck.findIndex(item => item.difficulty !== -1)
-      if (nonBannedIndex > 0) {
-        // Rotate deck so non-banned card is first
-        const newDeck = [...deck.slice(nonBannedIndex), ...deck.slice(0, nonBannedIndex)]
         setDeck(newDeck)
         setShowAnswer(false)
-      }
+    }, [currentCard, deck, historyIndex])
+
+    // Unban a card by index
+    const handleUnban = useCallback((cardIndex: number) => {
+        const newDeck = [...deck]
+        const bannedCards = newDeck.filter(item => item.difficulty === -1)
+        const targetCard = bannedCards[cardIndex]
+
+        if (targetCard) {
+            const deckIndex = newDeck.findIndex(item => item === targetCard)
+            if (deckIndex !== -1) {
+                newDeck[deckIndex] = { ...newDeck[deckIndex], difficulty: 0 }
+                setDeck(newDeck)
+            }
+        }
+    }, [deck])
+
+    // Restart session: reset all difficulties to 0
+    const handleRestart = useCallback(() => {
+        const resetDeck = initialData.cards.map(item => ({ ...item, difficulty: 0 }))
+        setDeck(shuffleArray(resetDeck))
+        setShowAnswer(false)
+    }, [initialData.cards])
+
+    // Shuffle the deck
+    const handleShuffle = useCallback(() => {
+        setDeck(shuffleArray(deck))
+        setShowAnswer(false)
+    }, [deck])
+
+    // Toggle answer visibility
+    const handleToggleAnswer = useCallback(() => {
+        setShowAnswer(prev => !prev)
+    }, [])
+
+    // Navigate to previous card (go back in history)
+    const handlePrevCard = useCallback(() => {
+        if (historyIndex < 0 || cardHistory.length === 0) return
+
+        if (historyIndex >= 0) {
+            // Restore previous deck state
+            setDeck(cardHistory[historyIndex])
+            setHistoryIndex(prev => prev - 1)
+            setShowAnswer(false)
+        }
+    }, [historyIndex, cardHistory])
+
+    // Navigate to next card (without modifying difficulty)
+    const handleNextCard = useCallback(() => {
+        if (!currentCard || deck.length <= 1) return
+        if (currentCard.difficulty === -1) return // Skip banned cards
+        // Save current state to history
+        setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
+        setHistoryIndex(prev => prev + 1)
+
+        // Rotate deck: move first card to end
+        const newDeck = [...deck.slice(1), deck[0]]
+        setDeck(newDeck)
+        setShowAnswer(false)
+    }, [currentCard, deck, historyIndex])
+
+    // Check if we can go back
+    const canGoBack = historyIndex >= 0
+
+    // Auto-skip banned cards - if current card is banned, cycle to next
+    useEffect(() => {
+        if (currentCard && currentCard.difficulty === -1) {
+            // Find the next non-banned card
+            const nonBannedIndex = deck.findIndex(item => item.difficulty !== -1)
+            if (nonBannedIndex > 0) {
+                // Rotate deck so non-banned card is first
+                const newDeck = [...deck.slice(nonBannedIndex), ...deck.slice(0, nonBannedIndex)]
+                setDeck(newDeck)
+                setShowAnswer(false)
+            }
+        }
+    }, [currentCard, deck])
+
+    const difficultyToColor = (difficulty: number) => {
+        const growthFactor = 100
+        const redZero = 1.33696676691; //value gets red graph to 0 at 1
+        const greenZero = 1.14483213353; //value gets green graph to 20 at 0 (red is darker than green)
+        const xTransform = 0.1;
+        const maxRGBLevel = 255;
+        const difficultyPercent = difficulty / (maxDifficulty || 1)
+        const r = -1 * Math.pow(growthFactor, redZero * (1 - difficultyPercent - xTransform)) + maxRGBLevel
+        const g = -1 * Math.pow(growthFactor, greenZero * (-1 + difficultyPercent + xTransform + 1)) + maxRGBLevel + 140
+        const b = 140
+        console.log(r + " " + g + " " + b);
+        return `${Math.min(255, Math.max(0, r))}, ${Math.min(255, Math.max(0, g))}, ${Math.min(255, Math.max(0, b))}`
     }
-  }, [currentCard, deck])
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return
-      }
 
-      const key = e.key.toLowerCase()
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Don't trigger if user is typing in an input
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return
+            }
 
-      // Show visual feedback
-      const showFeedback = (keyName: string) => {
-        setActiveKey(keyName)
-        setTimeout(() => setActiveKey(null), 150)
-      }
+            const key = e.key.toLowerCase()
 
-      // Space: Toggle answer visibility
-      if (e.code === 'Space') {
-        e.preventDefault()
-        showFeedback('Space')
-        handleToggleAnswer()
-        return
-      }
+            // Show visual feedback
+            const showFeedback = (keyName: string) => {
+                setActiveKey(keyName)
+                setTimeout(() => setActiveKey(null), 150)
+            }
 
-      // D or Tab: Correct (when answer is visible)
-      if ((key === 'd' || e.code === 'Tab') && showAnswer) {
-        e.preventDefault()
-        showFeedback(key === 'd' ? 'D' : 'Tab')
-        handleCorrect()
-        return
-      }
+            // Space: Toggle answer visibility
+            if (e.code === 'Space') {
+                e.preventDefault()
+                showFeedback('Space')
+                handleToggleAnswer()
+                return
+            }
 
-      // S: Unsure (when answer is visible)
-      if (key === 's' && showAnswer) {
-        e.preventDefault()
-        showFeedback('S')
-        handleUnsure()
-        return
-      }
+            // D or Tab: Correct (when answer is visible)
+            if ((key === 'd' || e.code === 'Tab') && showAnswer) {
+                e.preventDefault()
+                showFeedback(key === 'd' ? 'D' : 'Tab')
+                handleCorrect()
+                return
+            }
 
-      // A or Shift: Incorrect (when answer is visible)
-      if ((key === 'a' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') && showAnswer) {
-        e.preventDefault()
-        showFeedback(key === 'a' ? 'A' : 'Shift')
-        handleIncorrect()
-        return
-      }
+            // S: Unsure (when answer is visible)
+            if (key === 's' && showAnswer) {
+                e.preventDefault()
+                showFeedback('S')
+                handleUnsure()
+                return
+            }
 
-      // X: Ban (when answer is visible)
-      if (key === 'x' && showAnswer) {
-        e.preventDefault()
-        showFeedback('X')
-        handleBan()
-        return
-      }
+            // A or Shift: Incorrect (when answer is visible)
+            if ((key === 'a' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') && showAnswer) {
+                e.preventDefault()
+                showFeedback(key === 'a' ? 'A' : 'Shift')
+                handleIncorrect()
+                return
+            }
 
-      // Q: Shuffle
-      if (key === 'q') {
-        e.preventDefault()
-        showFeedback('Q')
-        handleShuffle()
-        return
-      }
+            // X: Ban (when answer is visible)
+            if (key === 'x' && showAnswer) {
+                e.preventDefault()
+                showFeedback('X')
+                handleBan()
+                return
+            }
 
-      // R: Restart
-      if (key === 'r') {
-        e.preventDefault()
-        showFeedback('R')
-        handleRestart()
-        return
-      }
+            // Q: Shuffle
+            if (key === 'q') {
+                e.preventDefault()
+                showFeedback('Q')
+                handleShuffle()
+                return
+            }
 
-      // Left Arrow: Previous card
-      if (e.code === 'ArrowLeft' && canGoBack) {
-        e.preventDefault()
-        showFeedback('←')
-        handlePrevCard()
-        return
-      }
+            // R: Restart
+            if (key === 'r') {
+                e.preventDefault()
+                showFeedback('R')
+                handleRestart()
+                return
+            }
 
-      // Right Arrow: Next card
-      if (e.code === 'ArrowRight') {
-        e.preventDefault()
-        showFeedback('→')
-        handleNextCard()
-        return
-      }
-    }
+            // Left Arrow: Previous card
+            if (e.code === 'ArrowLeft' && canGoBack) {
+                e.preventDefault()
+                showFeedback('←')
+                handlePrevCard()
+                return
+            }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showAnswer, handleCorrect, handleIncorrect, handleUnsure, handleBan, handleShuffle, handleRestart, handleToggleAnswer, handlePrevCard, handleNextCard, canGoBack])
+            // Right Arrow: Next card
+            if (e.code === 'ArrowRight') {
+                e.preventDefault()
+                showFeedback('→')
+                handleNextCard()
+                return
+            }
+        }
 
-  // Calculate progress stats
-  const bannedCards = deck.filter(item => item.difficulty === -1)
-  const activeCards = deck.filter(item => item.difficulty !== -1)
-  // Mastered: cards that have been seen AND have difficulty 0 (either correct on first try, or worked through all difficulties)
-  const masteredCount = activeCards.filter(item => item.seen && item.difficulty === 0).length
-  // Learning: cards that have been seen but still have difficulty > 0
-  const learningCount = activeCards.filter(item => item.seen && item.difficulty > 0).length
-  // Not seen yet: cards that haven't been answered
-  const notSeenCount = activeCards.filter(item => !item.seen).length
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [showAnswer, handleCorrect, handleIncorrect, handleUnsure, handleBan, handleShuffle, handleRestart, handleToggleAnswer, handlePrevCard, handleNextCard, canGoBack])
 
-  // Handle case where all non-banned cards have been processed
-  const hasActiveCards = activeCards.length > 0
+    // Calculate progress stats
+    const bannedCards = deck.filter(item => item.difficulty === -1)
+    const activeCards = deck.filter(item => item.difficulty !== -1)
+    // Mastered: cards that have been seen AND have difficulty 0 (either correct on first try, or worked through all difficulties)
+    const masteredCount = activeCards.filter(item => item.seen && item.difficulty === 0).length
+    // Learning: cards that have been seen but still have difficulty > 0
+    const learningCount = activeCards.filter(item => item.seen && item.difficulty > 0).length
+    // Not seen yet: cards that haven't been answered
+    const notSeenCount = activeCards.filter(item => !item.seen).length
 
-  if (!hasActiveCards && bannedCards.length > 0) {
-    // All cards are banned
-    return (
-      <div className="learn_container">
-        <Header />
-        <h1>Learn</h1>
-        <p>All cards have been banned!</p>
-        <button className="learn_btn secondary" onClick={() => setShowBanList(true)}>
-          View Banned Cards ({bannedCards.length})
-        </button>
-        <a href="/learn" className="learn_btn secondary" style={{ marginLeft: '8px' }}>
-          ← Back
-        </a>
+    // Handle case where all non-banned cards have been processed
+    const hasActiveCards = activeCards.length > 0
 
-        {/* Ban List Modal */}
-        {showBanList && (
-          <div className="learn_modal_overlay" onClick={() => setShowBanList(false)}>
-            <div className="learn_modal" onClick={e => e.stopPropagation()}>
-              <h3>Banned Cards ({bannedCards.length})</h3>
-              <div className="learn_ban_list">
-                {bannedCards.map((card, i) => (
-                  <div key={i} className="learn_ban_item">
-                    <span className="learn_ban_preview">
-                      {card.data.slice(0, 2).join(' / ')}
-                    </span>
-                    <button className="learn_unban_btn" onClick={() => handleUnban(i)}>
-                      Unban
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button className="learn_btn secondary" onClick={() => setShowBanList(false)}>
-                Close
-              </button>
+
+    if (!hasActiveCards && bannedCards.length > 0) {
+        // All cards are banned
+        return (
+            <div className="learn_container">
+                <Header />
+                <h1>Learn</h1>
+                <p>All cards have been banned!</p>
+                <button className="learn_btn secondary" onClick={() => setShowBanList(true)}>
+                    View Banned Cards ({bannedCards.length})
+                </button>
+                <a href="/learn" className="learn_btn secondary" style={{ marginLeft: '8px' }}>
+                    ← Back
+                </a>
+
+                {/* Ban List Modal */}
+                {showBanList && (
+                    <div className="learn_modal_overlay" onClick={() => setShowBanList(false)}>
+                        <div className="learn_modal" onClick={e => e.stopPropagation()}>
+                            <h3>Banned Cards ({bannedCards.length})</h3>
+                            <div className="learn_ban_list">
+                                {bannedCards.map((card, i) => (
+                                    <div key={i} className="learn_ban_item">
+                                        <span className="learn_ban_preview">
+                                            {card.data.slice(0, 2).join(' / ')}
+                                        </span>
+                                        <button className="learn_unban_btn" onClick={() => handleUnban(i)}>
+                                            Unban
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="learn_btn secondary" onClick={() => setShowBanList(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
-          </div>
-        )}
-      </div>
-    )
-  }
+        )
+    }
 
-  if (deck.length === 0) {
+    if (deck.length === 0) {
+        return (
+            <>
+                <Header />
+                <h1>Learn</h1>
+                <p>Session: {sessionId}</p>
+                <p>No flashcards available. The session data may be empty.</p>
+                <a href="/learn">← Back to sessions</a>
+            </>
+        )
+    }
+
     return (
-      <>
-        <Header />
-        <h1>Learn</h1>
-        <p>Session: {sessionId}</p>
-        <p>No flashcards available. The session data may be empty.</p>
-        <a href="/learn">← Back to sessions</a>
-      </>
-    )
-  }
+        <div className="learn_container">
+            <Header />
+            <h1>Learn</h1>
+            <p className="learn_session_info">Session: {sessionId.substring(0, 8)}...</p>
 
-  return (
-    <div className="learn_container">
-      <Header />
-      <h1>Learn</h1>
-      <p className="learn_session_info">Session: {sessionId.substring(0, 8)}...</p>
+            <div className="learning_mode_controls">
+                <div className="learn_mode_grid">
+                    <button
+                        className={`learn_mode_btn ${learningMode === 'spaced' ? 'active' : ''}`}
+                        onClick={() => handleLearningModeChange('spaced')}
+                    >
+                        <span className="learn_mode_btn_label">Spaced Repetition</span>
+                    </button>
+                    <button
+                        className={`learn_mode_btn ${learningMode === 'random' ? 'active' : ''}`}
+                        onClick={() => handleLearningModeChange('random')}
+                    >
+                        <span className="learn_mode_btn_label">Random Order</span>
+                    </button>
+                    <button
+                        className={`learn_mode_btn ${learningMode === 'sequential' ? 'active' : ''}`}
+                        onClick={() => handleLearningModeChange('sequential')}
+                    >
+                        <span className="learn_mode_btn_label">Sequential</span>
+                    </button>
+                </div>
+            </div>
+            {/* Column Selection Controls */}
+            
+            <div className="learn_column_controls">
+                <div className="learn_column_grid">
+                    {headers.map((header, i) => (
+                        <div key={i} className="learn_column_option">
+                            <span className="learn_column_label">{header}</span>
+                            <div className="learn_column_buttons">
+                                <button
+                                    className={`learn_col_btn ${questionColumns.has(i) ? 'active question' : ''}`}
+                                    onClick={() => toggleQuestionColumn(i)}
+                                >
+                                    Q
+                                </button>
+                                <button
+                                    className={`learn_col_btn ${answerColumns.has(i) ? 'active answer' : ''}`}
+                                    onClick={() => toggleAnswerColumn(i)}
+                                >
+                                    A
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
-      {/* Column Selection Controls */}
-      <div className="learn_column_controls">
-        <h3>Column Settings</h3>
-        <div className="learn_column_grid">
-          {headers.map((header, i) => (
-            <div key={i} className="learn_column_option">
-              <span className="learn_column_label">{header}</span>
-              <div className="learn_column_buttons">
-                <button
-                  className={`learn_col_btn ${questionColumns.has(i) ? 'active question' : ''}`}
-                  onClick={() => toggleQuestionColumn(i)}
+            {/* Progress Stats */}
+            <div className="learn_progress">
+                <span>Not Seen: {notSeenCount}</span>
+                <span>Learning: {learningCount}</span>
+                <span>Mastered: {masteredCount}</span>
+                <span
+                    className={`learn_banned_stat ${bannedCards.length > 0 ? 'clickable' : ''}`}
+                    onClick={() => bannedCards.length > 0 && setShowBanList(true)}
                 >
-                  Q
+                    Banned: {bannedCards.length}
+                </span>
+                <span style={{ backgroundColor: `rgb(${difficultyToColor(currentCard?.difficulty ?? 0)})` }}>Difficulty: {currentCard?.difficulty ?? 0}</span>
+            </div>
+
+            {/* Flashcard with Navigation Arrows */}
+            <div className="learn_flashcard_nav_container">
+                {/* Left Arrow - Previous Card */}
+                <button
+                    className={`learn_nav_arrow left ${!canGoBack ? 'disabled' : ''} ${activeKey === '←' ? 'active' : ''}`}
+                    onClick={handlePrevCard}
+                    disabled={!canGoBack}
+                    title="Previous card (←)"
+                >
+                    ←
+                </button>
+
+                {/* Centered Flashcard - Click anywhere to flip */}
+                <div className="learn_flashcard_wrapper">
+                    <div
+                        className={`learn_flashcard_card ${showAnswer ? 'flipped' : ''}`}
+                        onClick={handleToggleAnswer}
+                    >
+                        {/* Front - Question */}
+                        <div className="learn_card_face learn_card_front">
+                            <div className="learn_card_section question">
+                                {currentCard?.data.map((cell, i) => (
+                                    questionColumns.has(i) && (
+                                        <div key={i} className="learn_card_field">
+                                            <span className="learn_card_label">{headers[i]}</span>
+                                            <span className="learn_card_value">
+                                                {cell || <span className="empty">(empty)</span>}
+                                            </span>
+                                        </div>
+                                    )
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Back - Answer */}
+                        <div className="learn_card_face learn_card_back">
+                            <div className="learn_card_section answer">
+                                {currentCard?.data.map((cell, i) => (
+                                    answerColumns.has(i) && (
+                                        <div key={i} className="learn_card_field">
+                                            <span className="learn_card_label">{headers[i]}</span>
+                                            <span className="learn_card_value">
+                                                {cell || <span className="empty">(empty)</span>}
+                                            </span>
+                                        </div>
+                                    )
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Arrow - Next Card */}
+                <button
+                    className={`learn_nav_arrow right ${activeKey === '→' ? 'active' : ''}`}
+                    onClick={handleNextCard}
+                    title="Next card (→)"
+                >
+                    →
+                </button>
+            </div>
+
+            {/* Response Buttons */}
+            <div className="learn_response_buttons">
+                {showAnswer ? (
+                    <>
+                        <button
+                            className={`learn_btn incorrect ${activeKey === 'A' || activeKey === 'Shift' ? 'active' : ''}`}
+                            onClick={handleIncorrect}
+                        >
+                            ✗ Incorrect
+                            <span className="learn_shortcut_hint">A</span>
+                        </button>
+                        <button
+                            className={`learn_btn unsure ${activeKey === 'S' ? 'active' : ''}`}
+                            onClick={handleUnsure}
+                        >
+                            ~ Unsure
+                            <span className="learn_shortcut_hint">S</span>
+                        </button>
+                        <button
+                            className={`learn_btn correct ${activeKey === 'D' || activeKey === 'Tab' ? 'active' : ''}`}
+                            onClick={handleCorrect}
+                        >
+                            ✓ Correct
+                            <span className="learn_shortcut_hint">D</span>
+                        </button>
+                        <button
+                            className={`learn_btn ban ${activeKey === 'X' ? 'active' : ''}`}
+                            onClick={handleBan}
+                        >
+                            🚫 Ban
+                            <span className="learn_shortcut_hint">X</span>
+                        </button>
+                    </>
+                ) : (
+                    <p className="learn_hint">Press Space to flip the card</p>
+                )}
+            </div>
+
+            {/* Control Buttons */}
+            <div className="learn_control_buttons">
+                <button
+                    className={`learn_btn secondary ${activeKey === 'Q' ? 'active' : ''}`}
+                    onClick={handleShuffle}
+                >
+                    🔀 Shuffle
+                    <span className="learn_shortcut_hint">Q</span>
                 </button>
                 <button
-                  className={`learn_col_btn ${answerColumns.has(i) ? 'active answer' : ''}`}
-                  onClick={() => toggleAnswerColumn(i)}
+                    className={`learn_btn secondary ${activeKey === 'R' ? 'active' : ''}`}
+                    onClick={handleRestart}
                 >
-                  A
+                    🔄 Restart
+                    <span className="learn_shortcut_hint">R</span>
                 </button>
-              </div>
+                <a href="/learn" className="learn_btn secondary">
+                    ← Back
+                </a>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Progress Stats */}
-      <div className="learn_progress">
-        <span>Not Seen: {notSeenCount}</span>
-        <span>Learning: {learningCount}</span>
-        <span>Mastered: {masteredCount}</span>
-        <span
-          className={`learn_banned_stat ${bannedCards.length > 0 ? 'clickable' : ''}`}
-          onClick={() => bannedCards.length > 0 && setShowBanList(true)}
-        >
-          Banned: {bannedCards.length}
-        </span>
-        <span>Difficulty: {currentCard?.difficulty ?? 0}</span>
-      </div>
-
-      {/* Flashcard with Navigation Arrows */}
-      <div className="learn_flashcard_nav_container">
-        {/* Left Arrow - Previous Card */}
-        <button
-          className={`learn_nav_arrow left ${!canGoBack ? 'disabled' : ''} ${activeKey === '←' ? 'active' : ''}`}
-          onClick={handlePrevCard}
-          disabled={!canGoBack}
-          title="Previous card (←)"
-        >
-          ←
-        </button>
-
-        {/* Centered Flashcard - Click anywhere to flip */}
-        <div className="learn_flashcard_wrapper">
-          <div
-            className={`learn_flashcard_card ${showAnswer ? 'flipped' : ''}`}
-            onClick={handleToggleAnswer}
-          >
-            {/* Front - Question */}
-            <div className="learn_card_face learn_card_front">
-              <div className="learn_card_section question">
-                {currentCard?.data.map((cell, i) => (
-                  questionColumns.has(i) && (
-                    <div key={i} className="learn_card_field">
-                      <span className="learn_card_label">{headers[i]}</span>
-                      <span className="learn_card_value">
-                        {cell || <span className="empty">(empty)</span>}
-                      </span>
+            {/* Keyboard Shortcuts Legend */}
+            <div className="learn_shortcuts_legend">
+                <h4>⌨️ Keyboard Shortcuts</h4>
+                <div className="learn_shortcuts_grid">
+                    <div className="learn_shortcut_item">
+                        <kbd>Space</kbd>
+                        <span>Flip card</span>
                     </div>
-                  )
-                ))}
-              </div>
-            </div>
-
-            {/* Back - Answer */}
-            <div className="learn_card_face learn_card_back">
-              <div className="learn_card_section answer">
-                {currentCard?.data.map((cell, i) => (
-                  answerColumns.has(i) && (
-                    <div key={i} className="learn_card_field">
-                      <span className="learn_card_label">{headers[i]}</span>
-                      <span className="learn_card_value">
-                        {cell || <span className="empty">(empty)</span>}
-                      </span>
+                    <div className="learn_shortcut_item">
+                        <kbd>←</kbd>
+                        <span>Previous</span>
                     </div>
-                  )
-                ))}
-              </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>→</kbd>
+                        <span>Next</span>
+                    </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>A</kbd> / <kbd>Shift</kbd>
+                        <span>Incorrect</span>
+                    </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>S</kbd>
+                        <span>Unsure</span>
+                    </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>D</kbd> / <kbd>Tab</kbd>
+                        <span>Correct</span>
+                    </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>X</kbd>
+                        <span>Ban card</span>
+                    </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>Q</kbd>
+                        <span>Shuffle</span>
+                    </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>R</kbd>
+                        <span>Restart</span>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
 
-        {/* Right Arrow - Next Card */}
-        <button
-          className={`learn_nav_arrow right ${activeKey === '→' ? 'active' : ''}`}
-          onClick={handleNextCard}
-          title="Next card (→)"
-        >
-          →
-        </button>
-      </div>
-
-      {/* Response Buttons */}
-      <div className="learn_response_buttons">
-        {showAnswer ? (
-          <>
-            <button
-              className={`learn_btn incorrect ${activeKey === 'A' || activeKey === 'Shift' ? 'active' : ''}`}
-              onClick={handleIncorrect}
-            >
-              ✗ Incorrect
-              <span className="learn_shortcut_hint">A</span>
-            </button>
-            <button
-              className={`learn_btn unsure ${activeKey === 'S' ? 'active' : ''}`}
-              onClick={handleUnsure}
-            >
-              ~ Unsure
-              <span className="learn_shortcut_hint">S</span>
-            </button>
-            <button
-              className={`learn_btn correct ${activeKey === 'D' || activeKey === 'Tab' ? 'active' : ''}`}
-              onClick={handleCorrect}
-            >
-              ✓ Correct
-              <span className="learn_shortcut_hint">D</span>
-            </button>
-            <button
-              className={`learn_btn ban ${activeKey === 'X' ? 'active' : ''}`}
-              onClick={handleBan}
-            >
-              🚫 Ban
-              <span className="learn_shortcut_hint">X</span>
-            </button>
-          </>
-        ) : (
-          <p className="learn_hint">Press Space to flip the card</p>
-        )}
-      </div>
-
-      {/* Control Buttons */}
-      <div className="learn_control_buttons">
-        <button
-          className={`learn_btn secondary ${activeKey === 'Q' ? 'active' : ''}`}
-          onClick={handleShuffle}
-        >
-          🔀 Shuffle
-          <span className="learn_shortcut_hint">Q</span>
-        </button>
-        <button
-          className={`learn_btn secondary ${activeKey === 'R' ? 'active' : ''}`}
-          onClick={handleRestart}
-        >
-          🔄 Restart
-          <span className="learn_shortcut_hint">R</span>
-        </button>
-        <a href="/learn" className="learn_btn secondary">
-          ← Back
-        </a>
-      </div>
-
-      {/* Keyboard Shortcuts Legend */}
-      <div className="learn_shortcuts_legend">
-        <h4>⌨️ Keyboard Shortcuts</h4>
-        <div className="learn_shortcuts_grid">
-          <div className="learn_shortcut_item">
-            <kbd>Space</kbd>
-            <span>Flip card</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>←</kbd>
-            <span>Previous</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>→</kbd>
-            <span>Next</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>A</kbd> / <kbd>Shift</kbd>
-            <span>Incorrect</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>S</kbd>
-            <span>Unsure</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>D</kbd> / <kbd>Tab</kbd>
-            <span>Correct</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>X</kbd>
-            <span>Ban card</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>Q</kbd>
-            <span>Shuffle</span>
-          </div>
-          <div className="learn_shortcut_item">
-            <kbd>R</kbd>
-            <span>Restart</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Ban List Modal */}
-      {showBanList && (
-        <div className="learn_modal_overlay" onClick={() => setShowBanList(false)}>
-          <div className="learn_modal" onClick={e => e.stopPropagation()}>
-            <h3>🚫 Banned Cards ({bannedCards.length})</h3>
-            {bannedCards.length === 0 ? (
-              <p className="learn_ban_empty">No banned cards</p>
-            ) : (
-              <div className="learn_ban_list">
-                {bannedCards.map((card, i) => (
-                  <div key={i} className="learn_ban_item">
-                    <span className="learn_ban_preview">
-                      {card.data.slice(0, 2).join(' / ')}
-                    </span>
-                    <button className="learn_unban_btn" onClick={() => handleUnban(i)}>
-                      Unban
-                    </button>
-                  </div>
-                ))}
-              </div>
+            {/* Ban List Modal */}
+            {showBanList && (
+                <div className="learn_modal_overlay" onClick={() => setShowBanList(false)}>
+                    <div className="learn_modal" onClick={e => e.stopPropagation()}>
+                        <h3>🚫 Banned Cards ({bannedCards.length})</h3>
+                        {bannedCards.length === 0 ? (
+                            <p className="learn_ban_empty">No banned cards</p>
+                        ) : (
+                            <div className="learn_ban_list">
+                                {bannedCards.map((card, i) => (
+                                    <div key={i} className="learn_ban_item">
+                                        <span className="learn_ban_preview">
+                                            {card.data.slice(0, 2).join(' / ')}
+                                        </span>
+                                        <button className="learn_unban_btn" onClick={() => handleUnban(i)}>
+                                            Unban
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <button className="learn_btn secondary" onClick={() => setShowBanList(false)}>
+                            Close
+                        </button>
+                    </div>
+                </div>
             )}
-            <button className="learn_btn secondary" onClick={() => setShowBanList(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* Debug info */}
-      <details className="learn_debug">
-        <summary>Debug Info</summary>
-        <pre>{JSON.stringify(deck.slice(0, 5), null, 2)}</pre>
-      </details>
-    </div>
-  )
+            {/* Debug info */}
+            <details className="learn_debug">
+                <summary>Debug Info</summary>
+                <pre>{JSON.stringify(deck.slice(0, 5), null, 2)}</pre>
+            </details>
+        </div>
+    )
 }
 
 // ============ Main Learn Component ============
 
 function Learn() {
-  const { sessionId } = useParams<{ sessionId?: string }>()
-  const [sessions] = useState<SessionInfo[]>(getSessionsFromLocalStorage())
+    const { sessionId } = useParams<{ sessionId?: string }>()
+    const [sessions] = useState<SheetInfo[]>(getSessionsFromLocalStorage())
 
-  // If we have a sessionId, load data and show flashcard study
-  if (sessionId) {
-    const data = loadSessionData(sessionId)
+    // If we have a sessionId, load data and show flashcard study
+    if (sessionId) {
+        const data = loadSessionData(sessionId)
 
-    if (!data || data.cards.length === 0) {
-      return (
-        <>
-          <Header />
-          <h1>Learn</h1>
-          <p>No data found for session: {sessionId}</p>
-          <a href="/learn">← Back to sessions</a>
-        </>
-      )
+        if (!data || data.cards.length === 0) {
+            return (
+                <>
+                    <Header />
+                    <h1>Learn</h1>
+                    <p>No data found for session: {sessionId}</p>
+                    <a href="/learn">← Back to sessions</a>
+                </>
+            )
+        }
+
+        return <FlashcardStudy initialData={data} sessionId={sessionId} />
     }
 
-    return <FlashcardStudy initialData={data} sessionId={sessionId} />
-  }
+    // No sessionId - show list of available sessions
+    return (
+        <>
+            <Header />
+            <h1>Learn</h1>
+            <p>Select a session to learn from:</p>
 
-  // No sessionId - show list of available sessions
-  return (
-    <>
-      <Header />
-      <h1>Learn</h1>
-      <p>Select a session to learn from:</p>
-
-      {sessions.length === 0 ? (
-        <p>No sessions found. <a href="/sheets">Create a new sheet</a> first.</p>
-      ) : (
-        <div className="learn_sessions">
-          {sessions.map((session) => (
-            <div key={session.storageKey} className="learn_session_item">
-              <a href={`/learn/${session.sessionId}`}>{session.sessionId}</a>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
-  )
+            {sessions.length === 0 ? (
+                <p>No sessions found. <a href="/sheets">Create a new sheet</a> first.</p>
+            ) : (
+                <div className="learn_sessions">
+                    {sessions.map((session) => (
+                        <div key={session.storageKey} className="learn_session_item">
+                            <a href={`/learn/${session.sessionId}`}>{session.sessionId}</a>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </>
+    )
 }
 
 export default Learn
