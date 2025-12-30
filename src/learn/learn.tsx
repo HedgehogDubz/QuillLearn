@@ -22,6 +22,58 @@ interface SessionData {
 
 // ============ Helper Functions ============
 
+// Parse cell content to extract text and images
+function parseCellContent(value: string): { text: string; images: string[] } {
+    const imageRegex = /\|\|\|IMG:(data:image\/[^|]+)\|\|\|/g;
+    const images: string[] = [];
+    let match;
+
+    while ((match = imageRegex.exec(value)) !== null) {
+        images.push(match[1]);
+    }
+
+    // Remove image markers from text
+    const text = value.replace(imageRegex, '').trim();
+
+    return { text, images };
+}
+
+// Render cell content with text and images
+function renderCellContent(cellValue: string) {
+    const { text, images } = parseCellContent(cellValue);
+
+    if (images.length === 0 && !text) {
+        return <span className="empty">(empty)</span>;
+    }
+
+    // Limit to maximum 2 images
+    const displayImages = images.slice(0, 2);
+
+    // Determine text size based on length
+    const getTextSizeClass = (text: string) => {
+        const length = text.length;
+        if (length > 300) return 'learn_cell_text_xs';
+        if (length > 200) return 'learn_cell_text_sm';
+        if (length > 100) return 'learn_cell_text_md';
+        return 'learn_cell_text_lg';
+    };
+
+    return (
+        <div className="learn_cell_content">
+            {text && <div className={`learn_cell_text ${getTextSizeClass(text)}`}>{text}</div>}
+            {displayImages.length > 0 && (
+                <div className="learn_cell_images_container">
+                    {displayImages.map((imgSrc, idx) => (
+                        <div key={idx} className="learn_cell_image">
+                            <img src={imgSrc} alt="" />
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // Get all spreadsheet sessions from localStorage
 function getSessionsFromLocalStorage(): SheetInfo[] {
     const sessions: SheetInfo[] = []
@@ -675,32 +727,76 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                         {/* Front - Question */}
                         <div className="learn_card_face learn_card_front">
                             <div className="learn_card_section question">
-                                {currentCard?.data.map((cell, i) => (
-                                    questionColumns.has(i) && (
-                                        <div key={i} className="learn_card_field">
-                                            <span className="learn_card_label">{headers[i]}</span>
-                                            <span className="learn_card_value">
-                                                {cell || <span className="empty">(empty)</span>}
-                                            </span>
-                                        </div>
-                                    )
-                                ))}
+                                <div className="learn_cards_grid">
+                                    {(() => {
+                                        const questionCols = Array.from(questionColumns);
+                                        const answerCols = Array.from(answerColumns);
+                                        const maxCards = Math.max(questionCols.length, answerCols.length);
+
+                                        return Array.from({ length: maxCards }).map((_, idx) => {
+                                            const colIndex = questionCols[idx];
+                                            const hasContent = colIndex !== undefined;
+
+                                            return (
+                                                <div key={idx} className="learn_individual_card">
+                                                    {hasContent ? (
+                                                        <div className="learn_card_field">
+                                                            <span className="learn_card_label">{headers[colIndex]}</span>
+                                                            <div className="learn_card_value">
+                                                                {renderCellContent(currentCard?.data[colIndex] || '')}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="learn_card_field learn_card_blank">
+                                                            <span className="learn_card_label">&nbsp;</span>
+                                                            <div className="learn_card_value">
+                                                                <span className="empty">(blank)</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
                             </div>
                         </div>
 
                         {/* Back - Answer */}
                         <div className="learn_card_face learn_card_back">
                             <div className="learn_card_section answer">
-                                {currentCard?.data.map((cell, i) => (
-                                    answerColumns.has(i) && (
-                                        <div key={i} className="learn_card_field">
-                                            <span className="learn_card_label">{headers[i]}</span>
-                                            <span className="learn_card_value">
-                                                {cell || <span className="empty">(empty)</span>}
-                                            </span>
-                                        </div>
-                                    )
-                                ))}
+                                <div className="learn_cards_grid">
+                                    {(() => {
+                                        const questionCols = Array.from(questionColumns);
+                                        const answerCols = Array.from(answerColumns);
+                                        const maxCards = Math.max(questionCols.length, answerCols.length);
+
+                                        return Array.from({ length: maxCards }).map((_, idx) => {
+                                            const colIndex = answerCols[idx];
+                                            const hasContent = colIndex !== undefined;
+
+                                            return (
+                                                <div key={idx} className="learn_individual_card">
+                                                    {hasContent ? (
+                                                        <div className="learn_card_field">
+                                                            <span className="learn_card_label">{headers[colIndex]}</span>
+                                                            <div className="learn_card_value">
+                                                                {renderCellContent(currentCard?.data[colIndex] || '')}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="learn_card_field learn_card_blank">
+                                                            <span className="learn_card_label">&nbsp;</span>
+                                                            <div className="learn_card_value">
+                                                                <span className="empty">(blank)</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -892,7 +988,7 @@ function Learn() {
                 <div className="learn_sessions">
                     {sessions.map((session) => (
                         <div key={session.storageKey} className="learn_session_item">
-                            <a href={`/learn/${session.sessionId}`}>{session.sessionId}</a>
+                            <a href={`/learn/${session.sessionId}`}>{session.title || session.sessionId}</a>
                         </div>
                     ))}
                 </div>

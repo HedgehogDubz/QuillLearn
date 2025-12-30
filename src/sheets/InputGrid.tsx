@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import './InputGrid.css'
 import { loadSheetData, saveSheetData, AUTO_SAVE_DEBOUNCE_MS } from './sheetStorage'
+import { ImageUploadModal } from './ImageUploadModal'
 
 // Constants
 const DRAG_THRESHOLD = 5; // Minimum distance in pixels to count as a drag (not just a click)
@@ -44,6 +45,28 @@ function copyGrid(grid: Grid): Grid {
     return grid.map(row => row.slice())
 }
 
+// Image handling helpers
+function insertImageIntoCell(cellValue: string, imageData: string): string {
+    // Insert image at the end of the cell content
+    const imageMarker = `|||IMG:${imageData}|||`;
+    return cellValue ? `${cellValue}\n${imageMarker}` : imageMarker;
+}
+
+function parseCellContent(value: string): { text: string; images: string[] } {
+    const imageRegex = /\|\|\|IMG:(data:image\/[^|]+)\|\|\|/g;
+    const images: string[] = [];
+    let match;
+
+    while ((match = imageRegex.exec(value)) !== null) {
+        images.push(match[1]);
+    }
+
+    // Remove image markers from text
+    const text = value.replace(imageRegex, '').trim();
+
+    return { text, images };
+}
+
 // Memoized Cell component for performance optimization
 interface CellProps {
     row: number;
@@ -60,6 +83,8 @@ interface CellProps {
     onMouseDown: (e: React.MouseEvent) => void;
     onMouseUp: () => void;
     autoResizeTextarea: (el: HTMLTextAreaElement) => void;
+    onAddImage?: (row: number, col: number) => void;
+    isHeaderRow?: boolean;
 }
 
 const Cell = React.memo(({
@@ -76,19 +101,34 @@ const Cell = React.memo(({
     onBlur,
     onMouseDown,
     onMouseUp,
-    autoResizeTextarea
+    autoResizeTextarea,
+    onAddImage,
+    isHeaderRow = false
 }: CellProps) => {
+    const { text, images } = parseCellContent(value);
+    const hasImages = images.length > 0;
+    const canAddMoreImages = images.length < 2; // Maximum 2 images per cell
+
     return (
         <td
             key={`${row}-${col}`}
-            className={`sheet_cell ${isSelected ? 'sheet_cell_selected' : ''} sheet_cell_row_${row} sheet_cell_col_${col}`}
+            className={`sheet_cell ${isSelected ? 'sheet_cell_selected' : ''} ${hasImages ? 'sheet_cell_has_images' : ''} sheet_cell_row_${row} sheet_cell_col_${col}`}
             style={{ width: columnWidth }}
             data-row={row}
             data-col={col}
         >
+            {/* Images displayed above textarea */}
+            {hasImages && (
+                <div className="sheet_cell_images">
+                    {images.map((imgSrc, idx) => (
+                        <img key={idx} src={imgSrc} alt="" className="sheet_cell_image" />
+                    ))}
+                </div>
+            )}
+
             <textarea
                 className="sheet_input"
-                value={value}
+                value={text}
                 ref={(el) => {
                     inputRef(el);
                     if (el) {
@@ -96,7 +136,11 @@ const Cell = React.memo(({
                     }
                 }}
                 onChange={(e) => {
-                    onChange(e.target.value);
+                    // Preserve images when editing text
+                    const newValue = images.length > 0
+                        ? `${e.target.value}\n${images.map(img => `|||IMG:${img}|||`).join('\n')}`
+                        : e.target.value;
+                    onChange(newValue);
                     autoResizeTextarea(e.target);
                 }}
                 onKeyDown={onKeyDown}
@@ -104,13 +148,30 @@ const Cell = React.memo(({
                 onFocus={onFocus}
                 onBlur={onBlur}
                 rows={1}
+                placeholder={hasImages ? '' : undefined}
             />
+
             {/* Selection overlay - positioned above textarea */}
             <div
                 className="sheet_selection_layer"
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
             />
+
+            {/* Add image button - only for non-header rows and if less than 2 images */}
+            {!isHeaderRow && onAddImage && canAddMoreImages && (
+                <button
+                    className="sheet_add_image_btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onAddImage(row, col);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    title="Add image (max 2)"
+                >
+                    📷
+                </button>
+            )}
         </td>
     );
 }, (prevProps, nextProps) => {
@@ -167,6 +228,10 @@ function InputGrid({ sessionId }: InputGridProps) {
 
     // Context menu state for row operations
     const [contextMenu, setContextMenu] = useState<ContextMenu>(null);
+
+    // Image upload modal state
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [imageTargetCell, setImageTargetCell] = useState<{ row: number; col: number } | null>(null);
 
     const rows = grid.length;
     const cols = grid[0]?.length ?? 0;
@@ -337,7 +402,7 @@ function InputGrid({ sessionId }: InputGridProps) {
         [grid]
     );
     const maybeAutoExpand = useCallback(
-        (r: number, c: number, value: string) => {
+        (r: number, _c: number, value: string) => {
             if (value.trim() === "") return;
 
             // If user typed in last row and it's not empty, add another row
@@ -601,6 +666,27 @@ function InputGrid({ sessionId }: InputGridProps) {
             return next;
         });
     }, [selection, saveToHistory]);
+
+    // Image handlers
+    const handleAddImage = useCallback((row: number, col: number) => {
+        setImageTargetCell({ row, col });
+        setImageModalOpen(true);
+    }, []);
+
+    const handleImageSelect = useCallback((imageData: string) => {
+        if (imageTargetCell) {
+            saveToHistory('Add image');
+            const { row, col } = imageTargetCell;
+            setGrid((prev) => {
+                const next = copyGrid(prev);
+                const currentValue = next[row][col];
+                next[row][col] = insertImageIntoCell(currentValue, imageData);
+                return next;
+            });
+        }
+        setImageModalOpen(false);
+        setImageTargetCell(null);
+    }, [imageTargetCell, saveToHistory]);
 
     // Mouse selection handlers
     const handleMouseDown = useCallback((e: React.MouseEvent, row: number, col: number) => {
@@ -1041,6 +1127,8 @@ function InputGrid({ sessionId }: InputGridProps) {
                                                 onMouseDown={(e) => handleMouseDown(e, r, c)}
                                                 onMouseUp={() => handleMouseUp(r, c)}
                                                 autoResizeTextarea={autoResizeTextarea}
+                                                onAddImage={handleAddImage}
+                                                isHeaderRow={r === 0}
                                             />
                                         );
                                     })}
@@ -1081,6 +1169,16 @@ function InputGrid({ sessionId }: InputGridProps) {
                     </button>
                 </div>
             )}
+
+            {/* Image upload modal */}
+            <ImageUploadModal
+                isOpen={imageModalOpen}
+                onClose={() => {
+                    setImageModalOpen(false);
+                    setImageTargetCell(null);
+                }}
+                onImageSelect={handleImageSelect}
+            />
         </div>
     )
 }

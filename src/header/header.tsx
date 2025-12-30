@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import './header.css'
 
 function Header() {
@@ -7,9 +6,7 @@ function Header() {
       <nav>
         <a href="/">Home</a>
         
-        <a href="/sheets" style ={{padding: '10px'}}>Sheets</a>
-
-        <a href="/learn" style ={{padding: '0px'}}>Learn</a>
+        <a href="/learn" style ={{padding: '10px'}}>Learn</a>
       </nav>
     </>
   )

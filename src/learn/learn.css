@@ -213,14 +213,14 @@
   justify-content: center;
   perspective: 1000px;
   flex: 1;
-  max-width: 500px;
+  max-width: 900px;
 }
 
 .learn_flashcard_card {
   min-width: 320px;
-  max-width: 500px;
+  max-width: 900px;
   width: 100%;
-  height: 300px;
+  aspect-ratio: 5 / 3; /* Maintain 5:3 aspect ratio (500px / 300px) */
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.2s ease-out;
@@ -240,7 +240,7 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   border-radius: 16px;
-  padding: 32px;
+  padding: 2.5vw;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -280,19 +280,195 @@
   flex-direction: column;
   gap: 16px;
   flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/* Grid container for multiple cards */
+.learn_cards_grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5%;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  align-content: start;
+  grid-auto-rows: min-content;
+  justify-items: center;
+}
+
+/* Single card - center it and make it bigger */
+.learn_cards_grid:has(.learn_individual_card:only-child) {
+  grid-template-columns: 1fr;
+  place-items: center;
+  align-content: center;
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_individual_card {
+  max-width: 95%;
+  width: 100%;
+  border: 0.2vw solid #e5e7eb;
+  border-radius: 1vw;
+  padding: 2vw;
+}
+
+/* Larger text for single card */
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_card_label {
+  font-size: clamp(10px, 1vw, 14px);
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_text_lg {
+  font-size: clamp(14px, 2.8vw, 36px);
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_text_md {
+  font-size: clamp(12px, 2.2vw, 28px);
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_text_sm {
+  font-size: clamp(10px, 1.8vw, 22px);
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_text_xs {
+  font-size: clamp(9px, 1.4vw, 18px);
+}
+
+/* Larger images for single card */
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_images_container:has(.learn_cell_image:only-child) {
+  max-width: 180px;
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_images_container:has(.learn_cell_image:only-child) .learn_cell_image {
+  width: 180px;
+  height: 180px;
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) {
+  max-width: 100px;
+}
+
+.learn_cards_grid:has(.learn_individual_card:only-child) .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
+  width: 100px;
+  height: 100px;
+}
+
+/* Odd number of cards - center the last card */
+.learn_individual_card:nth-child(odd):last-child {
+  grid-column: 1 / -1;
+  max-width: 48%;
+  justify-self: center;
+}
+
+/* Individual card in the grid */
+.learn_individual_card {
+  background: white;
+  border: 0.15vw solid #e5e7eb;
+  border-radius: 0.8vw;
+  padding: 1.2vw;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 5 / 3; /* Same as original 500px / 300px */
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.learn_individual_card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 0.3vw 0.8vw rgba(0, 0, 0, 0.08);
+}
+
+/* Blank card styling */
+.learn_card_blank {
+  opacity: 0.3;
+}
+
+/* Scale text in grid cards */
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_individual_card {
+  font-size: 0.85em;
+}
+
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_card_label {
+  font-size: clamp(6px, 0.55vw, 10px);
+}
+
+/* Scale images in grid cards */
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:only-child) {
+  max-width: 9vw;
+}
+
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:only-child) .learn_cell_image {
+  width: 9vw;
+  height: 9vw;
+}
+
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) {
+  max-width: 5vw;
+}
+
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
+  width: 5vw;
+  height: 5vw;
+}
+
+/* Responsive: stack vertically on narrow screens */
+@media (max-width: 768px) {
+  .learn_cards_grid {
+    grid-template-columns: 1fr;
+    place-items: center;
+    gap: 2%;
+  }
+
+  .learn_individual_card {
+    max-width: 90%;
+    width: 100%;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_card_label {
+    font-size: 10px;
+  }
+
+  .learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:only-child) {
+    max-width: 100px;
+  }
+
+  .learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:only-child) .learn_cell_image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) {
+    max-width: 60px;
+  }
+
+  .learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
+    width: 60px;
+    height: 60px;
+  }
 }
 
 .learn_card_field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.3vw;
+  min-height: 0; /* Allow shrinking */
+  overflow: hidden; /* Prevent overflow */
+  flex: 1; /* Take available space */
+  max-height: 100%; /* Constrain to parent */
 }
 
 .learn_card_label {
-  font-size: 12px;
+  font-size: clamp(8px, 0.8vw, 12px);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.03vw;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .learn_card_section.question .learn_card_label {
@@ -304,9 +480,14 @@
 }
 
 .learn_card_value {
-  font-size: 24px;
   font-weight: 500;
   color: #1a1a1a;
+  overflow-y: auto; /* Allow scrolling if content is too long */
+  max-height: 100%; /* Constrain to parent */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .learn_card_value .empty {
@@ -522,5 +703,153 @@
   .learn_btn {
     padding: 12px 20px;
     font-size: 14px;
+  }
+}
+
+/* ============ Media Content Styles ============ */
+
+/* Container for mixed content (text + images) - horizontal layout */
+.learn_cell_content {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 0; /* Allow shrinking */
+}
+
+/* Text element in cell - takes remaining space */
+.learn_cell_text {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0; /* Allows text to shrink properly */
+  overflow-y: auto; /* Allow scrolling if text is too long */
+  max-height: 100%; /* Limit text height to container */
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Dynamic text sizes based on content length */
+.learn_cell_text_lg {
+  font-size: clamp(10px, 2.2vw, 28px); /* Large text for short content (0-100 chars) */
+}
+
+.learn_cell_text_md {
+  font-size: clamp(9px, 1.7vw, 20px); /* Medium text for moderate content (100-200 chars) */
+}
+
+.learn_cell_text_sm {
+  font-size: clamp(8px, 1.3vw, 16px); /* Small text for longer content (200-300 chars) */
+}
+
+.learn_cell_text_xs {
+  font-size: clamp(7px, 1vw, 13px); /* Extra small text for very long content (300+ chars) */
+}
+
+/* Scale text further in multi-card grids */
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_text_lg {
+  font-size: clamp(8px, 1.5vw, 18px);
+}
+
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_text_md {
+  font-size: clamp(7px, 1.2vw, 14px);
+}
+
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_text_sm {
+  font-size: clamp(6px, 0.95vw, 12px);
+}
+
+.learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_text_xs {
+  font-size: clamp(5px, 0.75vw, 10px);
+}
+
+/* Images container - stacks images vertically on the right */
+.learn_cell_images_container {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: center; /* Always center vertically, independent of text length */
+}
+
+/* Single image - larger size */
+.learn_cell_images_container:has(.learn_cell_image:only-child) {
+  max-width: 180px;
+}
+
+.learn_cell_images_container:has(.learn_cell_image:only-child) .learn_cell_image {
+  width: 180px;
+  height: 180px;
+}
+
+/* Two images - smaller size */
+.learn_cell_images_container:has(.learn_cell_image:nth-child(2)) {
+  max-width: 100px;
+}
+
+.learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
+  width: 100px;
+  height: 100px;
+}
+
+/* Image element in cell - default size */
+.learn_cell_image {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #f7fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.learn_cell_image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Ensure card value can contain images properly */
+.learn_card_value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Responsive: stack vertically on small screens */
+@media (max-width: 600px) {
+  .learn_cell_content {
+    flex-direction: column;
+  }
+
+  .learn_cell_images_container {
+    max-width: 100%;
+    align-self: center;
+  }
+
+  /* Single image on mobile */
+  .learn_cell_images_container:has(.learn_cell_image:only-child) .learn_cell_image {
+    width: 150px;
+    height: 150px;
+  }
+
+  /* Two images on mobile */
+  .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
+    width: 80px;
+    height: 80px;
   }
 }
