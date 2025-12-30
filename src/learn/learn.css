@@ -151,10 +151,41 @@
   display: flex;
   justify-content: center;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   font-size: 13px;
   color: #333;
   flex-wrap: wrap;
+}
+
+/* Display Mode Toggle */
+.learn_display_mode_toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+
+.learn_mode_btn {
+  padding: 6px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.learn_mode_btn:hover {
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+.learn_mode_btn.active {
+  background: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
 }
 
 .learn_progress span {
@@ -360,6 +391,98 @@
   justify-self: center;
 }
 
+/* ============ UNIFIED MODE ============ */
+
+/* Unified mode - single card with all content */
+.learn_cards_grid.unified_mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5%;
+  padding: 1.5vw;
+  align-content: flex-start;
+  justify-content: flex-start;
+}
+
+/* Remove individual card styling in unified mode */
+.learn_cards_grid.unified_mode .learn_individual_card {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0;
+  padding: 0.8vw 0;
+  aspect-ratio: auto;
+  box-shadow: none;
+}
+
+.learn_cards_grid.unified_mode .learn_individual_card:last-child {
+  border-bottom: none;
+  grid-column: auto;
+  max-width: 100%;
+}
+
+.learn_cards_grid.unified_mode .learn_individual_card:hover {
+  border-color: #e5e7eb;
+  box-shadow: none;
+}
+
+/* Compact field layout in unified mode */
+.learn_cards_grid.unified_mode .learn_card_field {
+  gap: 0.2vw;
+}
+
+/* Smaller labels in unified mode */
+.learn_cards_grid.unified_mode .learn_card_label {
+  font-size: clamp(5px, 0.45vw, 9px);
+  letter-spacing: 0.02vw;
+}
+
+/* Aggressive text scaling in unified mode */
+.learn_cards_grid.unified_mode .learn_cell_text_lg {
+  font-size: clamp(6px, 1vw, 14px);
+}
+
+.learn_cards_grid.unified_mode .learn_cell_text_md {
+  font-size: clamp(5px, 0.8vw, 11px);
+}
+
+.learn_cards_grid.unified_mode .learn_cell_text_sm {
+  font-size: clamp(4px, 0.65vw, 9px);
+}
+
+.learn_cards_grid.unified_mode .learn_cell_text_xs {
+  font-size: clamp(4px, 0.5vw, 8px);
+}
+
+/* Smaller images in unified mode */
+.learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:only-child) {
+  max-width: 6vw;
+}
+
+.learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:only-child) .learn_cell_image {
+  width: 6vw;
+  height: 6vw;
+}
+
+.learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) {
+  max-width: 3.5vw;
+}
+
+.learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
+  width: 3.5vw;
+  height: 3.5vw;
+}
+
+/* Tighter gaps in unified mode */
+.learn_cards_grid.unified_mode .learn_cell_images_container {
+  gap: 0.3vw;
+}
+
+/* Reduce line height in unified mode */
+.learn_cards_grid.unified_mode .learn_cell_text {
+  line-height: 1.2;
+  max-height: 100%;
+}
+
 /* Individual card in the grid */
 .learn_individual_card {
   background: white;
@@ -450,6 +573,55 @@
   .learn_cards_grid:not(:has(.learn_individual_card:only-child)) .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
     width: 60px;
     height: 60px;
+  }
+
+  /* Unified mode mobile adjustments */
+  .learn_cards_grid.unified_mode {
+    padding: 12px;
+  }
+
+  .learn_cards_grid.unified_mode .learn_individual_card {
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .learn_cards_grid.unified_mode .learn_card_label {
+    font-size: 7px;
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_text_lg {
+    font-size: clamp(8px, 2vw, 12px);
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_text_md {
+    font-size: clamp(7px, 1.6vw, 10px);
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_text_sm {
+    font-size: clamp(6px, 1.3vw, 9px);
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_text_xs {
+    font-size: clamp(5px, 1vw, 8px);
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:only-child) {
+    max-width: 70px;
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:only-child) .learn_cell_image {
+    width: 70px;
+    height: 70px;
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) {
+    max-width: 45px;
+  }
+
+  .learn_cards_grid.unified_mode .learn_cell_images_container:has(.learn_cell_image:nth-child(2)) .learn_cell_image {
+    width: 45px;
+    height: 45px;
   }
 }
 

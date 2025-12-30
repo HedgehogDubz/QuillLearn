@@ -177,6 +177,9 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
     const [cardHistory, setCardHistory] = useState<FlashcardItem[][]>([])
     const [historyIndex, setHistoryIndex] = useState(-1)
 
+    // State for display mode (grid vs unified)
+    const [displayMode, setDisplayMode] = useState<'grid' | 'unified'>('grid')
+
     // Calculate max difficulty based on deck size
     const maxDifficulty = useMemo(() => calculateMaxDifficulty(deck.length), [deck.length])
 
@@ -706,6 +709,24 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                 <span style={{ backgroundColor: `rgb(${difficultyToColor(currentCard?.difficulty ?? 0)})` }}>Difficulty: {currentCard?.difficulty ?? 0}</span>
             </div>
 
+            {/* Display Mode Toggle */}
+            <div className="learn_display_mode_toggle">
+                <button
+                    className={`learn_mode_btn ${displayMode === 'grid' ? 'active' : ''}`}
+                    onClick={() => setDisplayMode('grid')}
+                    title="Multi-Card Grid View"
+                >
+                    Grid View
+                </button>
+                <button
+                    className={`learn_mode_btn ${displayMode === 'unified' ? 'active' : ''}`}
+                    onClick={() => setDisplayMode('unified')}
+                    title="Single Unified Card View"
+                >
+                    Compact View
+                </button>
+            </div>
+
             {/* Flashcard with Navigation Arrows */}
             <div className="learn_flashcard_nav_container">
                 {/* Left Arrow - Previous Card */}
@@ -727,7 +748,7 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                         {/* Front - Question */}
                         <div className="learn_card_face learn_card_front">
                             <div className="learn_card_section question">
-                                <div className="learn_cards_grid">
+                                <div className={`learn_cards_grid ${displayMode === 'unified' ? 'unified_mode' : ''}`}>
                                     {(() => {
                                         const questionCols = Array.from(questionColumns);
                                         const answerCols = Array.from(answerColumns);
@@ -765,7 +786,7 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                         {/* Back - Answer */}
                         <div className="learn_card_face learn_card_back">
                             <div className="learn_card_section answer">
-                                <div className="learn_cards_grid">
+                                <div className={`learn_cards_grid ${displayMode === 'unified' ? 'unified_mode' : ''}`}>
                                     {(() => {
                                         const questionCols = Array.from(questionColumns);
                                         const answerCols = Array.from(answerColumns);
