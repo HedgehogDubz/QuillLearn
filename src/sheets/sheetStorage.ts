@@ -2,7 +2,7 @@ type Grid = string[][]
 
 // New row-based data structure for better extensibility
 export type RowData = {
-    data: string[];  
+    data: string[];
 };
 
 // New format with row objects
@@ -10,6 +10,7 @@ export type SavedSpreadsheetData = {
     title: string;
     rows: RowData[];
     columnWidths: number[];
+    lastTimeSaved: number;
 };
 
 // Constants
@@ -53,7 +54,7 @@ export function loadSheetData(
                 };
             }
 
-            
+
         }
     } catch (error) {
         console.error('Error loading saved spreadsheet data:', error);
@@ -74,7 +75,7 @@ export function saveSheetData(
     title: string,
     grid: Grid,
     columnWidths: number[],
-    lastSavedData: string | null
+    lastSavedData: string | null,
 ): { success: boolean; serializedData: string | null } {
     try {
         const storageKey = getStorageKey(sessionId);
@@ -107,7 +108,8 @@ export function saveSheetData(
         const dataToSave: SavedSpreadsheetData = {
             title: saveTitle,
             rows: gridToRowData(grid),
-            columnWidths
+            columnWidths,
+            lastTimeSaved: Date.now()
         };
 
         // Serialize data
@@ -129,4 +131,21 @@ export function saveSheetData(
         return { success: false, serializedData: null };
     }
 }
+
+// Update lastTimeSaved timestamp when accessing a sheet
+export function updateLastAccessed(sessionId: string): void {
+    try {
+        const storageKey = getStorageKey(sessionId);
+        const savedData = localStorage.getItem(storageKey);
+
+        if (savedData) {
+            const parsed = JSON.parse(savedData) as SavedSpreadsheetData;
+            parsed.lastTimeSaved = Date.now();
+            localStorage.setItem(storageKey, JSON.stringify(parsed));
+        }
+    } catch (error) {
+        console.error('Error updating last accessed time:', error);
+    }
+}
+
 

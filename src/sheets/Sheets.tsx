@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import './Sheets.css'
 import Header from '../header/header.tsx'
 import InputGrid from './InputGrid.tsx'
+import { updateLastAccessed } from './sheetStorage.ts'
 
 function Sheets() {
   const { sessionId } = useParams<{ sessionId?: string }>();
@@ -13,6 +14,9 @@ function Sheets() {
     if (!sessionId) {
       const newSessionId = crypto.randomUUID();
       navigate(`/sheets/${newSessionId}`, { replace: true });
+    } else {
+      // Update lastTimeSaved when opening the sheet
+      updateLastAccessed(sessionId);
     }
   }, [sessionId, navigate]);
 

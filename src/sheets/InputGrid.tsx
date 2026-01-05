@@ -121,7 +121,9 @@ const Cell = React.memo(({
             {hasImages && (
                 <div className="sheet_cell_images">
                     {images.map((imgSrc, idx) => (
-                        <img key={idx} src={imgSrc} alt="" className="sheet_cell_image" />
+                        <div key={idx} className="sheet_cell_image">
+                            <img src={imgSrc} alt="" />
+                        </div>
                     ))}
                 </div>
             )}

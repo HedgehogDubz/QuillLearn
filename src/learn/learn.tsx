@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import './learn.css'
 import Header from '../header/header.tsx'
-import type { SheetInfo } from '../gaurdian.ts';
+import type { SessionInfo } from '../gaurdian.ts';
+import { updateLastAccessed } from '../sheets/sheetStorage.ts'
 // ============ Types ============
 
 
@@ -75,16 +76,18 @@ function renderCellContent(cellValue: string) {
 }
 
 // Get all spreadsheet sessions from localStorage
-function getSessionsFromLocalStorage(): SheetInfo[] {
-    const sessions: SheetInfo[] = []
+function getSessionsFromLocalStorage(): SessionInfo[] {
+    const sessions: SessionInfo[] = []
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
         if (key?.startsWith('spreadsheet_session_')) {
             const sessionId = key.replace('spreadsheet_session_', '')
+            const data = JSON.parse(localStorage.getItem(key) || '{}')
             sessions.push({
-                title: JSON.parse(localStorage.getItem(key) || '').title,
+                title: data.title || 'Untitled Sheet',
                 storageKey: key,
-                sessionId: sessionId
+                sessionId: sessionId,
+                lastTimeSaved: data.lastTimeSaved
             })
         }
     }
@@ -153,6 +156,11 @@ interface FlashcardStudyProps {
 }
 
 function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
+    // Update lastTimeSaved when entering learn mode
+    useEffect(() => {
+        updateLastAccessed(sessionId);
+    }, [sessionId]);
+
     // State for flashcard deck
     const [deck, setDeck] = useState<FlashcardItem[]>(initialData.cards)
     const headers = initialData.headers
@@ -712,14 +720,14 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
             {/* Display Mode Toggle */}
             <div className="learn_display_mode_toggle">
                 <button
-                    className={`learn_mode_btn ${displayMode === 'grid' ? 'active' : ''}`}
+                    className={`learn_display_btn ${displayMode === 'grid' ? 'active' : ''}`}
                     onClick={() => setDisplayMode('grid')}
                     title="Multi-Card Grid View"
                 >
                     Grid View
                 </button>
                 <button
-                    className={`learn_mode_btn ${displayMode === 'unified' ? 'active' : ''}`}
+                    className={`learn_display_btn ${displayMode === 'unified' ? 'active' : ''}`}
                     onClick={() => setDisplayMode('unified')}
                     title="Single Unified Card View"
                 >
@@ -748,33 +756,20 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                         {/* Front - Question */}
                         <div className="learn_card_face learn_card_front">
                             <div className="learn_card_section question">
-                                <div className={`learn_cards_grid ${displayMode === 'unified' ? 'unified_mode' : ''}`}>
+                                <div className={`learn_cards_grid ${displayMode === 'unified' && questionColumns.size > 1 ? 'unified_mode' : ''}`}>
                                     {(() => {
                                         const questionCols = Array.from(questionColumns);
-                                        const answerCols = Array.from(answerColumns);
-                                        const maxCards = Math.max(questionCols.length, answerCols.length);
 
-                                        return Array.from({ length: maxCards }).map((_, idx) => {
-                                            const colIndex = questionCols[idx];
-                                            const hasContent = colIndex !== undefined;
-
+                                        // Only render cards for actual question columns (no empty placeholders)
+                                        return questionCols.map((colIndex, idx) => {
                                             return (
                                                 <div key={idx} className="learn_individual_card">
-                                                    {hasContent ? (
-                                                        <div className="learn_card_field">
-                                                            <span className="learn_card_label">{headers[colIndex]}</span>
-                                                            <div className="learn_card_value">
-                                                                {renderCellContent(currentCard?.data[colIndex] || '')}
-                                                            </div>
+                                                    <div className="learn_card_field">
+                                                        <span className="learn_card_label">{headers[colIndex]}</span>
+                                                        <div className="learn_card_value">
+                                                            {renderCellContent(currentCard?.data[colIndex] || '')}
                                                         </div>
-                                                    ) : (
-                                                        <div className="learn_card_field learn_card_blank">
-                                                            <span className="learn_card_label">&nbsp;</span>
-                                                            <div className="learn_card_value">
-                                                                <span className="empty">(blank)</span>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             );
                                         });
@@ -786,33 +781,20 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                         {/* Back - Answer */}
                         <div className="learn_card_face learn_card_back">
                             <div className="learn_card_section answer">
-                                <div className={`learn_cards_grid ${displayMode === 'unified' ? 'unified_mode' : ''}`}>
+                                <div className={`learn_cards_grid ${displayMode === 'unified' && answerColumns.size > 1 ? 'unified_mode' : ''}`}>
                                     {(() => {
-                                        const questionCols = Array.from(questionColumns);
                                         const answerCols = Array.from(answerColumns);
-                                        const maxCards = Math.max(questionCols.length, answerCols.length);
 
-                                        return Array.from({ length: maxCards }).map((_, idx) => {
-                                            const colIndex = answerCols[idx];
-                                            const hasContent = colIndex !== undefined;
-
+                                        // Only render cards for actual answer columns (no empty placeholders)
+                                        return answerCols.map((colIndex, idx) => {
                                             return (
                                                 <div key={idx} className="learn_individual_card">
-                                                    {hasContent ? (
-                                                        <div className="learn_card_field">
-                                                            <span className="learn_card_label">{headers[colIndex]}</span>
-                                                            <div className="learn_card_value">
-                                                                {renderCellContent(currentCard?.data[colIndex] || '')}
-                                                            </div>
+                                                    <div className="learn_card_field">
+                                                        <span className="learn_card_label">{headers[colIndex]}</span>
+                                                        <div className="learn_card_value">
+                                                            {renderCellContent(currentCard?.data[colIndex] || '')}
                                                         </div>
-                                                    ) : (
-                                                        <div className="learn_card_field learn_card_blank">
-                                                            <span className="learn_card_label">&nbsp;</span>
-                                                            <div className="learn_card_value">
-                                                                <span className="empty">(blank)</span>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             );
                                         });
@@ -976,7 +958,7 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
 
 function Learn() {
     const { sessionId } = useParams<{ sessionId?: string }>()
-    const [sessions] = useState<SheetInfo[]>(getSessionsFromLocalStorage())
+    const [sessions] = useState<SessionInfo[]>(getSessionsFromLocalStorage())
 
     // If we have a sessionId, load data and show flashcard study
     if (sessionId) {

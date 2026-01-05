@@ -1,0 +1,738 @@
+/* Notes Container */
+.notes_container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Title Bar */
+.notes_title_bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.notes_title_input {
+  flex: 1;
+  font-size: 1.75rem;
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 4px 8px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  color: #333;
+}
+
+.notes_title_input:hover {
+  border-bottom-color: #e0e0e0;
+}
+
+.notes_title_input:focus {
+  border-bottom-color: #4285f4;
+}
+
+.notes_save_indicator {
+  font-size: 0.875rem;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.notes_save_indicator.saved {
+  color: #2e7d32;
+  background-color: #e8f5e9;
+}
+
+.notes_save_indicator.unsaved {
+  color: #f57c00;
+  background-color: #fff3e0;
+}
+
+/* Toolbar Actions */
+.notes_toolbar_actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.notes_action_btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notes_action_btn:hover {
+  background: #f8f9fa;
+  border-color: #4285f4;
+}
+
+/* Editor Wrapper - Paper-like appearance */
+.notes_editor_wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Changed from hidden to allow sticky toolbar */
+}
+
+/* Quill Editor Customization */
+.notes_editor_wrapper .ql-container {
+  font-size: 16px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  min-height: 600px;
+  border: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  overflow: auto; /* Handle content overflow */
+}
+
+.notes_editor_wrapper .ql-editor {
+  padding: 60px 80px;
+  min-height: 600px;
+  background: white;
+}
+
+.notes_editor_wrapper .ql-editor.ql-blank::before {
+  color: #aaa;
+  font-style: italic;
+  left: 80px;
+}
+
+/* Toolbar Styling */
+.notes_editor_wrapper .ql-toolbar {
+  background: #f8f9fa;
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Increased z-index to stay above content */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.notes_editor_wrapper .ql-toolbar button {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.notes_editor_wrapper .ql-toolbar button:hover {
+  background: #e8eaed;
+}
+
+.notes_editor_wrapper .ql-toolbar button.ql-active {
+  background: #d3e3fd;
+  color: #1a73e8;
+}
+
+.notes_editor_wrapper .ql-toolbar .ql-stroke {
+  stroke: #5f6368;
+}
+
+.notes_editor_wrapper .ql-toolbar .ql-fill {
+  fill: #5f6368;
+}
+
+.notes_editor_wrapper .ql-toolbar button:hover .ql-stroke,
+.notes_editor_wrapper .ql-toolbar button.ql-active .ql-stroke {
+  stroke: #1a73e8;
+}
+
+.notes_editor_wrapper .ql-toolbar button:hover .ql-fill,
+.notes_editor_wrapper .ql-toolbar button.ql-active .ql-fill {
+  fill: #1a73e8;
+}
+
+/* Custom drawing button styling */
+.notes_editor_wrapper .ql-toolbar button.ql-drawing {
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notes_editor_wrapper .ql-toolbar button.ql-drawing::before {
+  content: '✏️';
+  font-size: 16px;
+}
+
+.notes_editor_wrapper .ql-toolbar button.ql-drawing:hover {
+  background: #e8eaed;
+}
+
+/* Custom embed file button styling */
+.notes_editor_wrapper .ql-toolbar button.ql-embedFile {
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notes_editor_wrapper .ql-toolbar button.ql-embedFile::before {
+  content: '📎';
+  font-size: 16px;
+}
+
+.notes_editor_wrapper .ql-toolbar button.ql-embedFile:hover {
+  background: #e8eaed;
+}
+
+/* Drawing Modal */
+.notes_drawing_modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.notes_drawing_container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.notes_drawing_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.notes_drawing_header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.notes_drawing_header button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.notes_drawing_header button:hover {
+  background: #f0f0f0;
+}
+
+.notes_canvas {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: crosshair;
+  background: white;
+  display: block;
+}
+
+.notes_drawing_controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.notes_drawing_controls button {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.notes_drawing_controls button:hover {
+  background: #f8f9fa;
+  border-color: #4285f4;
+}
+
+.notes_drawing_controls button:last-child {
+  background: #4285f4;
+  color: white;
+  border-color: #4285f4;
+}
+
+.notes_drawing_controls button:last-child:hover {
+  background: #3367d6;
+}
+
+.notes_drawing_controls button.primary {
+  background: #4285f4;
+  color: white;
+  border-color: #4285f4;
+}
+
+.notes_drawing_controls button.primary:hover {
+  background: #1a73e8;
+}
+
+/* Drawing Toolbar */
+.notes_drawing_toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.notes_drawing_tools {
+  display: flex;
+  gap: 8px;
+}
+
+.notes_drawing_tools button {
+  width: 44px;
+  height: 44px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.notes_drawing_tools button:hover {
+  border-color: #4285f4;
+  background: #e8f0fe;
+}
+
+.notes_drawing_tools button.active {
+  border-color: #4285f4;
+  background: #4285f4;
+  color: white;
+}
+
+.notes_drawing_options {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.notes_drawing_option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes_drawing_option label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #5f6368;
+}
+
+.notes_drawing_option input[type="range"] {
+  width: 100px;
+}
+
+.notes_drawing_option input[type="color"] {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notes_drawing_option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.notes_drawing_option span {
+  font-size: 14px;
+  color: #5f6368;
+  min-width: 40px;
+}
+
+.notes_drawing_color_palette {
+  display: flex;
+  gap: 6px;
+}
+
+.notes_drawing_color_palette button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.notes_drawing_color_palette button:hover {
+  transform: scale(1.1);
+}
+
+.notes_drawing_color_palette button.active {
+  border-color: #4285f4;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #4285f4;
+}
+
+/* Drawing Edit Overlay */
+.drawing-edit-overlay {
+  position: absolute;
+  pointer-events: none;
+}
+
+.drawing-edit-button {
+  pointer-events: auto;
+  transition: all 0.2s ease;
+}
+
+.drawing-edit-button:hover {
+  background: #1557b0 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* Content Formatting */
+.notes_editor_wrapper .ql-editor h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+  color: #202124;
+}
+
+.notes_editor_wrapper .ql-editor h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.83em 0 0.5em;
+  color: #202124;
+}
+
+.notes_editor_wrapper .ql-editor h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.75em 0 0.5em;
+  color: #202124;
+}
+
+.notes_editor_wrapper .ql-editor p {
+  margin: 0.5em 0;
+  line-height: 1.6;
+  color: #3c4043;
+}
+
+.notes_editor_wrapper .ql-editor ul,
+.notes_editor_wrapper .ql-editor ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.notes_editor_wrapper .ql-editor li {
+  margin: 0.25em 0;
+  line-height: 1.6;
+}
+
+.notes_editor_wrapper .ql-editor blockquote {
+  border-left: 4px solid #4285f4;
+  padding-left: 16px;
+  margin: 1em 0;
+  color: #5f6368;
+  font-style: italic;
+}
+
+.notes_editor_wrapper .ql-editor code {
+  background: #f1f3f4;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.notes_editor_wrapper .ql-editor pre {
+  background: #f1f3f4;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.notes_editor_wrapper .ql-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+}
+
+/* Table Styling */
+.notes_editor_wrapper .ql-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  border: 1px solid #ddd;
+}
+
+.notes_editor_wrapper .ql-editor table td,
+.notes_editor_wrapper .ql-editor table th {
+  border: 1px solid #ddd;
+  padding: 12px;
+  min-width: 100px;
+}
+
+.notes_editor_wrapper .ql-editor table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  text-align: left;
+}
+
+.notes_editor_wrapper .ql-editor table tr:hover {
+  background: #f8f9fa;
+}
+
+/* Formula/Math Styling */
+.notes_editor_wrapper .ql-editor .ql-formula {
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 0 2px;
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+}
+
+.notes_editor_wrapper .ql-editor .ql-formula:hover {
+  background: #e8f0fe;
+  outline: 1px solid #4285f4;
+}
+
+/* Link Styling */
+.notes_editor_wrapper .ql-editor a {
+  color: #1a73e8;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.notes_editor_wrapper .ql-editor a:hover {
+  border-bottom-color: #1a73e8;
+}
+
+/* Page Break Indicator */
+.notes_editor_wrapper .ql-editor::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #ddd 20%, #ddd 80%, transparent);
+  margin: 40px 0;
+  opacity: 0.5;
+}
+
+/* Font Family Options */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before {
+  content: 'Serif';
+  font-family: Georgia, serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before {
+  content: 'Monospace';
+  font-family: 'Courier New', monospace;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="sans-serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="sans-serif"]::before {
+  content: 'Sans Serif';
+  font-family: Arial, sans-serif;
+}
+
+/* Apply font families to editor content */
+.notes_editor_wrapper .ql-editor .ql-font-serif {
+  font-family: Georgia, serif;
+}
+
+.notes_editor_wrapper .ql-editor .ql-font-monospace {
+  font-family: 'Courier New', monospace;
+}
+
+.notes_editor_wrapper .ql-editor .ql-font-sans-serif {
+  font-family: Arial, sans-serif;
+}
+
+/* Size variations */
+.notes_editor_wrapper .ql-editor .ql-size-small {
+  font-size: 0.75em;
+}
+
+.notes_editor_wrapper .ql-editor .ql-size-large {
+  font-size: 1.5em;
+}
+
+.notes_editor_wrapper .ql-editor .ql-size-huge {
+  font-size: 2em;
+}
+
+/* Keyboard Shortcuts Help */
+.notes_shortcuts_hint {
+  margin-top: 24px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.notes_shortcuts_hint summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #5f6368;
+  user-select: none;
+  padding: 4px;
+}
+
+.notes_shortcuts_hint summary:hover {
+  color: #202124;
+}
+
+.notes_shortcuts_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.notes_shortcuts_grid div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.notes_shortcuts_grid kbd {
+  background: #f1f3f4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  border: 1px solid #dadce0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notes_container {
+    padding: 12px;
+  }
+
+  .notes_title_bar {
+    padding: 12px 16px;
+  }
+
+  .notes_title_input {
+    font-size: 1.5rem;
+  }
+
+  .notes_editor_wrapper .ql-editor {
+    padding: 40px 24px;
+  }
+
+  .notes_editor_wrapper .ql-editor.ql-blank::before {
+    left: 24px;
+  }
+
+  .notes_drawing_container {
+    padding: 16px;
+  }
+
+  .notes_canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .notes_shortcuts_grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* File Attachment Styles */
+.file-attachment {
+  margin: 12px 0;
+  padding: 0;
+}
+
+.file-attachment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.file-attachment-link:hover {
+  background: #e8f0fe;
+  border-color: #4285f4;
+  box-shadow: 0 2px 4px rgba(66, 133, 244, 0.1);
+}
+
+.file-attachment-link .file-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.file-attachment-link .file-name {
+  font-weight: 500;
+  color: #1a73e8;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-attachment-link .file-size {
+  color: #5f6368;
+  font-size: 12px;
+}
+
+.file-attachment-link:active {
+  transform: translateY(1px);
+}
