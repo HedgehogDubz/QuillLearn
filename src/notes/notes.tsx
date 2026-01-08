@@ -35,7 +35,7 @@ import {
     type DrawingData,
     type FileAttachment
 } from './noteStorage'
-
+import { useAuth } from '../auth/AuthContext';
 // Register KaTeX module for math equations
 // @ts-ignore - Quill modules don't have proper types
 import katex from 'katex'
@@ -108,6 +108,7 @@ type DrawingTool = 'brush' | 'line' | 'circle' | 'square' | 'bucket'
 function Notes() {
     const { sessionId } = useParams<{ sessionId?: string }>()
     const navigate = useNavigate()
+    const { user } = useAuth()
 
     // State
     const [title, setTitle] = useState('Untitled Document')
@@ -426,56 +427,61 @@ function Notes() {
         }
     })
 
-    // Load note data from localStorage (only once per session)
+    // Load note data from API/Supabase (only once per session)
     useEffect(() => {
         if (!sessionId || !quillRef.current || isDataLoaded) return
 
-        const noteData = loadNoteData(sessionId)
+        const loadData = async () => {
+            const noteData = await loadNoteData(sessionId)
 
-        if (noteData) {
-            setTitle(noteData.title)
-            setContent(noteData.content)
+            if (noteData) {
+                setTitle(noteData.title)
+                setContent(noteData.content)
 
-            // Restore drawings if they exist
-            if (noteData.drawings) {
-                setDrawings(noteData.drawings)
-            }
+                // Restore drawings if they exist
+                if (noteData.drawings) {
+                    console.log('Loading drawings:', noteData.drawings)
+                    setDrawings(noteData.drawings)
+                }
 
-            // Restore attachments if they exist
-            if (noteData.attachments) {
-                setAttachments(noteData.attachments)
-            }
+                // Restore attachments if they exist
+                if (noteData.attachments) {
+                    setAttachments(noteData.attachments)
+                }
 
-            // Prefer Delta format for loading (preserves all formatting)
-            // Fall back to HTML if Delta is not available
-            if (quillRef.current) {
-                if (noteData.delta) {
-                    quillRef.current.setContents(noteData.delta)
-                } else if (noteData.content) {
-                    quillRef.current.root.innerHTML = noteData.content
+                // Prefer Delta format for loading (preserves all formatting)
+                // Fall back to HTML if Delta is not available
+                if (quillRef.current) {
+                    if (noteData.delta) {
+                        quillRef.current.setContents(noteData.delta)
+                    } else if (noteData.content) {
+                        quillRef.current.root.innerHTML = noteData.content
+                    }
                 }
             }
+
+            setIsDataLoaded(true)
         }
 
-        setIsDataLoaded(true)
+        loadData()
     }, [sessionId, isDataLoaded])
 
     // Auto-save with debouncing
-    const saveNote = useCallback(() => {
+    const saveNote = useCallback(async () => {
         if (!sessionId || !quillRef.current) return
 
         // Get both HTML and Delta format for maximum compatibility
         const html = quillRef.current.root.innerHTML
         const delta = quillRef.current.getContents()
 
-        const result = saveNoteData(sessionId, title, html, delta, drawings, attachments)
+        const result = await saveNoteData(sessionId, user?.id || null, title, html, delta, drawings, attachments)
 
         if (result.success) {
             setIsSaved(true)
         } else {
             console.error('Failed to save note')
         }
-    }, [sessionId, title, drawings, attachments])
+    }, [sessionId, title, drawings, attachments, user?.id])
 
     useEffect(() => {
         setIsSaved(false)
@@ -496,57 +502,74 @@ function Notes() {
     }, [title, content, saveNote])
 
     // Handle file upload (any file type)
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const quill = quillRef.current
         if (!quill || !e.target.files || e.target.files.length === 0) return
 
         const file = e.target.files[0]
 
-        // Check file size (limit to 10MB to avoid localStorage issues)
+        // Check file size (limit to 10MB)
         const maxSize = 10 * 1024 * 1024 // 10MB
         if (file.size > maxSize) {
             alert('File size must be less than 10MB')
             return
         }
 
-        // Convert to base64 and insert
-        const reader = new FileReader()
-        reader.onload = (event) => {
-            if (event.target?.result) {
-                const dataURL = event.target.result as string
-                const fileId = crypto.randomUUID()
+        try {
+            // Upload to Supabase Storage
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('userId', user?.id || 'anonymous')
+            formData.append('sessionId', sessionId || '')
 
-                // Create file attachment object
-                const attachment: FileAttachment = {
-                    id: fileId,
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    dataURL: dataURL,
-                    uploadedAt: Date.now()
-                }
+            const response = await fetch('/api/storage/upload-attachment', {
+                method: 'POST',
+                body: formData
+            })
 
-                // Add to attachments array
-                setAttachments(prev => [...prev, attachment])
+            const result = await response.json()
 
-                // Insert file attachment into editor
-                const range = quill.getSelection() || { index: quill.getLength() }
-                quill.insertEmbed(range.index, 'fileAttachment', {
-                    id: fileId,
-                    name: file.name,
-                    dataURL: dataURL,
-                    size: file.size
-                })
-                quill.insertText(range.index + 1, '\n')
-                quill.setSelection(range.index + 2)
-
-                // Trigger content update
-                const html = quill.root.innerHTML
-                setContent(html)
-                setIsSaved(false)
+            if (!result.success) {
+                console.error('Failed to upload file:', result.error)
+                alert('Failed to upload file. Please try again.')
+                return
             }
+
+            const fileId = crypto.randomUUID()
+            const fileUrl = result.url
+
+            // Create file attachment object
+            const attachment: FileAttachment = {
+                id: fileId,
+                name: result.metadata.name,
+                type: result.metadata.type,
+                size: result.metadata.size,
+                url: fileUrl,
+                uploadedAt: Date.now()
+            }
+
+            // Add to attachments array
+            setAttachments(prev => [...prev, attachment])
+
+            // Insert file attachment into editor
+            const range = quill.getSelection() || { index: quill.getLength() }
+            quill.insertEmbed(range.index, 'fileAttachment', {
+                id: fileId,
+                name: attachment.name,
+                dataURL: fileUrl, // Use URL instead of base64
+                size: attachment.size
+            })
+            quill.insertText(range.index + 1, '\n')
+            quill.setSelection(range.index + 2)
+
+            // Trigger content update
+            const html = quill.root.innerHTML
+            setContent(html)
+            setIsSaved(false)
+        } catch (error) {
+            console.error('Error uploading file:', error)
+            alert('Failed to upload file. Please try again.')
         }
-        reader.readAsDataURL(file)
 
         // Reset input
         if (fileInputRef.current) {
@@ -721,12 +744,30 @@ function Notes() {
 
                 // If editing, load the existing drawing
                 if (editingDrawingIndex !== null && drawings[editingDrawingIndex]) {
+                    const drawing = drawings[editingDrawingIndex]
+                    console.log('Loading drawing for edit:', drawing)
                     const img = new Image()
+
+                    // Set crossOrigin for Supabase Storage URLs
+                    if (drawing.url) {
+                        img.crossOrigin = 'anonymous'
+                    }
+
                     img.onload = () => {
+                        console.log('Drawing loaded successfully')
                         ctx.drawImage(img, 0, 0)
                     }
-                    img.src = drawings[editingDrawingIndex].dataURL
-                    setHasBorder(drawings[editingDrawingIndex].hasBorder ?? true)
+
+                    img.onerror = (e) => {
+                        console.error('Failed to load drawing:', e)
+                        console.error('Drawing URL:', drawing.url || drawing.dataURL)
+                    }
+
+                    // Support both new URL format and legacy dataURL format
+                    const imgSrc = drawing.url || drawing.dataURL || ''
+                    console.log('Setting image src to:', imgSrc)
+                    img.src = imgSrc
+                    setHasBorder(drawing.hasBorder ?? true)
                 }
             }
         }
@@ -750,69 +791,102 @@ function Notes() {
         ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
 
-    const saveDrawing = () => {
+    const saveDrawing = async () => {
         const canvas = canvasRef.current
         const quill = quillRef.current
         if (!canvas || !quill) return
 
-        const dataURL = canvas.toDataURL()
-        const newDrawing: DrawingData = {
-            dataURL,
-            width: canvas.width,
-            height: canvas.height,
-            hasBorder
-        }
+        // Convert canvas to blob for upload
+        canvas.toBlob(async (blob) => {
+            if (!blob) {
+                console.error('Failed to convert canvas to blob')
+                return
+            }
 
-        if (editingDrawingIndex !== null) {
-            // Update existing drawing
-            const updatedDrawings = [...drawings]
-            updatedDrawings[editingDrawingIndex] = newDrawing
-            setDrawings(updatedDrawings)
+            try {
+                // Upload to Supabase Storage
+                const formData = new FormData()
+                formData.append('drawing', blob, 'drawing.png')
+                formData.append('userId', user?.id || 'anonymous')
+                formData.append('sessionId', sessionId || '')
 
-            // Update the image in the editor
-            const images = quill.root.querySelectorAll('img')
-            let drawingImageIndex = 0
-            images.forEach((img) => {
-                if (img.src.startsWith('data:image/png')) {
-                    if (drawingImageIndex === editingDrawingIndex) {
-                        img.src = dataURL
-                        if (hasBorder) {
-                            img.style.border = '1px solid #ddd'
-                        } else {
-                            img.style.border = 'none'
+                const response = await fetch('/api/storage/upload-drawing', {
+                    method: 'POST',
+                    body: formData
+                })
+
+                const result = await response.json()
+
+                if (!result.success) {
+                    console.error('Failed to upload drawing:', result.error)
+                    alert('Failed to save drawing. Please try again.')
+                    return
+                }
+
+                const imageUrl = result.url
+                const newDrawing: DrawingData = {
+                    url: imageUrl,
+                    width: canvas.width,
+                    height: canvas.height,
+                    hasBorder
+                }
+
+                if (editingDrawingIndex !== null) {
+                    // Update existing drawing
+                    const updatedDrawings = [...drawings]
+                    updatedDrawings[editingDrawingIndex] = newDrawing
+                    setDrawings(updatedDrawings)
+
+                    // Update the image in the editor
+                    const images = quill.root.querySelectorAll('img')
+                    let drawingImageIndex = 0
+                    images.forEach((img) => {
+                        const imgSrc = img.src
+                        if (imgSrc.startsWith('data:image/png') || imgSrc.includes('supabase')) {
+                            if (drawingImageIndex === editingDrawingIndex) {
+                                img.src = imageUrl
+                                if (hasBorder) {
+                                    img.style.border = '1px solid #ddd'
+                                } else {
+                                    img.style.border = 'none'
+                                }
+                            }
+                            drawingImageIndex++
                         }
-                    }
-                    drawingImageIndex++
+                    })
+                    setEditingDrawingIndex(null)
+                } else {
+                    // Insert new drawing
+                    const range = quill.getSelection() || { index: quill.getLength() }
+                    quill.insertEmbed(range.index, 'image', imageUrl)
+
+                    // Add border styling if enabled
+                    setTimeout(() => {
+                        const images = quill.root.querySelectorAll('img')
+                        const lastImage = images[images.length - 1] as HTMLImageElement
+                        if (lastImage && hasBorder) {
+                            lastImage.style.border = '1px solid #ddd'
+                            lastImage.style.borderRadius = '4px'
+                        }
+                    }, 0)
+
+                    quill.insertText(range.index + 1, '\n')
+                    quill.setSelection(range.index + 2)
+                    setDrawings([...drawings, newDrawing])
                 }
-            })
-            setEditingDrawingIndex(null)
-        } else {
-            // Insert new drawing
-            const range = quill.getSelection() || { index: quill.getLength() }
-            quill.insertEmbed(range.index, 'image', dataURL)
 
-            // Add border styling if enabled
-            setTimeout(() => {
-                const images = quill.root.querySelectorAll('img')
-                const lastImage = images[images.length - 1] as HTMLImageElement
-                if (lastImage && hasBorder) {
-                    lastImage.style.border = '1px solid #ddd'
-                    lastImage.style.borderRadius = '4px'
-                }
-            }, 0)
+                setShowDrawing(false)
+                clearCanvas()
 
-            quill.insertText(range.index + 1, '\n')
-            quill.setSelection(range.index + 2)
-            setDrawings([...drawings, newDrawing])
-        }
-
-        setShowDrawing(false)
-        clearCanvas()
-
-        // Trigger content update
-        const html = quill.root.innerHTML
-        setContent(html)
-        setIsSaved(false)
+                // Trigger content update
+                const html = quill.root.innerHTML
+                setContent(html)
+                setIsSaved(false)
+            } catch (error) {
+                console.error('Error uploading drawing:', error)
+                alert('Failed to save drawing. Please try again.')
+            }
+        }, 'image/png')
     }
 
     // Show loading state while redirecting to new session

@@ -11,15 +11,11 @@ export type SavedSpreadsheetData = {
     rows: RowData[];
     columnWidths: number[];
     lastTimeSaved: number;
+    userId: string | null;
 };
 
 // Constants
 export const AUTO_SAVE_DEBOUNCE_MS = 1000; // Debounce auto-save by 1000ms (1 second) for better performance
-
-// Helper function to get storage key for a session
-export function getStorageKey(sessionId: string): string {
-    return `spreadsheet_session_${sessionId}`;
-}
 
 // Convert RowData[] to Grid (string[][])
 export function rowDataToGrid(rows: RowData[]): Grid {
@@ -31,30 +27,23 @@ export function gridToRowData(grid: Grid): RowData[] {
     return grid.map(row => ({ data: row }));
 }
 
-// Load saved data from localStorage
-export function loadSheetData(
+// Load saved data from API/Supabase
+export async function loadSheetData(
     sessionId: string,
     defaultGrid: Grid,
     defaultColumnWidths: number[]
-): { title:string; grid: Grid; columnWidths: number[] } {
+): Promise<{ title:string; grid: Grid; columnWidths: number[] }> {
     try {
-        const storageKey = getStorageKey(sessionId);
-        const savedData = localStorage.getItem(storageKey);
+        const response = await fetch(`/api/sheets/${sessionId}`);
+        const result = await response.json();
 
-        if (savedData) {
-            const parsed = JSON.parse(savedData);
-
-            // Check if it's the new format (has 'rows' property)
-            if (parsed.rows && Array.isArray(parsed.rows) && Array.isArray(parsed.columnWidths)) {
-                const newFormat = parsed as SavedSpreadsheetData;
-                return {
-                    title: newFormat.title,
-                    grid: rowDataToGrid(newFormat.rows),
-                    columnWidths: newFormat.columnWidths
-                };
-            }
-
-
+        if (result.success && result.data) {
+            const data = result.data;
+            return {
+                title: data.title,
+                grid: rowDataToGrid(data.rows),
+                columnWidths: data.column_widths
+            };
         }
     } catch (error) {
         console.error('Error loading saved spreadsheet data:', error);
@@ -62,57 +51,31 @@ export function loadSheetData(
 
     // Return default data if no saved data or error
     return {
-        title: "Untitled Sheet " + sessionId,
+        title: "Untitled Sheet",
         grid: defaultGrid,
         columnWidths: defaultColumnWidths
     };
 }
 
-// Save data to localStorage
-// Returns true if saved successfully, false otherwise
-export function saveSheetData(
+// Save data to API/Supabase
+export async function saveSheetData(
     sessionId: string,
+    userId: string | null,
     title: string,
     grid: Grid,
     columnWidths: number[],
-    lastSavedData: string | null,
-): { success: boolean; serializedData: string | null } {
+    lastSavedData: string | null
+): Promise<{ success: boolean; serializedData: string | null }> {
     try {
-        const storageKey = getStorageKey(sessionId);
-
-        //if non have same title, save data
-        //if other session has same title, return title + (1) but check if that exists first, if that exists then return title + (2) and so on
-        let saveTitle = title;
-        let counter = 1;
-        while (true) {
-            let titleExists = false;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key?.startsWith('spreadsheet_session_') && key !== storageKey) {
-                const savedData = localStorage.getItem(key);
-                if (savedData) {
-                    const parsed = JSON.parse(savedData);
-                    if (parsed.title === title) {
-                        return { success: false, serializedData: null };
-                    }
-                }
-            }
-            }
-            if (!titleExists) {
-                break;
-            }
-            saveTitle = title + " (" + counter + ")";
-            counter++;
-        }
-
-        const dataToSave: SavedSpreadsheetData = {
-            title: saveTitle,
+        const dataToSave = {
+            sessionId,
+            userId,
+            title,
             rows: gridToRowData(grid),
-            columnWidths,
-            lastTimeSaved: Date.now()
+            columnWidths
         };
 
-        // Serialize data
+        // Serialize data for comparison
         const serializedData = JSON.stringify(dataToSave);
 
         // Only save if data has actually changed (optimization)
@@ -120,32 +83,33 @@ export function saveSheetData(
             return { success: true, serializedData: lastSavedData };
         }
 
-        localStorage.setItem(storageKey, serializedData);
-        return { success: true, serializedData };
-    } catch (error) {
-        // Handle localStorage quota exceeded or other errors
-        console.error('Error saving spreadsheet data:', error);
-        if (error instanceof Error && error.name === 'QuotaExceededError') {
-            console.warn('localStorage quota exceeded. Data not saved.');
+        const response = await fetch('/api/sheets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: serializedData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            return { success: true, serializedData };
+        } else {
+            console.error('Failed to save sheet:', result.error);
+            return { success: false, serializedData: null };
         }
+    } catch (error) {
+        console.error('Error saving spreadsheet data:', error);
         return { success: false, serializedData: null };
     }
 }
 
 // Update lastTimeSaved timestamp when accessing a sheet
+// Note: This is now handled automatically by the API when loading/saving
 export function updateLastAccessed(sessionId: string): void {
-    try {
-        const storageKey = getStorageKey(sessionId);
-        const savedData = localStorage.getItem(storageKey);
-
-        if (savedData) {
-            const parsed = JSON.parse(savedData) as SavedSpreadsheetData;
-            parsed.lastTimeSaved = Date.now();
-            localStorage.setItem(storageKey, JSON.stringify(parsed));
-        }
-    } catch (error) {
-        console.error('Error updating last accessed time:', error);
-    }
+    // No-op: timestamp is updated automatically by the API
+    console.log('Last accessed time will be updated by API for session:', sessionId);
 }
 
 

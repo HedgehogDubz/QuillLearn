@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import './InputGrid.css'
 import { loadSheetData, saveSheetData, AUTO_SAVE_DEBOUNCE_MS } from './sheetStorage'
 import { ImageUploadModal } from './ImageUploadModal'
+import { useAuth } from '../auth/AuthContext'
 
 // Constants
 const DRAG_THRESHOLD = 5; // Minimum distance in pixels to count as a drag (not just a click)
@@ -34,6 +35,12 @@ type ContextMenu = {
     x: number;
     y: number;
     rowIndex: number;
+} | null;
+
+type ColumnContextMenu = {
+    x: number;
+    y: number;
+    colIndex: number;
 } | null;
 
 // Helper functions
@@ -192,17 +199,18 @@ interface InputGridProps {
 }
 
 function InputGrid({ sessionId }: InputGridProps) {
-    // Load saved data using the storage utility
-    const loadSavedData = useCallback(() => {
-        const defaultGrid = makeGrid(INITIAL_ROWS, INITIAL_COLS);
-        const defaultColumnWidths = Array(INITIAL_COLUMN_COUNT).fill(DEFAULT_COLUMN_WIDTH);
-        return loadSheetData(sessionId, defaultGrid, defaultColumnWidths);
-    }, [sessionId]);
+    // Get user from auth context
+    const { user } = useAuth();
 
-    const [grid, setGrid] = useState<Grid>(() => loadSavedData().grid);
-    const [columnWidths, setColumnWidths] = useState<number[]>(() => loadSavedData().columnWidths);
-    const [title, setTitle] = useState<string>(() => loadSavedData().title);
+    // Initialize with default values
+    const defaultGrid = makeGrid(INITIAL_ROWS, INITIAL_COLS);
+    const defaultColumnWidths = Array(INITIAL_COLUMN_COUNT).fill(DEFAULT_COLUMN_WIDTH);
+
+    const [grid, setGrid] = useState<Grid>(defaultGrid);
+    const [columnWidths, setColumnWidths] = useState<number[]>(defaultColumnWidths);
+    const [title, setTitle] = useState<string>("Untitled Sheet");
     const [isSaved, setIsSaved] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [resizingColumn, setResizingColumn] = useState<number | null>(null);
     const resizeStartX = useRef<number>(0);
     const resizeStartWidth = useRef<number>(0);
@@ -231,6 +239,9 @@ function InputGrid({ sessionId }: InputGridProps) {
     // Context menu state for row operations
     const [contextMenu, setContextMenu] = useState<ContextMenu>(null);
 
+    // Context menu state for column operations
+    const [columnContextMenu, setColumnContextMenu] = useState<ColumnContextMenu>(null);
+
     // Image upload modal state
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [imageTargetCell, setImageTargetCell] = useState<{ row: number; col: number } | null>(null);
@@ -238,23 +249,38 @@ function InputGrid({ sessionId }: InputGridProps) {
     const rows = grid.length;
     const cols = grid[0]?.length ?? 0;
 
+    // Load data on mount
+    useEffect(() => {
+        const loadData = async () => {
+            setIsLoading(true);
+            const data = await loadSheetData(sessionId, defaultGrid, defaultColumnWidths);
+            setGrid(data.grid);
+            setColumnWidths(data.columnWidths);
+            setTitle(data.title);
+            setIsLoading(false);
+        };
+        loadData();
+    }, [sessionId]); // Only run on mount or when sessionId changes
+
     // Auto-save functionality with debouncing
     const saveTimeoutRef = useRef<number | null>(null);
     const lastSavedDataRef = useRef<string | null>(null);
 
     // Memoized save function using the storage utility
-    const saveToLocalStorage = useCallback(() => {
-        const result = saveSheetData(sessionId, title, grid, columnWidths, lastSavedDataRef.current);
+    const saveToLocalStorage = useCallback(async () => {
+        const result = await saveSheetData(sessionId, user?.id || null, title, grid, columnWidths, lastSavedDataRef.current);
         if (result.success && result.serializedData) {
             lastSavedDataRef.current = result.serializedData;
             setIsSaved(true);
         }
-    }, [sessionId, title, grid, columnWidths]);
+    }, [sessionId, title, grid, columnWidths, user?.id]);
 
     // Mark as unsaved when data changes
     useEffect(() => {
-        setIsSaved(false);
-    }, [grid, columnWidths, title]);
+        if (!isLoading) {
+            setIsSaved(false);
+        }
+    }, [grid, columnWidths, title, isLoading]);
 
     // Debounced auto-save: save after AUTO_SAVE_DEBOUNCE_MS ms of inactivity
     useEffect(() => {
@@ -386,6 +412,64 @@ function InputGrid({ sessionId }: InputGridProps) {
             return next;
         });
         setContextMenu(null);
+    }, [cols, saveToHistory]);
+
+    // Column operations
+    const insertColumnBefore = useCallback((colIndex: number) => {
+        saveToHistory(`Insert column before ${colIndex + 1}`);
+        setGrid((prev) => {
+            const next = copyGrid(prev);
+            for (const row of next) {
+                row.splice(colIndex, 0, "");
+            }
+            return next;
+        });
+        setColumnWidths((prev) => {
+            const newWidths = [...prev];
+            newWidths.splice(colIndex, 0, DEFAULT_COLUMN_WIDTH);
+            return newWidths;
+        });
+        setColumnContextMenu(null);
+    }, [saveToHistory]);
+
+    const insertColumnAfter = useCallback((colIndex: number) => {
+        saveToHistory(`Insert column after ${colIndex + 1}`);
+        setGrid((prev) => {
+            const next = copyGrid(prev);
+            for (const row of next) {
+                row.splice(colIndex + 1, 0, "");
+            }
+            return next;
+        });
+        setColumnWidths((prev) => {
+            const newWidths = [...prev];
+            newWidths.splice(colIndex + 1, 0, DEFAULT_COLUMN_WIDTH);
+            return newWidths;
+        });
+        setColumnContextMenu(null);
+    }, [saveToHistory]);
+
+    const deleteColumn = useCallback((colIndex: number) => {
+        // Don't allow deleting if only one column remains
+        if (cols <= 1) {
+            alert("Cannot delete the last column");
+            return;
+        }
+
+        saveToHistory(`Delete column ${colIndex + 1}`);
+        setGrid((prev) => {
+            const next = copyGrid(prev);
+            for (const row of next) {
+                row.splice(colIndex, 1);
+            }
+            return next;
+        });
+        setColumnWidths((prev) => {
+            const newWidths = [...prev];
+            newWidths.splice(colIndex, 1);
+            return newWidths;
+        });
+        setColumnContextMenu(null);
     }, [cols, saveToHistory]);
 
     const addCol = useCallback(() => {
@@ -690,10 +774,24 @@ function InputGrid({ sessionId }: InputGridProps) {
         setImageTargetCell(null);
     }, [imageTargetCell, saveToHistory]);
 
+    // Column header right-click handler
+    const handleColumnContextMenu = useCallback((e: React.MouseEvent, colIndex: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setColumnContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            colIndex
+        });
+        setContextMenu(null); // Close row context menu if open
+    }, []);
+
     // Mouse selection handlers
     const handleMouseDown = useCallback((e: React.MouseEvent, row: number, col: number) => {
-        // Close context menu if open
+        // Close context menus if open
         setContextMenu(null);
+        setColumnContextMenu(null);
 
         // Start potential selection - but don't create selection yet
         // Only create selection if user drags beyond threshold
@@ -991,15 +1089,17 @@ function InputGrid({ sessionId }: InputGridProps) {
 
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            // Close if clicking outside the context menu and not on a row header
-            if (!target.closest('.sheet_context_menu') && !target.closest('.sheet_rowHeader')) {
+            // Close if clicking outside the context menus and not on headers
+            if (!target.closest('.sheet_context_menu') && !target.closest('.sheet_rowHeader') && !target.closest('.sheet_colHeader')) {
                 setContextMenu(null);
+                setColumnContextMenu(null);
             }
         };
 
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 setContextMenu(null);
+                setColumnContextMenu(null);
             }
         };
 
@@ -1060,6 +1160,7 @@ function InputGrid({ sessionId }: InputGridProps) {
                                     key={h}
                                     className={'sheet_colHeader'}
                                     style={{ width: columnWidths[colIndex] }}
+                                    onContextMenu={(e) => handleColumnContextMenu(e, colIndex)}
                                 >
                                     {/* Left resize handle - resizes the PREVIOUS column (to the left) */}
                                     {colIndex > 0 && (
@@ -1168,6 +1269,39 @@ function InputGrid({ sessionId }: InputGridProps) {
                         onClick={() => insertRowBelow(contextMenu.rowIndex)}
                     >
                         Insert Row Below
+                    </button>
+                </div>
+            )}
+
+            {/* Context menu for column operations */}
+            {columnContextMenu && (
+                <div
+                    className="sheet_context_menu"
+                    style={{
+                        position: 'fixed',
+                        left: columnContextMenu.x,
+                        top: columnContextMenu.y,
+                        zIndex: 1000
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        className="sheet_context_menu_item"
+                        onClick={() => insertColumnBefore(columnContextMenu.colIndex)}
+                    >
+                        Insert Column Before
+                    </button>
+                    <button
+                        className="sheet_context_menu_item"
+                        onClick={() => insertColumnAfter(columnContextMenu.colIndex)}
+                    >
+                        Insert Column After
+                    </button>
+                    <button
+                        className="sheet_context_menu_item sheet_context_menu_item_danger"
+                        onClick={() => deleteColumn(columnContextMenu.colIndex)}
+                    >
+                        Delete Column
                     </button>
                 </div>
             )}

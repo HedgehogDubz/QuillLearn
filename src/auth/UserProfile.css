@@ -1,0 +1,123 @@
+/* User Profile Component */
+
+.user-profile {
+    position: relative;
+}
+
+.user-profile-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-profile-button:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+.user-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+}
+
+.user-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    min-width: 220px;
+    z-index: 1000;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-menu-header {
+    padding: 16px;
+}
+
+.user-menu-name {
+    font-weight: 700;
+    color: #1a202c;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.user-menu-email {
+    font-size: 13px;
+    color: #718096;
+}
+
+.user-menu-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 0 8px;
+}
+
+.user-menu-item {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.15s ease;
+}
+
+.user-menu-item:hover {
+    background: #f7fafc;
+}
+
+.user-menu-item:first-of-type {
+    border-radius: 0 0 12px 12px;
+}
+
+.user-menu-item span {
+    font-size: 18px;
+}
+
