@@ -9,6 +9,7 @@ import { useAuth } from '../auth/AuthContext'
 type SessionWithType = SessionInfo & {
   type: 'sheet' | 'note'
   created_at?: number
+  content?: string // For search functionality
 }
 
 function Home() {
@@ -18,6 +19,7 @@ function Home() {
   const [sortBy, setSortBy] = useState<'lastSaved' | 'title' | 'dateCreated'>('lastSaved')
   const [selectedSheet, setSelectedSheet] = useState<SessionWithType | null>(null)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
   // Fetch sessions from API when component mounts
   useEffect(() => {
     const fetchSessions = async () => {
@@ -36,25 +38,44 @@ function Home() {
         const notesResult = await notesResponse.json()
 
         const sheets: SessionWithType[] = sheetsResult.success && sheetsResult.data
-          ? sheetsResult.data.map((sheet: any) => ({
-              title: sheet.title || 'Untitled Sheet',
-              storageKey: `sheet_${sheet.session_id}`,
-              sessionId: sheet.session_id,
-              lastTimeSaved: sheet.last_time_saved,
-              created_at: sheet.created_at,
-              type: 'sheet' as const
-            }))
+          ? sheetsResult.data.map((sheet: any) => {
+              // Extract text content from rows for search
+              let content = '';
+              if (sheet.rows && Array.isArray(sheet.rows)) {
+                content = sheet.rows.map((row: any) =>
+                  Object.values(row || {}).join(' ')
+                ).join(' ');
+              }
+
+              return {
+                title: sheet.title || 'Untitled Sheet',
+                storageKey: `sheet_${sheet.session_id}`,
+                sessionId: sheet.session_id,
+                lastTimeSaved: sheet.last_time_saved,
+                created_at: sheet.created_at,
+                type: 'sheet' as const,
+                content
+              };
+            })
           : []
 
         const notes: SessionWithType[] = notesResult.success && notesResult.data
-          ? notesResult.data.map((note: any) => ({
-              title: note.title || 'Untitled Document',
-              storageKey: `note_${note.session_id}`,
-              sessionId: note.session_id,
-              lastTimeSaved: note.last_time_saved,
-              created_at: note.created_at,
-              type: 'note' as const
-            }))
+          ? notesResult.data.map((note: any) => {
+              // Strip HTML tags from content for search
+              const content = note.content
+                ? note.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+                : '';
+
+              return {
+                title: note.title || 'Untitled Document',
+                storageKey: `note_${note.session_id}`,
+                sessionId: note.session_id,
+                lastTimeSaved: note.last_time_saved,
+                created_at: note.created_at,
+                type: 'note' as const,
+                content
+              };
+            })
           : []
 
         // Combine sheets and notes (don't sort here - will sort in useMemo)
@@ -85,12 +106,42 @@ function Home() {
     })
   }, [sessions, sortBy])
 
-  // Filter sessions based on selected filter
+  // Filter sessions based on selected filter and search query
   const filteredSessions = useMemo(() => {
-    if (filter === 'all') return sortedSessions
-    if (filter === 'sheets') return sortedSessions.filter(s => s.type === 'sheet')
-    return sortedSessions.filter(s => s.type === 'note')
-  }, [sortedSessions, filter])
+    let filtered = sortedSessions;
+
+    // Apply type filter
+    if (filter === 'sheets') {
+      filtered = filtered.filter(s => s.type === 'sheet');
+    } else if (filter === 'notes') {
+      filtered = filtered.filter(s => s.type === 'note');
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+
+      // Separate sessions into title matches and content matches
+      const titleMatches: SessionWithType[] = [];
+      const contentMatches: SessionWithType[] = [];
+
+      filtered.forEach(session => {
+        const titleMatch = session.title.toLowerCase().includes(query);
+        const contentMatch = session.content?.toLowerCase().includes(query);
+
+        if (titleMatch) {
+          titleMatches.push(session);
+        } else if (contentMatch) {
+          contentMatches.push(session);
+        }
+      });
+
+      // Return title matches first, then content matches
+      return [...titleMatches, ...contentMatches];
+    }
+
+    return filtered;
+  }, [sortedSessions, filter, searchQuery])
 
   const handleDelete = async (e: React.MouseEvent, session: SessionWithType) => {
     e.stopPropagation() // Prevent opening the modal when clicking delete
@@ -184,12 +235,19 @@ function Home() {
                 <option value="dateCreated">Date Created</option>
               </select>
             </span>
+            <span>
+              <input
+                type="text"
+                className="search-sessions-input"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </span>
           </div>
 
           {/* Unified list of sessions */}
-          <h2>
-            {filter === 'all' ? 'All' : filter === 'sheets' ? 'Sheets' : 'Notes'}
-          </h2>
+    
           {filteredSessions.length === 0 ? (
             <p>
               {filter === 'all'

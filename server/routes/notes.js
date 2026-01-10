@@ -128,7 +128,7 @@ router.get('/user/:userId', async (req, res) => {
 
         const { data, error } = await supabase
             .from('notes')
-            .select('session_id, title, last_time_saved')
+            .select('session_id, title, last_time_saved, created_at, content')
             .eq('user_id', userId)
             .order('last_time_saved', { ascending: false });
 
