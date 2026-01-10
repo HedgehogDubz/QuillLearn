@@ -93,6 +93,7 @@ interface CellProps {
     autoResizeTextarea: (el: HTMLTextAreaElement) => void;
     onAddImage?: (row: number, col: number) => void;
     isHeaderRow?: boolean;
+    readOnly?: boolean;
 }
 
 const Cell = React.memo(({
@@ -111,7 +112,8 @@ const Cell = React.memo(({
     onMouseUp,
     autoResizeTextarea,
     onAddImage,
-    isHeaderRow = false
+    isHeaderRow = false,
+    readOnly = false
 }: CellProps) => {
     const { text, images } = parseCellContent(value);
     const hasImages = images.length > 0;
@@ -120,7 +122,7 @@ const Cell = React.memo(({
     return (
         <td
             key={`${row}-${col}`}
-            className={`sheet_cell ${isSelected ? 'sheet_cell_selected' : ''} ${hasImages ? 'sheet_cell_has_images' : ''} sheet_cell_row_${row} sheet_cell_col_${col}`}
+            className={`sheet_cell ${isSelected ? 'sheet_cell_selected' : ''} ${hasImages ? 'sheet_cell_has_images' : ''} ${readOnly ? 'sheet_cell_readonly' : ''} sheet_cell_row_${row} sheet_cell_col_${col}`}
             style={{ width: columnWidth }}
             data-row={row}
             data-col={col}
@@ -139,6 +141,7 @@ const Cell = React.memo(({
             <textarea
                 className="sheet_input"
                 value={text}
+                readOnly={readOnly}
                 ref={(el) => {
                     inputRef(el);
                     if (el) {
@@ -146,6 +149,7 @@ const Cell = React.memo(({
                     }
                 }}
                 onChange={(e) => {
+                    if (readOnly) return;
                     // Preserve images when editing text
                     const newValue = images.length > 0
                         ? `${e.target.value}\n${images.map(img => `|||IMG:${img}|||`).join('\n')}`
@@ -168,8 +172,8 @@ const Cell = React.memo(({
                 onMouseUp={onMouseUp}
             />
 
-            {/* Add image button - only for non-header rows and if less than 2 images */}
-            {!isHeaderRow && onAddImage && canAddMoreImages && (
+            {/* Add image button - only for non-header rows and if less than 2 images and not read-only */}
+            {!isHeaderRow && !readOnly && onAddImage && canAddMoreImages && (
                 <button
                     className="sheet_add_image_btn"
                     onClick={(e) => {
@@ -189,7 +193,8 @@ const Cell = React.memo(({
     return (
         prevProps.value === nextProps.value &&
         prevProps.isSelected === nextProps.isSelected &&
-        prevProps.columnWidth === nextProps.columnWidth
+        prevProps.columnWidth === nextProps.columnWidth &&
+        prevProps.readOnly === nextProps.readOnly
     );
 });
 
@@ -212,6 +217,8 @@ function InputGrid({ sessionId }: InputGridProps) {
     const [title, setTitle] = useState<string>("Untitled Sheet");
     const [isSaved, setIsSaved] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isReadOnly, setIsReadOnly] = useState<boolean>(false);
+    const [userPermission, setUserPermission] = useState<string | null>(null);
     const [resizingColumn, setResizingColumn] = useState<number | null>(null);
     const resizeStartX = useRef<number>(0);
     const resizeStartWidth = useRef<number>(0);
@@ -262,6 +269,32 @@ function InputGrid({ sessionId }: InputGridProps) {
         };
         loadData();
     }, [sessionId]); // Only run on mount or when sessionId changes
+
+    // Check user permission
+    useEffect(() => {
+        const checkPermission = async () => {
+            if (!user?.id) {
+                setIsReadOnly(false); // No user = new document, allow editing
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/sheets/${sessionId}/permission/${user.id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    setUserPermission(result.permission);
+                    // Set read-only if user only has view permission
+                    setIsReadOnly(result.permission === 'view');
+                }
+            } catch (error) {
+                console.error('Error checking permission:', error);
+                setIsReadOnly(false); // Default to editable on error
+            }
+        };
+
+        checkPermission();
+    }, [sessionId, user?.id]);
 
     // Auto-save functionality with debouncing
     const saveTimeoutRef = useRef<number | null>(null);
@@ -1130,21 +1163,23 @@ function InputGrid({ sessionId }: InputGridProps) {
                     placeholder="Untitled Sheet"
                     savedText="✓ Saved"
                     unsavedText="● Unsaved"
+                    readOnly={isReadOnly}
+                    permission={userPermission as 'owner' | 'editor' | 'view' | null}
                 />
             </div>
             <div className="sheet_toolbar">
-                <button className="sheet_btn" onClick={addRow}>+ Row</button>
-                <button className="sheet_btn" onClick={addCol}>+ Column</button>
+                <button className="sheet_btn" onClick={addRow} disabled={isReadOnly}>+ Row</button>
+                <button className="sheet_btn" onClick={addCol} disabled={isReadOnly}>+ Column</button>
                 <button
                     className="sheet_btn"
                     onClick={undo}
-                    disabled={!canUndo}
+                    disabled={!canUndo || isReadOnly}
                     title={canUndo ? "Undo (Ctrl+Z / ⌘+Z)" : "Nothing to undo"}
                 >
                     ↶ Undo
                 </button>
                 <div className="sheet_hint">
-                    {lastActionDescription || "Tip: type in last row/col to auto-expand"}
+                    {isReadOnly ? "View-only mode - You cannot edit this sheet" : (lastActionDescription || "Tip: type in last row/col to auto-expand")}
                 </div>
             </div>
 
@@ -1231,6 +1266,7 @@ function InputGrid({ sessionId }: InputGridProps) {
                                                 autoResizeTextarea={autoResizeTextarea}
                                                 onAddImage={handleAddImage}
                                                 isHeaderRow={r === 0}
+                                                readOnly={isReadOnly}
                                             />
                                         );
                                     })}

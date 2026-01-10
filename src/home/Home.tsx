@@ -4,12 +4,15 @@ import Header from '../header/header.tsx'
 import type { SessionInfo } from '../gaurdian.ts'
 import ModeModal from '../mode/mode.tsx'
 import { useAuth } from '../auth/AuthContext'
+import { ShareModal } from '../components/ShareModal'
+import type { PermissionLevel } from '../components/ShareModal'
 
 // Extended SessionInfo to include type and created_at
 type SessionWithType = SessionInfo & {
   type: 'sheet' | 'note'
   created_at?: number
   content?: string // For search functionality
+  permission?: PermissionLevel // Permission level for this session
 }
 
 function Home() {
@@ -20,6 +23,8 @@ function Home() {
   const [selectedSheet, setSelectedSheet] = useState<SessionWithType | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [shareModalSession, setShareModalSession] = useState<SessionWithType | null>(null)
   // Fetch sessions from API when component mounts
   useEffect(() => {
     const fetchSessions = async () => {
@@ -54,7 +59,8 @@ function Home() {
                 lastTimeSaved: sheet.last_time_saved,
                 created_at: sheet.created_at,
                 type: 'sheet' as const,
-                content
+                content,
+                permission: sheet.permission || 'owner'
               };
             })
           : []
@@ -73,7 +79,8 @@ function Home() {
                 lastTimeSaved: note.last_time_saved,
                 created_at: note.created_at,
                 type: 'note' as const,
-                content
+                content,
+                permission: note.permission || 'owner'
               };
             })
           : []
@@ -265,8 +272,27 @@ function Home() {
                   style={{ cursor: 'pointer' }}
                 >
                   {session.type === 'sheet' ? '📊' : '📝'} {session.title}
+                  <span className={`permission-badge ${session.permission || 'owner'}`}>
+                    {session.permission === 'owner' && '👑'}
+                    {session.permission === 'edit' && '✏️'}
+                    {session.permission === 'view' && '👁️'}
+                  </span>
                 </span>
-                <button onClick={(e) => handleDelete(e, session)}>Delete</button>
+                <div className="home_sheet_actions">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShareModalSession(session);
+                      setShareModalOpen(true);
+                    }}
+                    className="share-button"
+                  >
+                    Share
+                  </button>
+                  {session.permission === 'owner' && (
+                    <button onClick={(e) => handleDelete(e, session)}>Delete</button>
+                  )}
+                </div>
               </div>
             ))
           )}
@@ -278,6 +304,75 @@ function Home() {
           sessionId={selectedSheet.sessionId}
           title={selectedSheet.title}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {shareModalOpen && shareModalSession && user && (
+        <ShareModal
+          isOpen={shareModalOpen}
+          onClose={() => {
+            setShareModalOpen(false);
+            setShareModalSession(null);
+          }}
+          sessionId={shareModalSession.sessionId}
+          documentType={shareModalSession.type}
+          currentUserId={user.id}
+          currentUserPermission={shareModalSession.permission || 'owner'}
+          onShareUpdate={() => {
+            // Refresh sessions after sharing update
+            const fetchSessions = async () => {
+              try {
+                const sheetsResponse = await fetch(`/api/sheets/user/${user.id}`)
+                const sheetsResult = await sheetsResponse.json()
+                const notesResponse = await fetch(`/api/notes/user/${user.id}`)
+                const notesResult = await notesResponse.json()
+
+                const sheets: SessionWithType[] = sheetsResult.success && sheetsResult.data
+                  ? sheetsResult.data.map((sheet: any) => {
+                      let content = '';
+                      if (sheet.rows && Array.isArray(sheet.rows)) {
+                        content = sheet.rows.map((row: any) =>
+                          Object.values(row || {}).join(' ')
+                        ).join(' ');
+                      }
+                      return {
+                        title: sheet.title || 'Untitled Sheet',
+                        storageKey: `sheet_${sheet.session_id}`,
+                        sessionId: sheet.session_id,
+                        lastTimeSaved: sheet.last_time_saved,
+                        created_at: sheet.created_at,
+                        type: 'sheet' as const,
+                        content,
+                        permission: sheet.permission || 'owner'
+                      };
+                    })
+                  : []
+
+                const notes: SessionWithType[] = notesResult.success && notesResult.data
+                  ? notesResult.data.map((note: any) => {
+                      const content = note.content
+                        ? note.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+                        : '';
+                      return {
+                        title: note.title || 'Untitled Document',
+                        storageKey: `note_${note.session_id}`,
+                        sessionId: note.session_id,
+                        lastTimeSaved: note.last_time_saved,
+                        created_at: note.created_at,
+                        type: 'note' as const,
+                        content,
+                        permission: note.permission || 'owner'
+                      };
+                    })
+                  : []
+
+                setSessions([...sheets, ...notes])
+              } catch (error) {
+                console.error('Error refreshing sessions:', error)
+              }
+            }
+            fetchSessions()
+          }}
         />
       )}
     </>

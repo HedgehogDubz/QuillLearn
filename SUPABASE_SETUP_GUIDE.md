@@ -154,18 +154,36 @@ Frontend → Express API → Supabase → Express API → Frontend
    - `src/sheets/InputGrid.tsx` - Updated to handle async data loading
    - `src/notes/notes.tsx` - Updated to handle async data loading
 
+## 🔄 Database Migrations
+
+### Adding Sharing Functionality
+
+To enable collaborative editing and sharing, run the migration in `database/migrations/add_sharing_columns.sql`:
+
+1. Go to Supabase Dashboard → SQL Editor
+2. Copy the contents of `database/migrations/add_sharing_columns.sql`
+3. Paste and run the SQL
+
+This migration adds:
+- `edit_users` and `view_users` columns to both tables
+- Updated RLS policies for permission-based access
+- `document_presence` table for real-time collaboration
+- Indexes for better query performance
+
 ## 📡 API Endpoints
 
 ### Sheets
 - `GET /api/sheets/:sessionId` - Load a sheet
 - `POST /api/sheets` - Save/update a sheet
-- `GET /api/sheets/user/:userId` - Get all sheets for a user
+- `GET /api/sheets/user/:userId` - Get all sheets for a user (owned + shared)
+- `POST /api/sheets/:sessionId/share` - Manage sharing permissions
 - `DELETE /api/sheets/:sessionId` - Delete a sheet
 
 ### Notes
 - `GET /api/notes/:sessionId` - Load a note
 - `POST /api/notes` - Save/update a note
-- `GET /api/notes/user/:userId` - Get all notes for a user
+- `GET /api/notes/user/:userId` - Get all notes for a user (owned + shared)
+- `POST /api/notes/:sessionId/share` - Manage sharing permissions
 - `DELETE /api/notes/:sessionId` - Delete a note
 
 ## 🔒 Security Best Practices

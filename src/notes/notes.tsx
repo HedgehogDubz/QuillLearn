@@ -126,6 +126,8 @@ function Notes() {
     const [brushColor, setBrushColor] = useState('#000000')
     const [hasBorder, setHasBorder] = useState(true)
     const [editingDrawingIndex, setEditingDrawingIndex] = useState<number | null>(null)
+    const [isReadOnly, setIsReadOnly] = useState(false)
+    const [userPermission, setUserPermission] = useState<string | null>(null)
 
     // Refs
     const quillRef = useRef<Quill | null>(null)
@@ -147,6 +149,38 @@ function Notes() {
             setIsDataLoaded(false)
         }
     }, [sessionId, navigate])
+
+    // Check user permission
+    useEffect(() => {
+        const checkPermission = async () => {
+            if (!user?.id || !sessionId) {
+                setIsReadOnly(false) // No user = new document, allow editing
+                return
+            }
+
+            try {
+                const response = await fetch(`/api/notes/${sessionId}/permission/${user.id}`)
+                const result = await response.json()
+
+                if (result.success) {
+                    setUserPermission(result.permission)
+                    // Set read-only if user only has view permission
+                    const readOnly = result.permission === 'view'
+                    setIsReadOnly(readOnly)
+
+                    // Update Quill editor if it exists
+                    if (quillRef.current) {
+                        quillRef.current.enable(!readOnly)
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking permission:', error)
+                setIsReadOnly(false) // Default to editable on error
+            }
+        }
+
+        checkPermission()
+    }, [sessionId, user?.id])
 
     // Initialize Quill editor (only once)
     useEffect(() => {
@@ -917,6 +951,8 @@ function Notes() {
                         placeholder="Untitled Document"
                         savedText="✓ Saved"
                         unsavedText="Saving..."
+                        readOnly={isReadOnly}
+                        permission={userPermission as 'owner' | 'editor' | 'view' | null}
                     />
                 </div>
 

@@ -26,6 +26,49 @@
   text-decoration: none;
 }
 
+/* Permission badges */
+.permission-badge {
+  margin-left: 8px;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.permission-badge.owner {
+  background-color: #fff3cd;
+}
+
+.permission-badge.edit {
+  background-color: #d1ecf1;
+}
+
+.permission-badge.view {
+  background-color: #e2e3e5;
+}
+
+/* Sheet actions container */
+.home_sheet_actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.share-button {
+  padding: 6px 12px;
+  background: #34a853;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.share-button:hover {
+  background: #2d8e47;
+}
+
 /* Filter buttons container */
 .home_filter_buttons {
   display: flex;

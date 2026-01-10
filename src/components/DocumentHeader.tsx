@@ -8,6 +8,8 @@ interface DocumentHeaderProps {
     placeholder?: string;
     savedText?: string;
     unsavedText?: string;
+    readOnly?: boolean;
+    permission?: 'owner' | 'editor' | 'view' | null;
 }
 
 const DocumentHeader: React.FC<DocumentHeaderProps> = ({
@@ -16,8 +18,38 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
     isSaved,
     placeholder = 'Untitled Document',
     savedText = '✓ Saved',
-    unsavedText = '● Unsaved'
+    unsavedText = '● Unsaved',
+    readOnly = false,
+    permission = null
 }) => {
+    const getPermissionBadge = () => {
+        if (!permission) return null;
+
+        const badges = {
+            owner: { text: '👑 Owner', color: '#dbeafe', textColor: '#1e40af' },
+            editor: { text: '✏️ Editor', color: '#dcfce7', textColor: '#166534' },
+            view: { text: '👁️ Viewer', color: '#fef3c7', textColor: '#92400e' }
+        };
+
+        const badge = badges[permission];
+        if (!badge) return null;
+
+        return (
+            <span style={{
+                display: 'inline-block',
+                marginLeft: '10px',
+                padding: '4px 12px',
+                backgroundColor: badge.color,
+                color: badge.textColor,
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: '500'
+            }}>
+                {badge.text}
+            </span>
+        );
+    };
+
     return (
         <div className="document_header">
             <input
@@ -26,10 +58,14 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
                 value={title}
                 onChange={(e) => onTitleChange(e.target.value)}
                 placeholder={placeholder}
+                readOnly={readOnly}
             />
-            <span className={`document_header_save_indicator ${isSaved ? 'saved' : 'unsaved'}`}>
-                {isSaved ? savedText : unsavedText}
-            </span>
+            {getPermissionBadge()}
+            {permission !== 'view' && (
+                <span className={`document_header_save_indicator ${isSaved ? 'saved' : 'unsaved'}`}>
+                    {isSaved ? savedText : unsavedText}
+                </span>
+            )}
         </div>
     );
 };
