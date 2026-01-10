@@ -1,0 +1,60 @@
+/* Document Header - Shared component for sheets and notes */
+.document_header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.document_header_title {
+  flex: 1;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 4px 8px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  color: #333;
+  min-width: 200px;
+}
+
+.document_header_title:hover {
+  border-bottom-color: #ddd;
+}
+
+.document_header_title:focus {
+  border-bottom-color: #4a90d9;
+}
+
+.document_header_save_indicator {
+  font-size: 0.875rem;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.document_header_save_indicator.saved {
+  color: #2e7d32;
+  background-color: #e8f5e9;
+}
+
+.document_header_save_indicator.unsaved {
+  color: #f57c00;
+  background-color: #fff3e0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .document_header_title {
+    font-size: 1.25rem;
+  }
+  
+  .document_header_save_indicator {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+}
+

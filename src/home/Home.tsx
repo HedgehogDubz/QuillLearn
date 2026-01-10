@@ -5,16 +5,19 @@ import type { SessionInfo } from '../gaurdian.ts'
 import ModeModal from '../mode/mode.tsx'
 import { useAuth } from '../auth/AuthContext'
 
-// Extended SessionInfo to include type
-type SessionWithType = SessionInfo & { type: 'sheet' | 'note' }
+// Extended SessionInfo to include type and created_at
+type SessionWithType = SessionInfo & {
+  type: 'sheet' | 'note'
+  created_at?: number
+}
 
 function Home() {
   const { user } = useAuth()
   const [sessions, setSessions] = useState<SessionWithType[]>([])
   const [filter, setFilter] = useState<'all' | 'sheets' | 'notes'>('all')
+  const [sortBy, setSortBy] = useState<'lastSaved' | 'title' | 'dateCreated'>('lastSaved')
   const [selectedSheet, setSelectedSheet] = useState<SessionWithType | null>(null)
   const [loading, setLoading] = useState(true)
-
   // Fetch sessions from API when component mounts
   useEffect(() => {
     const fetchSessions = async () => {
@@ -38,6 +41,7 @@ function Home() {
               storageKey: `sheet_${sheet.session_id}`,
               sessionId: sheet.session_id,
               lastTimeSaved: sheet.last_time_saved,
+              created_at: sheet.created_at,
               type: 'sheet' as const
             }))
           : []
@@ -48,14 +52,13 @@ function Home() {
               storageKey: `note_${note.session_id}`,
               sessionId: note.session_id,
               lastTimeSaved: note.last_time_saved,
+              created_at: note.created_at,
               type: 'note' as const
             }))
           : []
 
-        // Combine and sort by lastTimeSaved
-        const allSessions = [...sheets, ...notes].sort(
-          (a, b) => (b.lastTimeSaved || 0) - (a.lastTimeSaved || 0)
-        )
+        // Combine sheets and notes (don't sort here - will sort in useMemo)
+        const allSessions = [...sheets, ...notes]
 
         setSessions(allSessions)
       } catch (error) {
@@ -68,12 +71,26 @@ function Home() {
     fetchSessions()
   }, [user])
 
+  // Sort sessions based on selected sort option
+  const sortedSessions = useMemo(() => {
+    return [...sessions].sort((a, b) => {
+      if (sortBy === 'lastSaved') {
+        return (b.lastTimeSaved || 0) - (a.lastTimeSaved || 0)
+      } else if (sortBy === 'title') {
+        return a.title.localeCompare(b.title)
+      } else if (sortBy === 'dateCreated') {
+        return (b.created_at || 0) - (a.created_at || 0)
+      }
+      return 0
+    })
+  }, [sessions, sortBy])
+
   // Filter sessions based on selected filter
   const filteredSessions = useMemo(() => {
-    if (filter === 'all') return sessions
-    if (filter === 'sheets') return sessions.filter(s => s.type === 'sheet')
-    return sessions.filter(s => s.type === 'note')
-  }, [sessions, filter])
+    if (filter === 'all') return sortedSessions
+    if (filter === 'sheets') return sortedSessions.filter(s => s.type === 'sheet')
+    return sortedSessions.filter(s => s.type === 'note')
+  }, [sortedSessions, filter])
 
   const handleDelete = async (e: React.MouseEvent, session: SessionWithType) => {
     e.stopPropagation() // Prevent opening the modal when clicking delete
@@ -135,6 +152,7 @@ function Home() {
         <>
           {/* Filter buttons */}
           <div className="home_filter_buttons">
+            <span>
             <button
               className={filter === 'all' ? 'active' : ''}
               onClick={() => setFilter('all')}
@@ -153,11 +171,24 @@ function Home() {
             >
               Notes
             </button>
+            </span>
+            <span>
+              Sort By:
+              <select
+                id="sort-by"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'lastSaved' | 'title' | 'dateCreated')}
+              >
+                <option value="lastSaved">Last Saved</option>
+                <option value="title">A-Z</option>
+                <option value="dateCreated">Date Created</option>
+              </select>
+            </span>
           </div>
 
           {/* Unified list of sessions */}
           <h2>
-            {filter === 'all' ? 'Recent' : filter === 'sheets' ? 'Sheets' : 'Notes'}
+            {filter === 'all' ? 'All' : filter === 'sheets' ? 'Sheets' : 'Notes'}
           </h2>
           {filteredSessions.length === 0 ? (
             <p>

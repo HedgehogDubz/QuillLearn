@@ -12,13 +12,14 @@ import authRoutes from './routes/auth.js';
 import sheetsRoutes from './routes/sheets.js';
 import notesRoutes from './routes/notes.js';
 import storageRoutes from './routes/storage.js';
+import chatRoutes from './routes/chat.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5179', 'http://localhost:5180'], // Your Vite dev server (multiple ports for flexibility)
+    origin: ['http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5179', 'http://localhost:5180'],
     credentials: true // Allow cookies to be sent
 }));
 app.use(express.json()); // Parse JSON request bodies
@@ -44,6 +45,9 @@ app.use('/api/notes', notesRoutes);
 
 // Storage routes
 app.use('/api/storage', storageRoutes);
+
+// Chat routes (AI)
+app.use('/api/chat', chatRoutes);
 
 // 404 handler
 app.use((req, res) => {

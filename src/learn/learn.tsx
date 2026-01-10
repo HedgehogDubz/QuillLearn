@@ -4,6 +4,7 @@ import './learn.css'
 import Header from '../header/header.tsx'
 import type { SessionInfo } from '../gaurdian.ts';
 import { updateLastAccessed } from '../sheets/sheetStorage.ts'
+import { useAuth } from '../auth/AuthContext'
 // ============ Types ============
 
 
@@ -75,42 +76,39 @@ function renderCellContent(cellValue: string) {
     );
 }
 
-// Get all spreadsheet sessions from localStorage
-function getSessionsFromLocalStorage(): SessionInfo[] {
-    const sessions: SessionInfo[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key?.startsWith('spreadsheet_session_')) {
-            const sessionId = key.replace('spreadsheet_session_', '')
-            const data = JSON.parse(localStorage.getItem(key) || '{}')
-            sessions.push({
-                title: data.title || 'Untitled Sheet',
-                storageKey: key,
-                sessionId: sessionId,
-                lastTimeSaved: data.lastTimeSaved
-            })
+// Get all spreadsheet sessions from API
+async function getSessionsFromAPI(userId: string): Promise<SessionInfo[]> {
+    try {
+        const response = await fetch(`/api/sheets/user/${userId}`)
+        const result = await response.json()
+
+        if (result.success && result.data) {
+            return result.data.map((sheet: any) => ({
+                title: sheet.title || 'Untitled Sheet',
+                storageKey: `sheet_${sheet.session_id}`,
+                sessionId: sheet.session_id,
+                lastTimeSaved: sheet.last_time_saved
+            }))
         }
+    } catch (error) {
+        console.error('Error fetching sessions:', error)
     }
-    return sessions
+    return []
 }
 
-// Load session data from localStorage - first row is headers, rest are cards
-function loadSessionData(sessionId: string): SessionData | null {
+// Load session data from API - first row is headers, rest are cards
+async function loadSessionData(sessionId: string): Promise<SessionData | null> {
     try {
-        const storageKey = `spreadsheet_session_${sessionId}`
-        const savedData = localStorage.getItem(storageKey)
+        const response = await fetch(`/api/sheets/${sessionId}`)
+        const result = await response.json()
 
-        if (savedData) {
-            const parsed = JSON.parse(savedData)
+        if (result.success && result.data) {
+            const data = result.data
             let rawData: string[][] | null = null
 
-            // Handle new format (has 'rows' property)
-            if (parsed.rows && Array.isArray(parsed.rows)) {
-                rawData = parsed.rows.map((row: { data: string[] }) => row.data)
-            }
-            // Handle legacy format (has 'grid' property)
-            else if (parsed.grid && Array.isArray(parsed.grid)) {
-                rawData = parsed.grid
+            // Handle rows format from API
+            if (data.rows && Array.isArray(data.rows)) {
+                rawData = data.rows.map((row: { data: string[] }) => row.data)
             }
 
             if (rawData && rawData.length > 0) {
@@ -958,27 +956,91 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
 
 function Learn() {
     const { sessionId } = useParams<{ sessionId?: string }>()
-    const [sessions] = useState<SessionInfo[]>(getSessionsFromLocalStorage())
+    const { user } = useAuth()
+    const [sessions, setSessions] = useState<SessionInfo[]>([])
+    const [sessionData, setSessionData] = useState<SessionData | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
-    // If we have a sessionId, load data and show flashcard study
+    // Fetch sessions list when component mounts (no sessionId)
+    useEffect(() => {
+        if (!sessionId && user) {
+            const fetchSessions = async () => {
+                setLoading(true)
+                const data = await getSessionsFromAPI(user.id)
+                setSessions(data)
+                setLoading(false)
+            }
+            fetchSessions()
+        }
+    }, [sessionId, user])
+
+    // Fetch specific session data when sessionId is provided
+    useEffect(() => {
+        if (sessionId) {
+            const fetchSessionData = async () => {
+                setLoading(true)
+                setError(null)
+                const data = await loadSessionData(sessionId)
+
+                if (!data || data.cards.length === 0) {
+                    setError('No data found for this session')
+                } else {
+                    setSessionData(data)
+                }
+                setLoading(false)
+            }
+            fetchSessionData()
+        }
+    }, [sessionId])
+
+    // If we have a sessionId, show flashcard study or error
     if (sessionId) {
-        const data = loadSessionData(sessionId)
-
-        if (!data || data.cards.length === 0) {
+        if (loading) {
             return (
                 <>
                     <Header />
                     <h1>Learn</h1>
-                    <p>No data found for session: {sessionId}</p>
+                    <p>Loading session data...</p>
+                </>
+            )
+        }
+
+        if (error || !sessionData) {
+            return (
+                <>
+                    <Header />
+                    <h1>Learn</h1>
+                    <p>{error || 'No data found for session: ' + sessionId}</p>
                     <a href="/learn">← Back to sessions</a>
                 </>
             )
         }
 
-        return <FlashcardStudy initialData={data} sessionId={sessionId} />
+        return <FlashcardStudy initialData={sessionData} sessionId={sessionId} />
     }
 
     // No sessionId - show list of available sessions
+    if (!user) {
+        return (
+            <>
+                <Header />
+                <h1>Learn</h1>
+                <p>Please <a href="/login">log in</a> to see your sessions.</p>
+            </>
+        )
+    }
+
+    if (loading) {
+        return (
+            <>
+                <Header />
+                <h1>Learn</h1>
+                <p>Loading your sessions...</p>
+            </>
+        )
+    }
+
     return (
         <>
             <Header />

@@ -3,6 +3,7 @@ import './InputGrid.css'
 import { loadSheetData, saveSheetData, AUTO_SAVE_DEBOUNCE_MS } from './sheetStorage'
 import { ImageUploadModal } from './ImageUploadModal'
 import { useAuth } from '../auth/AuthContext'
+import DocumentHeader from '../components/DocumentHeader'
 
 // Constants
 const DRAG_THRESHOLD = 5; // Minimum distance in pixels to count as a drag (not just a click)
@@ -68,8 +69,8 @@ function parseCellContent(value: string): { text: string; images: string[] } {
         images.push(match[1]);
     }
 
-    // Remove image markers from text
-    const text = value.replace(imageRegex, '').trim();
+    // Remove image markers from text (don't trim - preserve spaces!)
+    const text = value.replace(imageRegex, '').replace(/^\n+|\n+$/g, '');
 
     return { text, images };
 }
@@ -1120,18 +1121,16 @@ function InputGrid({ sessionId }: InputGridProps) {
     const inputRefs = useRef<(HTMLTextAreaElement | null)[][]>([]);
 
     return (
-        <div>
+        <div className="sheet_container">
             <div className="sheet_title_bar">
-                <input
-                    type="text"
-                    className="sheet_title_input"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                <DocumentHeader
+                    title={title}
+                    onTitleChange={setTitle}
+                    isSaved={isSaved}
                     placeholder="Untitled Sheet"
+                    savedText="✓ Saved"
+                    unsavedText="● Unsaved"
                 />
-                <span className={`sheet_save_indicator ${isSaved ? 'saved' : 'unsaved'}`}>
-                    {isSaved ? '✓ Saved' : '● Unsaved'}
-                </span>
             </div>
             <div className="sheet_toolbar">
                 <button className="sheet_btn" onClick={addRow}>+ Row</button>

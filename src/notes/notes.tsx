@@ -36,6 +36,7 @@ import {
     type FileAttachment
 } from './noteStorage'
 import { useAuth } from '../auth/AuthContext';
+import DocumentHeader from '../components/DocumentHeader';
 // Register KaTeX module for math equations
 // @ts-ignore - Quill modules don't have proper types
 import katex from 'katex'
@@ -909,16 +910,14 @@ function Notes() {
             <div className="notes_container">
                 {/* Title Bar */}
                 <div className="notes_title_bar">
-                    <input
-                        type="text"
-                        className="notes_title_input"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                    <DocumentHeader
+                        title={title}
+                        onTitleChange={setTitle}
+                        isSaved={isSaved}
                         placeholder="Untitled Document"
+                        savedText="✓ Saved"
+                        unsavedText="Saving..."
                     />
-                    <span className={`notes_save_indicator ${isSaved ? 'saved' : 'unsaved'}`}>
-                        {isSaved ? '✓ Saved' : 'Saving...'}
-                    </span>
                 </div>
 
                 {/* Hidden file input for any file type */}

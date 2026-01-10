@@ -7,55 +7,27 @@
   min-height: 100vh;
 }
 
-/* Title Bar */
+/* Title Bar - Wrapper for DocumentHeader component */
 .notes_title_bar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 0; /* Remove gap - connect to toolbar */
   background: white;
   padding: 16px 24px;
-  border-radius: 8px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 1px solid #e0e0e0; /* Subtle divider */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1001; /* Higher than toolbar to stay on top */
 }
 
-.notes_title_input {
-  flex: 1;
+/* Override DocumentHeader styles for notes */
+.notes_title_bar .document_header {
+  margin-bottom: 0;
+}
+
+.notes_title_bar .document_header_title {
   font-size: 1.75rem;
-  font-weight: 600;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  padding: 4px 8px;
-  outline: none;
-  transition: border-color 0.2s ease;
-  color: #333;
-}
-
-.notes_title_input:hover {
-  border-bottom-color: #e0e0e0;
-}
-
-.notes_title_input:focus {
-  border-bottom-color: #4285f4;
-}
-
-.notes_save_indicator {
-  font-size: 0.875rem;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.notes_save_indicator.saved {
-  color: #2e7d32;
-  background-color: #e8f5e9;
-}
-
-.notes_save_indicator.unsaved {
-  color: #f57c00;
-  background-color: #fff3e0;
 }
 
 /* Toolbar Actions */
@@ -87,9 +59,11 @@
 /* Editor Wrapper - Paper-like appearance */
 .notes_editor_wrapper {
   background: white;
-  border-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: visible; /* Changed from hidden to allow sticky toolbar */
+  margin-bottom: 20px; /* Space after the editor */
 }
 
 /* Quill Editor Customization */
@@ -117,15 +91,15 @@
 
 /* Toolbar Styling */
 .notes_editor_wrapper .ql-toolbar {
-  background: #f8f9fa;
+  background: white; /* Match title bar background */
   border: none;
   border-bottom: 1px solid #e0e0e0;
   padding: 12px 16px;
   position: sticky;
-  top: 0;
-  z-index: 1000; /* Increased z-index to stay above content */
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  top: 57px; /* Position directly below the title bar */
+  z-index: 1000; /* Below title bar but above content */
+  border-top-left-radius: 0; /* Remove top radius - connects to title bar */
+  border-top-right-radius: 0; /* Remove top radius - connects to title bar */
 }
 
 .notes_editor_wrapper .ql-toolbar button {
@@ -660,8 +634,13 @@
     padding: 12px 16px;
   }
 
-  .notes_title_input {
+  .notes_title_bar .document_header_title {
     font-size: 1.5rem;
+  }
+
+  /* Adjust toolbar position for smaller title bar on mobile */
+  .notes_editor_wrapper .ql-toolbar {
+    top: 49px; /* Smaller top offset for mobile (matches smaller title bar) */
   }
 
   .notes_editor_wrapper .ql-editor {

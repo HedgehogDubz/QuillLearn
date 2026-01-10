@@ -1,46 +1,31 @@
-/* Title bar with editable title and save indicator */
+/* Sheets now uses the shared DocumentHeader component */
+
+/* Sheet Container - Centered layout matching notes */
+.sheet_container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Title Bar - Wrapper for DocumentHeader component */
 .sheet_title_bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0; /* Remove gap - connect to toolbar */
+  background: white;
+  padding: 16px 24px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 1px solid #e0e0e0; /* Subtle divider */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1001; /* Higher than toolbar to stay on top */
 }
 
-.sheet_title_input {
-  font-size: 1.5rem;
-  font-weight: 600;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  padding: 4px 8px;
-  outline: none;
-  transition: border-color 0.2s ease;
-  min-width: 400px;
-}
-
-.sheet_title_input:hover {
-  border-bottom-color: #ddd;
-}
-
-.sheet_title_input:focus {
-  border-bottom-color: #4a90d9;
-}
-
-.sheet_save_indicator {
-  font-size: 0.85rem;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
-.sheet_save_indicator.saved {
-  color: #2e7d32;
-  background-color: #e8f5e9;
-}
-
-.sheet_save_indicator.unsaved {
-  color: #f57c00;
-  background-color: #fff3e0;
+/* Override DocumentHeader styles for sheets */
+.sheet_title_bar .document_header {
+  margin-bottom: 0;
 }
 
 .sheet_toolbar {
@@ -306,7 +291,12 @@
   bottom: 0;
   z-index: 1;
   cursor: cell;
-  /* Always capture mouse events to enable selection */
+  /* By default, allow clicks to pass through to textarea */
+  pointer-events: none;
+}
+
+/* Only enable pointer events on selection layer when cell is selected (for drag selection) */
+.sheet_selection_layer_active {
   pointer-events: auto;
 }
 
@@ -314,10 +304,6 @@
 .sheet_cell_selected {
   border: 2px solid rgba(66, 133, 244, 0.8);
   z-index: 2;
-}
-
-.sheet_cell_selected .sheet_input {
-  user-select: none;
 }
 
 .sheet_input {

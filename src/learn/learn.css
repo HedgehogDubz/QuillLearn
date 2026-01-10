@@ -114,8 +114,12 @@
   color: #555;
   font-weight: 500;
   max-width: 100px;
+  min-height: 40px; /* Fixed height to keep buttons aligned */
   text-align: center;
   word-break: break-word;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .learn_column_buttons {
