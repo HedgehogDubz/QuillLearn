@@ -214,6 +214,55 @@ function Notes() {
                             if (fileInputRef.current) {
                                 fileInputRef.current.click()
                             }
+                        },
+                        image: async function(this: any) {
+                            // Custom image handler - upload to Supabase Storage instead of base64
+                            const input = document.createElement('input')
+                            input.setAttribute('type', 'file')
+                            input.setAttribute('accept', 'image/*')
+                            input.click()
+
+                            const quill = this.quill
+
+                            input.onchange = async () => {
+                                const file = input.files?.[0]
+                                if (!file) return
+
+                                try {
+                                    console.log('🖼️ Uploading image from toolbar...')
+
+                                    // Upload to Supabase Storage (images bucket)
+                                    const formData = new FormData()
+                                    formData.append('image', file)
+                                    formData.append('userId', user?.id || 'anonymous')
+                                    formData.append('sessionId', sessionId || '')
+
+                                    const response = await fetch('/api/storage/upload-image', {
+                                        method: 'POST',
+                                        body: formData
+                                    })
+
+                                    const result = await response.json()
+
+                                    if (!result.success) {
+                                        console.error('Failed to upload image:', result.error)
+                                        alert('Failed to upload image. Please try again.')
+                                        return
+                                    }
+
+                                    // Insert image into editor
+                                    const range = quill.getSelection(true)
+                                    quill.insertEmbed(range.index, 'image', result.url)
+                                    quill.setSelection(range.index + 1)
+
+
+
+                                    console.log('✅ Image uploaded successfully')
+                                } catch (error) {
+                                    console.error('Error uploading image:', error)
+                                    alert('Failed to upload image. Please try again.')
+                                }
+                            }
                         }
                     }
                 },
@@ -274,11 +323,174 @@ function Notes() {
             }
         }
 
+        // Intercept drag-and-drop images and upload to Supabase Storage
+        quill.root.addEventListener('drop', async (e: DragEvent) => {
+            const dataTransfer = e.dataTransfer
+            if (!dataTransfer) return
+
+            const files = Array.from(dataTransfer.files)
+            const imageFile = files.find(file => file.type.startsWith('image/'))
+
+            if (imageFile) {
+                e.preventDefault() // Prevent default drop behavior
+
+                try {
+                    console.log('📥 Dropped image detected, uploading to Supabase Storage...')
+
+                    // Upload to Supabase Storage
+                    const formData = new FormData()
+                    formData.append('image', imageFile)
+                    formData.append('userId', user?.id || 'anonymous')
+                    formData.append('sessionId', sessionId || '')
+
+                    const response = await fetch('/api/storage/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    })
+
+                    const result = await response.json()
+
+                    if (result.success) {
+                        // Insert the uploaded image URL at drop position
+                        const range = quill.getSelection(true)
+                        quill.insertEmbed(range.index, 'image', result.url)
+                        quill.setSelection(range.index + 1)
+
+
+
+                        console.log('✅ Dropped image uploaded successfully')
+                    } else {
+                        console.error('Failed to upload dropped image:', result.error)
+                        alert('Failed to upload image. Please try again.')
+                    }
+                } catch (error) {
+                    console.error('Error uploading dropped image:', error)
+                    alert('Failed to upload image. Please try again.')
+                }
+            }
+        })
+
+        // Intercept pasted images and upload to Supabase Storage
+        quill.root.addEventListener('paste', async (e: ClipboardEvent) => {
+            const clipboardData = e.clipboardData
+            if (!clipboardData) return
+
+            const items = Array.from(clipboardData.items)
+            const imageItem = items.find(item => item.type.startsWith('image/'))
+
+            if (imageItem) {
+                e.preventDefault() // Prevent default paste behavior
+
+                const file = imageItem.getAsFile()
+                if (!file) return
+
+                try {
+                    console.log('📋 Pasted image detected, uploading to Supabase Storage...')
+
+                    // Upload to Supabase Storage
+                    const formData = new FormData()
+                    formData.append('image', file)
+                    formData.append('userId', user?.id || 'anonymous')
+                    formData.append('sessionId', sessionId || '')
+
+                    const response = await fetch('/api/storage/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    })
+
+                    const result = await response.json()
+
+                    if (result.success) {
+                        // Insert the uploaded image URL
+                        const range = quill.getSelection(true)
+                        quill.insertEmbed(range.index, 'image', result.url)
+                        quill.setSelection(range.index + 1)
+
+
+
+                        console.log('✅ Image uploaded successfully:', result.url)
+                    } else {
+                        console.error('Failed to upload pasted image:', result.error)
+                        alert('Failed to upload image. Please try again.')
+                    }
+                } catch (error) {
+                    console.error('Error uploading pasted image:', error)
+                    alert('Failed to upload image. Please try again.')
+                }
+            }
+        })
+
         // Handle content changes
-        quill.on('text-change', () => {
+        quill.on('text-change', async () => {
             const html = quill.root.innerHTML
             setContent(html)
             setIsSaved(false)
+
+            // Auto-convert base64 images to Supabase Storage URLs
+            const delta = quill.getContents()
+            if (delta && delta.ops) {
+                let hasChanges = false
+
+                for (let i = 0; i < delta.ops.length; i++) {
+                    const op = delta.ops[i]
+
+                    // Check if this operation contains a base64 image
+                    // @ts-ignore - Delta ops types are incomplete
+                    if (op.insert?.image && typeof op.insert.image === 'string' && op.insert.image.startsWith('data:')) {
+                        console.log('🔄 Found base64 image, converting to Supabase Storage...')
+
+                        try {
+                            // Convert base64 to blob
+                            // @ts-ignore
+                            const base64Data = op.insert.image
+                            const response = await fetch(base64Data)
+                            const blob = await response.blob()
+
+                            // Upload to Supabase Storage
+                            const formData = new FormData()
+                            formData.append('image', blob, 'pasted-image.png')
+                            formData.append('userId', user?.id || 'anonymous')
+                            formData.append('sessionId', sessionId || '')
+
+                            const uploadResponse = await fetch('/api/storage/upload-image', {
+                                method: 'POST',
+                                body: formData
+                            })
+
+                            const result = await uploadResponse.json()
+
+                            if (result.success) {
+                                // Find the position of this image in the editor
+                                let position = 0
+                                for (let j = 0; j < i; j++) {
+                                    // @ts-ignore
+                                    if (typeof delta.ops[j].insert === 'string') {
+                                        // @ts-ignore
+                                        position += delta.ops[j].insert.length
+                                    } else {
+                                        position += 1
+                                    }
+                                }
+
+                                // Replace base64 image with URL
+                                quill.deleteText(position, 1, 'silent')
+                                quill.insertEmbed(position, 'image', result.url, 'silent')
+
+
+
+                                hasChanges = true
+                                console.log('✅ Base64 image converted to Supabase URL')
+                            }
+                        } catch (error) {
+                            console.error('Error converting base64 image:', error)
+                        }
+                    }
+                }
+
+                if (hasChanges) {
+                    console.log('✨ All base64 images have been converted to Supabase Storage!')
+                }
+            }
         })
 
         // Handle formula editing on click
@@ -476,7 +688,24 @@ function Notes() {
                 // Restore drawings if they exist
                 if (noteData.drawings) {
                     console.log('Loading drawings:', noteData.drawings)
-                    setDrawings(noteData.drawings)
+
+                    // Convert old Supabase URLs to proxied URLs
+                    const convertedDrawings = noteData.drawings.map((drawing: any) => {
+                        if (drawing.url && drawing.url.includes('supabase.co/storage')) {
+                            // Extract bucket and path from Supabase URL
+                            // Example: https://xxx.supabase.co/storage/v1/object/public/images/userId/sessionId/file.png
+                            // Convert to: /api/storage/image/images/userId/sessionId/file.png
+                            const match = drawing.url.match(/\/storage\/v1\/object\/public\/(.+)/)
+                            if (match) {
+                                const fullPath = match[1] // e.g., "images/userId/sessionId/file.png"
+                                drawing.url = `/api/storage/image/${fullPath}`
+                                console.log('🔄 Converted Supabase URL to proxied URL:', drawing.url)
+                            }
+                        }
+                        return drawing
+                    })
+
+                    setDrawings(convertedDrawings)
                 }
 
                 // Restore attachments if they exist
@@ -492,6 +721,22 @@ function Notes() {
                     } else if (noteData.content) {
                         quillRef.current.root.innerHTML = noteData.content
                     }
+
+                    // Convert any Supabase image URLs in the content to proxied URLs
+                    setTimeout(() => {
+                        const images = quillRef.current?.root.querySelectorAll('img')
+                        images?.forEach((img: HTMLImageElement) => {
+                            if (img.src.includes('supabase.co/storage')) {
+                                const match = img.src.match(/\/storage\/v1\/object\/public\/(.+)/)
+                                if (match) {
+                                    const fullPath = match[1]
+                                    const newUrl = `/api/storage/image/${fullPath}`
+                                    img.src = newUrl
+                                    console.log('🔄 Converted image URL to proxied URL:', newUrl)
+                                }
+                            }
+                        })
+                    }, 100)
                 }
             }
 
@@ -783,10 +1028,7 @@ function Notes() {
                     console.log('Loading drawing for edit:', drawing)
                     const img = new Image()
 
-                    // Set crossOrigin for Supabase Storage URLs
-                    if (drawing.url) {
-                        img.crossOrigin = 'anonymous'
-                    }
+
 
                     img.onload = () => {
                         console.log('Drawing loaded successfully')

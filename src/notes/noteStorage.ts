@@ -123,6 +123,21 @@ export async function saveNoteData(
         // Serialize data
         const serializedData = JSON.stringify(dataToSave);
 
+        // Log payload size for debugging
+        const payloadSizeKB = (serializedData.length / 1024).toFixed(2);
+        console.log(`💾 Saving note - Payload size: ${payloadSizeKB} KB`);
+
+        // Check if delta contains base64 images
+        if (delta && delta.ops) {
+            const base64Images = delta.ops.filter((op: any) =>
+                op.insert?.image && op.insert.image.startsWith('data:')
+            );
+            if (base64Images.length > 0) {
+                console.warn(`⚠️ Found ${base64Images.length} base64 images in Delta! These should be uploaded to Supabase Storage.`);
+                console.warn(`💡 Tip: Delete and re-paste these images, or use the image upload button instead.`);
+            }
+        }
+
         const response = await fetch('/api/notes', {
             method: 'POST',
             headers: {
