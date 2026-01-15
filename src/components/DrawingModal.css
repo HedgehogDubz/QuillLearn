@@ -1,0 +1,194 @@
+/* Drawing Modal Styles */
+.drawing_modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.drawing_container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.drawing_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.drawing_header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.drawing_header button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.drawing_header button:hover {
+    background: #f0f0f0;
+}
+
+.drawing_toolbar {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    flex-wrap: wrap;
+}
+
+.drawing_tools {
+    display: flex;
+    gap: 8px;
+}
+
+.drawing_tools button {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.drawing_tools button:hover {
+    border-color: #1a73e8;
+    background: #f0f7ff;
+}
+
+.drawing_tools button.active {
+    border-color: #1a73e8;
+    background: #1a73e8;
+    color: white;
+}
+
+.drawing_options {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.drawing_option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.drawing_option label {
+    font-size: 14px;
+    color: #555;
+    white-space: nowrap;
+}
+
+.drawing_option input[type="range"] {
+    width: 100px;
+}
+
+.drawing_option input[type="color"] {
+    width: 40px;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.drawing_option select {
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.drawing_color_palette {
+    display: flex;
+    gap: 6px;
+}
+
+.drawing_color_palette button {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.drawing_color_palette button:hover {
+    transform: scale(1.1);
+}
+
+.drawing_color_palette button.active {
+    border: 3px solid #1a73e8 !important;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px #1a73e8;
+}
+
+.drawing_canvas {
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    cursor: crosshair;
+    background: white;
+    display: block;
+    margin: 0 auto;
+}
+
+.drawing_controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.drawing_controls button {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.drawing_controls button:hover {
+    background: #f0f0f0;
+}
+
+.drawing_controls button.primary {
+    background: #1a73e8;
+    color: white;
+    border-color: #1a73e8;
+}
+
+.drawing_controls button.primary:hover {
+    background: #1557b0;
+}
+

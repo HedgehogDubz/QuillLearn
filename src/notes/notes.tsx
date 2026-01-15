@@ -37,6 +37,7 @@ import {
 } from './noteStorage'
 import { useAuth } from '../auth/AuthContext';
 import DocumentHeader from '../components/DocumentHeader';
+import { ConvertToSheetModal } from './ConvertToSheetModal';
 // Register KaTeX module for math equations
 // @ts-ignore - Quill modules don't have proper types
 import katex from 'katex'
@@ -128,6 +129,7 @@ function Notes() {
     const [editingDrawingIndex, setEditingDrawingIndex] = useState<number | null>(null)
     const [isReadOnly, setIsReadOnly] = useState(false)
     const [userPermission, setUserPermission] = useState<string | null>(null)
+    const [showConvertModal, setShowConvertModal] = useState(false)
 
     // Refs
     const quillRef = useRef<Quill | null>(null)
@@ -203,7 +205,8 @@ function Notes() {
                         ['blockquote', 'code-block'],
                         ['link', 'image', 'video', 'formula'],
                         ['drawing', 'embedFile'], // Custom buttons
-                        ['clean']
+                        ['clean'],
+                        ['convertToSheet'] // AI conversion button - at end
                     ],
                     handlers: {
                         drawing: () => {
@@ -214,6 +217,9 @@ function Notes() {
                             if (fileInputRef.current) {
                                 fileInputRef.current.click()
                             }
+                        },
+                        convertToSheet: () => {
+                            setShowConvertModal(true)
                         },
                         image: async function(this: any) {
                             // Custom image handler - upload to Supabase Storage instead of base64
@@ -281,20 +287,29 @@ function Notes() {
         quillRef.current = quill
 
         // Add custom icons to custom buttons (use setTimeout to ensure DOM is ready)
-        const editorElement = editorRef.current
         setTimeout(() => {
-            const drawingButton = editorElement.querySelector('.ql-drawing')
+            // Find toolbar from the document since editorRef becomes ql-container
+            const toolbar = document.querySelector('.notes_editor_wrapper .ql-toolbar')
+            if (!toolbar) return
+
+            const drawingButton = toolbar.querySelector('.ql-drawing')
             if (drawingButton) {
                 drawingButton.innerHTML = '✏️'
                 drawingButton.setAttribute('title', 'Insert Drawing')
             }
 
-            const embedFileButton = editorElement.querySelector('.ql-embedFile')
+            const embedFileButton = toolbar.querySelector('.ql-embedFile')
             if (embedFileButton) {
                 embedFileButton.innerHTML = '📎'
                 embedFileButton.setAttribute('title', 'Attach File (Any Type)')
             }
-        }, 10) // Small delay to ensure Quill has rendered the toolbar
+
+            const convertButton = toolbar.querySelector('.ql-convertToSheet')
+            if (convertButton) {
+                convertButton.innerHTML = '📊 Convert to Sheet'
+                convertButton.setAttribute('title', 'Convert notes to a study sheet using AI')
+            }
+        }, 50) // Small delay to ensure Quill has rendered the toolbar
 
         // Override tooltip save to replace formulas instead of creating new ones
         // @ts-ignore - Quill theme types are incomplete
@@ -1345,6 +1360,16 @@ function Notes() {
                         </div>
                     </details>
                 </div>
+
+                {/* Convert to Sheet Modal */}
+                {showConvertModal && (
+                    <ConvertToSheetModal
+                        isOpen={showConvertModal}
+                        onClose={() => setShowConvertModal(false)}
+                        noteContent={content}
+                        noteTitle={title}
+                    />
+                )}
             </div>
         </>
     )

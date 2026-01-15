@@ -13,6 +13,7 @@ import sheetsRoutes from './routes/sheets.js';
 import notesRoutes from './routes/notes.js';
 import storageRoutes from './routes/storage.js';
 import chatRoutes from './routes/chat.js';
+import notesToSheetsRoutes from './routes/notes-to-sheets.js';
 import presenceRoutes from './routes/presence.js';
 import usersRoutes from './routes/users.js';
 
@@ -49,10 +50,13 @@ app.use('/api/notes', notesRoutes);
 app.use('/api/storage', storageRoutes);
 
 // Chat routes (AI)
-app.use('/api/chat', chatRoutes);
+//app.use('/api/chat', chatRoutes);
+app.use('/api/notes-to-sheets', notesToSheetsRoutes);
 
 // Presence routes (real-time collaboration)
 app.use('/api/presence', presenceRoutes);
+
+
 
 // User routes
 app.use('/api/users', usersRoutes);

@@ -26,7 +26,8 @@ interface SessionData {
 
 // Parse cell content to extract text and images
 function parseCellContent(value: string): { text: string; images: string[] } {
-    const imageRegex = /\|\|\|IMG:(data:image\/[^|]+)\|\|\|/g;
+    // Updated regex to match both data URLs and regular URLs (like /api/storage/image/...)
+    const imageRegex = /\|\|\|IMG:([^|]+)\|\|\|/g;
     const images: string[] = [];
     let match;
 

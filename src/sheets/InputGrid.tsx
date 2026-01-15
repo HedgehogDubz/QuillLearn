@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import './InputGrid.css'
 import { loadSheetData, saveSheetData, AUTO_SAVE_DEBOUNCE_MS } from './sheetStorage'
 import { ImageUploadModal } from './ImageUploadModal'
+import { DrawingModal, type CanvasSize } from '../components/DrawingModal'
 import { useAuth } from '../auth/AuthContext'
 import DocumentHeader from '../components/DocumentHeader'
 
@@ -61,7 +62,8 @@ function insertImageIntoCell(cellValue: string, imageData: string): string {
 }
 
 function parseCellContent(value: string): { text: string; images: string[] } {
-    const imageRegex = /\|\|\|IMG:(data:image\/[^|]+)\|\|\|/g;
+    // Updated regex to match both data URLs and regular URLs (like /api/storage/image/...)
+    const imageRegex = /\|\|\|IMG:([^|]+)\|\|\|/g;
     const images: string[] = [];
     let match;
 
@@ -92,6 +94,7 @@ interface CellProps {
     onMouseUp: () => void;
     autoResizeTextarea: (el: HTMLTextAreaElement) => void;
     onAddImage?: (row: number, col: number) => void;
+    onAddDrawing?: (row: number, col: number) => void;
     isHeaderRow?: boolean;
     readOnly?: boolean;
 }
@@ -112,6 +115,7 @@ const Cell = React.memo(({
     onMouseUp,
     autoResizeTextarea,
     onAddImage,
+    onAddDrawing,
     isHeaderRow = false,
     readOnly = false
 }: CellProps) => {
@@ -186,6 +190,21 @@ const Cell = React.memo(({
                     📷
                 </button>
             )}
+
+            {/* Add drawing button - only for non-header rows and if less than 2 images and not read-only */}
+            {!isHeaderRow && !readOnly && onAddDrawing && canAddMoreImages && (
+                <button
+                    className="sheet_add_drawing_btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onAddDrawing(row, col);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    title="Add drawing (max 2 images total)"
+                >
+                    ✏️
+                </button>
+            )}
         </td>
     );
 }, (prevProps, nextProps) => {
@@ -253,6 +272,18 @@ function InputGrid({ sessionId }: InputGridProps) {
     // Image upload modal state
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [imageTargetCell, setImageTargetCell] = useState<{ row: number; col: number } | null>(null);
+
+    // Drawing modal state
+    const [drawingModalOpen, setDrawingModalOpen] = useState(false);
+    const [drawingTargetCell, setDrawingTargetCell] = useState<{ row: number; col: number } | null>(null);
+
+    // Square canvas sizes for sheets
+    const SQUARE_CANVAS_SIZES: CanvasSize[] = [
+        { width: 200, height: 200 },
+        { width: 400, height: 400 },
+        { width: 600, height: 600 }
+    ];
+    const [selectedCanvasSize, setSelectedCanvasSize] = useState<CanvasSize>(SQUARE_CANVAS_SIZES[1]); // Default to 400x400
 
     const rows = grid.length;
     const cols = grid[0]?.length ?? 0;
@@ -808,6 +839,57 @@ function InputGrid({ sessionId }: InputGridProps) {
         setImageTargetCell(null);
     }, [imageTargetCell, saveToHistory]);
 
+    // Drawing handlers
+    const handleAddDrawing = useCallback((row: number, col: number) => {
+        setDrawingTargetCell({ row, col });
+        setDrawingModalOpen(true);
+    }, []);
+
+    const handleDrawingSave = useCallback(async (blob: Blob, hasBorder: boolean, size: CanvasSize) => {
+        if (!drawingTargetCell) return;
+
+        try {
+            // Upload drawing to Supabase Storage
+            const formData = new FormData();
+            formData.append('drawing', blob, 'drawing.png');
+            formData.append('userId', user?.id || 'anonymous');
+            formData.append('sessionId', sessionId);
+
+            const response = await fetch('/api/storage/upload-drawing', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                console.error('Failed to upload drawing:', result.error);
+                alert('Failed to save drawing. Please try again.');
+                return;
+            }
+
+            const imageUrl = result.url;
+
+            // Create image data URL with border styling
+            const imageData = imageUrl;
+
+            saveToHistory('Add drawing');
+            const { row, col } = drawingTargetCell;
+            setGrid((prev) => {
+                const next = copyGrid(prev);
+                const currentValue = next[row][col];
+                next[row][col] = insertImageIntoCell(currentValue, imageData);
+                return next;
+            });
+
+            setDrawingModalOpen(false);
+            setDrawingTargetCell(null);
+        } catch (error) {
+            console.error('Error uploading drawing:', error);
+            alert('Failed to save drawing. Please try again.');
+        }
+    }, [drawingTargetCell, saveToHistory, user?.id, sessionId]);
+
     // Column header right-click handler
     const handleColumnContextMenu = useCallback((e: React.MouseEvent, colIndex: number) => {
         e.preventDefault();
@@ -968,6 +1050,85 @@ function InputGrid({ sessionId }: InputGridProps) {
         };
     }, [selection]);
 
+    // Global paste handler for selections
+    const handleGlobalPaste = useCallback(async () => {
+        if (!selection) return;
+
+        try {
+            const pastedText = await navigator.clipboard.readText();
+
+            if (!pastedText || pastedText.trim() === '') {
+                return;
+            }
+
+            saveToHistory("Paste");
+
+            // Parse TSV data
+            const rows = pastedText.split('\n').map(row => row.split('\t'));
+
+            // Remove trailing empty row if present
+            if (rows.length > 0 && rows[rows.length - 1].length === 1 && rows[rows.length - 1][0] === '') {
+                rows.pop();
+            }
+
+            if (rows.length === 0) {
+                return;
+            }
+
+            const pasteRowCount = rows.length;
+            const pasteColCount = Math.max(...rows.map(row => row.length));
+
+            // Use the top-left corner of the selection as the start point
+            const startRow = Math.min(selection.startRow, selection.endRow);
+            const startCol = Math.min(selection.startCol, selection.endCol);
+
+            // Calculate how many rows and columns we need
+            const requiredRows = startRow + pasteRowCount;
+            const requiredCols = startCol + pasteColCount;
+
+            setGrid((prev) => {
+                let next = copyGrid(prev);
+
+                // Expand grid if needed
+                while (next.length < requiredRows) {
+                    next.push(Array(next[0].length).fill(''));
+                }
+                while (next[0].length < requiredCols) {
+                    next = next.map(row => [...row, '']);
+                }
+
+                // Paste the data
+                for (let r = 0; r < pasteRowCount; r++) {
+                    for (let c = 0; c < rows[r].length; c++) {
+                        const targetRow = startRow + r;
+                        const targetCol = startCol + c;
+                        if (targetRow < next.length && targetCol < next[0].length) {
+                            next[targetRow][targetCol] = rows[r][c] || '';
+                        }
+                    }
+                }
+
+                return next;
+            });
+
+            // Update column widths if we added columns
+            if (requiredCols > columnWidths.length) {
+                setColumnWidths(prev => {
+                    const newWidths = [...prev];
+                    while (newWidths.length < requiredCols) {
+                        newWidths.push(DEFAULT_COLUMN_WIDTH);
+                    }
+                    return newWidths;
+                });
+            }
+
+            // Clear selection after paste
+            setSelection(null);
+        } catch (error) {
+            console.error('Failed to paste:', error);
+        }
+    }, [selection, saveToHistory, columnWidths]);
+
     // Global keyboard listener for selection operations and undo
     React.useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -987,13 +1148,16 @@ function InputGrid({ sessionId }: InputGridProps) {
                 return;
             }
 
-            // Handle copy, cut, delete for selections
+            // Handle copy, cut, paste, delete for selections
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
                 e.preventDefault();
                 handleCopy();
             } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
                 e.preventDefault();
                 handleCut();
+            } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+                e.preventDefault();
+                handleGlobalPaste();
             } else if (e.key === 'Delete' || e.key === 'Backspace') {
                 // Only handle if not focused on a textarea
                 const activeElement = document.activeElement;
@@ -1008,7 +1172,7 @@ function InputGrid({ sessionId }: InputGridProps) {
         return () => {
             document.removeEventListener('keydown', handleGlobalKeyDown);
         };
-    }, [selection, handleCopy, handleCut, handleDelete, undo]);
+    }, [selection, handleCopy, handleCut, handleDelete, handleGlobalPaste, undo]);
 
     //Keyboard Inputs
     const onKeyDown = useCallback(
@@ -1265,6 +1429,7 @@ function InputGrid({ sessionId }: InputGridProps) {
                                                 onMouseUp={() => handleMouseUp(r, c)}
                                                 autoResizeTextarea={autoResizeTextarea}
                                                 onAddImage={handleAddImage}
+                                                onAddDrawing={handleAddDrawing}
                                                 isHeaderRow={r === 0}
                                                 readOnly={isReadOnly}
                                             />
@@ -1349,6 +1514,19 @@ function InputGrid({ sessionId }: InputGridProps) {
                     setImageTargetCell(null);
                 }}
                 onImageSelect={handleImageSelect}
+            />
+
+            {/* Drawing modal */}
+            <DrawingModal
+                isOpen={drawingModalOpen}
+                onClose={() => {
+                    setDrawingModalOpen(false);
+                    setDrawingTargetCell(null);
+                }}
+                onSave={handleDrawingSave}
+                canvasSize={selectedCanvasSize}
+                availableSizes={SQUARE_CANVAS_SIZES}
+                title="Drawing Canvas (Square)"
             />
         </div>
     )
