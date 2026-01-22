@@ -1,0 +1,226 @@
+.monaco-code-block {
+    margin: 8px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #404040;
+    background: #1e1e1e;
+    user-select: none;
+}
+
+.monaco-code-block:hover {
+    border-color: #4285f4;
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.15);
+}
+
+.monaco-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #404040;
+}
+
+.monaco-language-select {
+    background: #3c3c3c;
+    color: #e0e0e0;
+    border: 1px solid #505050;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    outline: none;
+}
+
+.monaco-language-select:hover {
+    background: #4a4a4a;
+    border-color: #606060;
+}
+
+.monaco-language-select:focus {
+    border-color: #4285f4;
+}
+
+.monaco-language-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.monaco-header-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.monaco-edit-btn,
+.monaco-delete-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.monaco-edit-btn:hover {
+    background: #4285f4;
+    color: white;
+}
+
+.monaco-delete-btn:hover {
+    background: #ff4444;
+    color: white;
+}
+
+.monaco-editor-container {
+    min-height: 60px;
+    max-height: 500px;
+}
+
+/* Override Monaco's default styles for better integration */
+.monaco-code-block .monaco-editor,
+.monaco-code-block .monaco-editor .overflow-guard {
+    border-radius: 0 0 6px 6px !important;
+}
+
+.monaco-code-block .monaco-editor .margin {
+    background: #1e1e1e !important;
+}
+
+/* Make editor fill container properly */
+.monaco-editor-container > section {
+    height: 100% !important;
+}
+
+.monaco-editor-container .monaco-editor {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Code insert modal */
+.code-insert-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.code-insert-modal {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.code-insert-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.code-insert-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.code-insert-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+    line-height: 1;
+}
+
+.code-insert-modal-close:hover {
+    color: #333;
+}
+
+.code-insert-modal-body {
+    flex: 1;
+    padding: 20px;
+    overflow: auto;
+}
+
+.code-insert-language-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.code-insert-language-row label {
+    font-weight: 500;
+    color: #333;
+}
+
+.code-insert-language-select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.code-insert-editor-wrapper {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 300px;
+}
+
+.code-insert-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.code-insert-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.code-insert-btn-cancel {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #666;
+}
+
+.code-insert-btn-cancel:hover {
+    background: #e8e8e8;
+}
+
+.code-insert-btn-insert {
+    background: #4285f4;
+    border: none;
+    color: white;
+}
+
+.code-insert-btn-insert:hover {
+    background: #3367d6;
+}
+

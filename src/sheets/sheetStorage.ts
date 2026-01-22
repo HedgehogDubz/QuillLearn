@@ -32,7 +32,7 @@ export async function loadSheetData(
     sessionId: string,
     defaultGrid: Grid,
     defaultColumnWidths: number[]
-): Promise<{ title:string; grid: Grid; columnWidths: number[] }> {
+): Promise<{ title: string; grid: Grid; columnWidths: number[]; tags: string[] }> {
     try {
         const response = await fetch(`/api/sheets/${sessionId}`);
         const result = await response.json();
@@ -42,7 +42,8 @@ export async function loadSheetData(
             return {
                 title: data.title,
                 grid: rowDataToGrid(data.rows),
-                columnWidths: data.column_widths
+                columnWidths: data.column_widths,
+                tags: data.tags || []
             };
         }
     } catch (error) {
@@ -53,7 +54,8 @@ export async function loadSheetData(
     return {
         title: "Untitled Sheet",
         grid: defaultGrid,
-        columnWidths: defaultColumnWidths
+        columnWidths: defaultColumnWidths,
+        tags: []
     };
 }
 

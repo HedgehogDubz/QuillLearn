@@ -5,6 +5,9 @@ import { ImageUploadModal } from './ImageUploadModal'
 import { DrawingModal, type CanvasSize } from '../components/DrawingModal'
 import { useAuth } from '../auth/AuthContext'
 import DocumentHeader from '../components/DocumentHeader'
+import TagInput from '../components/TagInput'
+import PublishModal from '../components/PublishModal'
+import { ShareModal } from '../components/ShareModal'
 
 // Constants
 const DRAG_THRESHOLD = 5; // Minimum distance in pixels to count as a drag (not just a click)
@@ -238,6 +241,8 @@ function InputGrid({ sessionId }: InputGridProps) {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isReadOnly, setIsReadOnly] = useState<boolean>(false);
     const [userPermission, setUserPermission] = useState<string | null>(null);
+    const [tags, setTags] = useState<string[]>([]);
+    const [allUserTags, setAllUserTags] = useState<string[]>([]);
     const [resizingColumn, setResizingColumn] = useState<number | null>(null);
     const resizeStartX = useRef<number>(0);
     const resizeStartWidth = useRef<number>(0);
@@ -277,6 +282,12 @@ function InputGrid({ sessionId }: InputGridProps) {
     const [drawingModalOpen, setDrawingModalOpen] = useState(false);
     const [drawingTargetCell, setDrawingTargetCell] = useState<{ row: number; col: number } | null>(null);
 
+    // Publish modal state
+    const [publishModalOpen, setPublishModalOpen] = useState(false);
+
+    // Share modal state
+    const [shareModalOpen, setShareModalOpen] = useState(false);
+
     // Square canvas sizes for sheets
     const SQUARE_CANVAS_SIZES: CanvasSize[] = [
         { width: 200, height: 200 },
@@ -296,6 +307,7 @@ function InputGrid({ sessionId }: InputGridProps) {
             setGrid(data.grid);
             setColumnWidths(data.columnWidths);
             setTitle(data.title);
+            setTags(data.tags);
             setIsLoading(false);
         };
         loadData();
@@ -326,6 +338,37 @@ function InputGrid({ sessionId }: InputGridProps) {
 
         checkPermission();
     }, [sessionId, user?.id]);
+
+    // Fetch all user tags for suggestions
+    useEffect(() => {
+        const fetchUserTags = async () => {
+            if (!user?.id) return;
+            try {
+                const response = await fetch(`/api/sheets/tags/all/${user.id}`);
+                const result = await response.json();
+                if (result.success) {
+                    setAllUserTags(result.data || []);
+                }
+            } catch (error) {
+                console.error('Error fetching user tags:', error);
+            }
+        };
+        fetchUserTags();
+    }, [user?.id]);
+
+    // Handle tag changes
+    const handleTagsChange = async (newTags: string[]) => {
+        setTags(newTags);
+        try {
+            await fetch(`/api/sheets/${sessionId}/tags`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tags: newTags, userId: user?.id })
+            });
+        } catch (error) {
+            console.error('Error saving tags:', error);
+        }
+    };
 
     // Auto-save functionality with debouncing
     const saveTimeoutRef = useRef<number | null>(null);
@@ -1178,6 +1221,11 @@ function InputGrid({ sessionId }: InputGridProps) {
     const onKeyDown = useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>, r: number, c: number) => {
             const key = e.key;
+            const textarea = e.currentTarget;
+            const value = textarea.value;
+            const selectionStart = textarea.selectionStart;
+            const selectionEnd = textarea.selectionEnd;
+            const hasSelection = selectionStart !== selectionEnd;
 
             // Handle copy, cut, delete for selections
             if (selection && (e.ctrlKey || e.metaKey)) {
@@ -1198,29 +1246,70 @@ function InputGrid({ sessionId }: InputGridProps) {
                 return;
             }
 
-            // Basic Excel-ish navigation
+            // Tab navigation (always moves between cells)
+            if (key === "Tab") {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    // Move left
+                    if (c > 0) {
+                        focusCell(r, c - 1);
+                    } else if (r > 0) {
+                        // Wrap to end of previous row
+                        focusCell(r - 1, (grid[0]?.length ?? 1) - 1);
+                    }
+                } else {
+                    // Move right
+                    if (c < (grid[0]?.length ?? 1) - 1) {
+                        focusCell(r, c + 1);
+                    } else if (r < grid.length - 1) {
+                        // Wrap to start of next row
+                        focusCell(r + 1, 0);
+                    }
+                }
+                setSelection(null);
+                return;
+            }
+
+            // Enter navigation
             if (key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 focusCell(Math.min(r + 1, grid.length - 1), c);
-            } else if (key === "ArrowDown" && e.ctrlKey) {
-                e.preventDefault();
-                focusCell(Math.min(r + 1, grid.length - 1), c);
-            } else if (key === "ArrowUp" && e.ctrlKey) {
-                e.preventDefault();
-                focusCell(Math.max(r - 1, 0), c);
-            } else if (key === "ArrowRight" && e.ctrlKey) {
-                e.preventDefault();
-                focusCell(r, Math.min(c + 1, (grid[0]?.length ?? 1) - 1));
-            } else if (key === "ArrowLeft" && e.ctrlKey) {
-                e.preventDefault();
-                focusCell(r, Math.max(c - 1, 0));
-            } else if ((e.ctrlKey || e.metaKey) && key.toLowerCase() === "c") {
-                // Let default copy happen (or handled above for selections)
+                setSelection(null);
+                return;
             }
 
-            // Clear selection when navigating
-            if (key.startsWith('Arrow') || key === 'Enter') {
-                setSelection(null);
+            // Arrow key navigation
+            // Navigate if: Ctrl is held, OR cursor is at edge of content, OR cell is empty
+            if (key === "ArrowDown") {
+                // Navigate down if Ctrl held, or cursor at end of text, or no text
+                if (e.ctrlKey || selectionStart === value.length || value === '') {
+                    e.preventDefault();
+                    focusCell(Math.min(r + 1, grid.length - 1), c);
+                    setSelection(null);
+                }
+            } else if (key === "ArrowUp") {
+                // Navigate up if Ctrl held, or cursor at start of text, or no text
+                if (e.ctrlKey || selectionStart === 0 || value === '') {
+                    e.preventDefault();
+                    focusCell(Math.max(r - 1, 0), c);
+                    setSelection(null);
+                }
+            } else if (key === "ArrowRight") {
+                // Navigate right if Ctrl held, or cursor at end (no text selection)
+                if (e.ctrlKey || (!hasSelection && selectionStart === value.length)) {
+                    e.preventDefault();
+                    focusCell(r, Math.min(c + 1, (grid[0]?.length ?? 1) - 1));
+                    setSelection(null);
+                }
+            } else if (key === "ArrowLeft") {
+                // Navigate left if Ctrl held, or cursor at start (no text selection)
+                if (e.ctrlKey || (!hasSelection && selectionStart === 0)) {
+                    e.preventDefault();
+                    focusCell(r, Math.max(c - 1, 0));
+                    setSelection(null);
+                }
+            } else if ((e.ctrlKey || e.metaKey) && key.toLowerCase() === "c") {
+                // Let default copy happen (or handled above for selections)
             }
         },
         [focusCell, grid, selection, handleCopy, handleCut, handleDelete]
@@ -1330,6 +1419,13 @@ function InputGrid({ sessionId }: InputGridProps) {
                     readOnly={isReadOnly}
                     permission={userPermission as 'owner' | 'editor' | 'view' | null}
                 />
+                <TagInput
+                    tags={tags}
+                    onTagsChange={handleTagsChange}
+                    readOnly={isReadOnly}
+                    placeholder="Add tags..."
+                    suggestions={allUserTags}
+                />
             </div>
             <div className="sheet_toolbar">
                 <button className="sheet_btn" onClick={addRow} disabled={isReadOnly}>+ Row</button>
@@ -1341,6 +1437,20 @@ function InputGrid({ sessionId }: InputGridProps) {
                     title={canUndo ? "Undo (Ctrl+Z / ⌘+Z)" : "Nothing to undo"}
                 >
                     ↶ Undo
+                </button>
+                <button
+                    className="sheet_btn sheet_btn_publish"
+                    onClick={() => setPublishModalOpen(true)}
+                    title="Publish to Discover"
+                >
+                    📢 Publish
+                </button>
+                <button
+                    className="sheet_btn sheet_btn_share"
+                    onClick={() => setShareModalOpen(true)}
+                    title="Share this sheet"
+                >
+                    Share
                 </button>
                 <div className="sheet_hint">
                     {isReadOnly ? "View-only mode - You cannot edit this sheet" : (lastActionDescription || "Tip: type in last row/col to auto-expand")}
@@ -1528,6 +1638,31 @@ function InputGrid({ sessionId }: InputGridProps) {
                 availableSizes={SQUARE_CANVAS_SIZES}
                 title="Drawing Canvas (Square)"
             />
+
+            {/* Publish modal */}
+            {publishModalOpen && user && (
+                <PublishModal
+                    isOpen={publishModalOpen}
+                    onClose={() => setPublishModalOpen(false)}
+                    sessionId={sessionId}
+                    contentType="sheet"
+                    currentUserId={user.id}
+                    currentTitle={title}
+                    currentTags={tags}
+                />
+            )}
+
+            {/* Share modal */}
+            {shareModalOpen && user && (
+                <ShareModal
+                    isOpen={shareModalOpen}
+                    onClose={() => setShareModalOpen(false)}
+                    sessionId={sessionId}
+                    documentType="sheet"
+                    currentUserId={user.id}
+                    currentUserPermission={userPermission === 'owner' ? 'owner' : userPermission === 'editor' ? 'edit' : 'view'}
+                />
+            )}
         </div>
     )
 }

@@ -8,6 +8,8 @@ import Login from './auth/Login.tsx'
 import Register from './auth/Register.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import ProtectedRoute from './auth/ProtectedRoute.tsx'
+import Discover from './discover/Discover.tsx'
+import PublicContent from './discover/PublicContent.tsx'
 
 function App() {
   return (
@@ -16,6 +18,10 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Discover routes - public content browsing (requires login to interact) */}
+        <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
+        <Route path="/discover/content/:id" element={<ProtectedRoute><PublicContent /></ProtectedRoute>} />
 
         {/* Protected routes - require authentication */}
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />

@@ -36,6 +36,7 @@ export type Database = {
                     title: string
                     rows: Array<{ data: string[] }>
                     column_widths: number[]
+                    tags: string[]
                     last_time_saved: number
                     created_at: string
                     updated_at: string
@@ -47,6 +48,7 @@ export type Database = {
                     title: string
                     rows: Array<{ data: string[] }>
                     column_widths: number[]
+                    tags?: string[]
                     last_time_saved: number
                     created_at?: string
                     updated_at?: string
@@ -58,6 +60,7 @@ export type Database = {
                     title?: string
                     rows?: Array<{ data: string[] }>
                     column_widths?: number[]
+                    tags?: string[]
                     last_time_saved?: number
                     created_at?: string
                     updated_at?: string
@@ -85,6 +88,7 @@ export type Database = {
                         dataURL: string
                         uploadedAt: number
                     }> | null
+                    tags: string[]
                     last_time_saved: number
                     created_at: string
                     updated_at: string
@@ -110,6 +114,7 @@ export type Database = {
                         dataURL: string
                         uploadedAt: number
                     }> | null
+                    tags?: string[]
                     last_time_saved: number
                     created_at?: string
                     updated_at?: string
@@ -135,6 +140,7 @@ export type Database = {
                         dataURL: string
                         uploadedAt: number
                     }> | null
+                    tags?: string[]
                     last_time_saved?: number
                     created_at?: string
                     updated_at?: string

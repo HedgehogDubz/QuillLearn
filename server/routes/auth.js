@@ -242,5 +242,51 @@ router.get('/verify', authenticateToken, (req, res) => {
     });
 });
 
+/**
+ * POST /api/auth/lookup-users
+ * Look up usernames by user IDs
+ */
+router.post('/lookup-users', async (req, res) => {
+    try {
+        const { userIds } = req.body;
+
+        if (!Array.isArray(userIds)) {
+            return res.status(400).json({
+                success: false,
+                error: 'userIds must be an array'
+            });
+        }
+
+        const users = await User.getAll();
+        const userMap = {};
+
+        userIds.forEach(id => {
+            const user = users.find(u => u.id === id);
+            if (user) {
+                userMap[id] = {
+                    username: user.username,
+                    email: user.email
+                };
+            } else {
+                userMap[id] = {
+                    username: 'Unknown User',
+                    email: null
+                };
+            }
+        });
+
+        res.json({
+            success: true,
+            users: userMap
+        });
+    } catch (error) {
+        console.error('Lookup users error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error'
+        });
+    }
+});
+
 export default router;
 

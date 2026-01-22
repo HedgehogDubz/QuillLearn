@@ -16,6 +16,8 @@ import chatRoutes from './routes/chat.js';
 import notesToSheetsRoutes from './routes/notes-to-sheets.js';
 import presenceRoutes from './routes/presence.js';
 import usersRoutes from './routes/users.js';
+import discoverRoutes from './routes/discover.js';
+import publishedRoutes from './routes/published.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -60,6 +62,12 @@ app.use('/api/presence', presenceRoutes);
 
 // User routes
 app.use('/api/users', usersRoutes);
+
+// Discover routes (public content, likes, comments)
+app.use('/api/discover', discoverRoutes);
+
+// Published content routes
+app.use('/api/published', publishedRoutes);
 
 // 404 handler
 app.use((req, res) => {

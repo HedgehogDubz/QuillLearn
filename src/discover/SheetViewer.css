@@ -1,0 +1,86 @@
+/* Sheet Viewer Styles */
+
+.sheet-viewer {
+    width: 100%;
+}
+
+.sheet-viewer-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.sheet-viewer-table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.sheet-viewer-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.sheet-viewer-cell {
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem;
+    vertical-align: top;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: white;
+}
+
+.sheet-viewer-header-row .sheet-viewer-cell {
+    background: #f3f4f6;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.sheet-viewer-table tr:nth-child(even) .sheet-viewer-cell {
+    background: #fafafa;
+}
+
+.sheet-viewer-header-row .sheet-viewer-cell {
+    background: #f3f4f6;
+}
+
+/* Cell images */
+.sheet-viewer-cell-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.sheet-viewer-cell-image {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 4px;
+    object-fit: contain;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.sheet-viewer-cell-image:hover {
+    transform: scale(1.02);
+}
+
+.sheet-viewer-cell-text {
+    display: block;
+    line-height: 1.5;
+}
+
+.sheet-viewer-truncated {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border-radius: 4px;
+}
+

@@ -69,6 +69,50 @@
   background: #2d8e47;
 }
 
+.publish-button {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.publish-button:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.publish-button.is-published {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.publish-button.is-published:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* Published marker */
+.published-marker {
+  margin-left: 8px;
+  font-size: 14px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Published item highlight */
+.home_sheet_item.is-published {
+  border-left: 3px solid #6366f1;
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.05), transparent);
+}
+
 /* Filter buttons container */
 .home_filter_buttons {
   display: flex;
@@ -113,7 +157,7 @@ h2 {
 }
 
 /* Empty state message */
-p {
+.home_container p {
   color: #5f6368;
   font-style: italic;
   margin: 12px 0 24px 0;
@@ -167,4 +211,172 @@ p {
   background: #fee;
   color: #d93025;
   border-color: #d93025;
+}
+
+/* Tag filtering section */
+.home_tag_filter {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.tag_filter_header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.tag_filter_label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #5f6368;
+}
+
+.tag_search_input {
+  padding: 6px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 13px;
+  width: 150px;
+}
+
+.tag_search_input:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+.clear_tags_btn {
+  padding: 4px 10px;
+  background: transparent;
+  color: #1a73e8;
+  border: 1px solid #1a73e8;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.clear_tags_btn:hover {
+  background: #1a73e8;
+  color: white;
+}
+
+.tag_list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag_filter_btn {
+  padding: 4px 12px;
+  background: white;
+  color: #5f6368;
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.tag_filter_btn:hover {
+  background: #e8f0fe;
+  border-color: #1a73e8;
+  color: #1a73e8;
+}
+
+.tag_filter_btn.selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+/* Sheet item with tags */
+.home_sheet_main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home_sheet_tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.home_tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e8e8e8;
+  color: #5f6368;
+  border-radius: 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.home_tag:hover {
+  background: #d0d0d0;
+}
+
+.home_tag.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Published content styles */
+.published_empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #5f6368;
+}
+
+.published_empty a {
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.published_empty a:hover {
+  text-decoration: underline;
+}
+
+.published_badge {
+  margin-left: 8px;
+  font-size: 12px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border-radius: 10px;
+}
+
+.published_stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #5f6368;
+  margin-top: 4px;
+}
+
+.published_item .home_sheet_actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-original-btn {
+  padding: 6px 12px;
+  background: #f1f3f4;
+  color: #5f6368;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.edit-original-btn:hover {
+  background: #e8eaed;
 }

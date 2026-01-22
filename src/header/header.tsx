@@ -8,6 +8,7 @@ function Header() {
         <div className="nav-links">
           <a href="/">Home</a>
           <a href="/learn" style ={{padding: '10px'}}>Learn</a>
+          <a href="/discover" style ={{padding: '10px'}}>Discover</a>
         </div>
         <UserProfile />
       </nav>

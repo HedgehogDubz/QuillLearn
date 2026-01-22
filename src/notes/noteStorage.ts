@@ -45,6 +45,7 @@ export interface FileAttachment {
  * @property delta - Quill Delta format (preserves all formatting)
  * @property drawings - Array of saved drawings
  * @property attachments - Array of file attachments
+ * @property tags - Array of tags for organization
  * @property lastTimeSaved - Timestamp of last save
  */
 export interface NoteData {
@@ -54,6 +55,7 @@ export interface NoteData {
     delta?: any // Quill Delta object
     drawings?: DrawingData[]
     attachments?: FileAttachment[]
+    tags?: string[]
     lastTimeSaved: number
 }
 
@@ -79,6 +81,7 @@ export async function loadNoteData(sessionId: string): Promise<NoteData | null> 
                 delta: data.delta,
                 drawings: data.drawings,
                 attachments: data.attachments,
+                tags: data.tags || [],
                 lastTimeSaved: data.last_time_saved
             };
         }

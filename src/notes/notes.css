@@ -7,18 +7,36 @@
   min-height: 100vh;
 }
 
+/* Sticky header - contains title bar and toolbar together */
+.notes_sticky_header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: white;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 /* Title Bar - Wrapper for DocumentHeader component */
 .notes_title_bar {
-  margin-bottom: 0; /* Remove gap - connect to toolbar */
+  margin-bottom: 0;
   background: white;
   padding: 16px 24px;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  border-bottom: 1px solid #e0e0e0; /* Subtle divider */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1001; /* Higher than toolbar to stay on top */
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Toolbar container inside sticky header */
+.notes_sticky_header .ql-toolbar {
+  background: white;
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  align-items: center;
 }
 
 /* Override DocumentHeader styles for notes */
@@ -28,6 +46,24 @@
 
 .notes_title_bar .document_header_title {
   font-size: 1.75rem;
+}
+
+/* Share button in notes title bar */
+.notes_share_button {
+  padding: 8px 16px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.notes_share_button:hover {
+  background: #3367d6;
 }
 
 /* Toolbar Actions */
@@ -89,24 +125,13 @@
   left: 80px;
 }
 
-/* Toolbar Styling */
+/* Toolbar Styling - toolbar will be moved to sticky header by JS */
 .notes_editor_wrapper .ql-toolbar {
-  background: white;
-  border: none;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 8px 12px;
-  position: sticky;
-  top: 57px;
-  z-index: 1000;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 0;
-  align-items: center;
+  display: none; /* Hidden until moved to sticky header */
 }
 
 /* Format groups within toolbar */
+.notes_sticky_header .ql-toolbar .ql-formats,
 .notes_editor_wrapper .ql-toolbar .ql-formats {
   display: inline-flex;
   align-items: center;
@@ -118,6 +143,7 @@
 }
 
 /* Remove border from last group */
+.notes_sticky_header .ql-toolbar .ql-formats:last-child,
 .notes_editor_wrapper .ql-toolbar .ql-formats:last-child {
   border-right: none;
   margin-right: 0;
@@ -125,6 +151,7 @@
 }
 
 /* Toolbar buttons */
+.notes_sticky_header .ql-toolbar button,
 .notes_editor_wrapper .ql-toolbar button {
   width: 30px;
   height: 30px;
@@ -136,21 +163,25 @@
   padding: 0;
 }
 
+.notes_sticky_header .ql-toolbar button:hover,
 .notes_editor_wrapper .ql-toolbar button:hover {
   background: #f1f3f4;
 }
 
+.notes_sticky_header .ql-toolbar button.ql-active,
 .notes_editor_wrapper .ql-toolbar button.ql-active {
   background: #e8f0fe;
   color: #1a73e8;
 }
 
 /* Dropdown pickers */
+.notes_sticky_header .ql-toolbar .ql-picker,
 .notes_editor_wrapper .ql-toolbar .ql-picker {
   height: 30px;
   font-size: 13px;
 }
 
+.notes_sticky_header .ql-toolbar .ql-picker-label,
 .notes_editor_wrapper .ql-toolbar .ql-picker-label {
   border-radius: 6px;
   padding: 2px 6px;
@@ -158,54 +189,67 @@
   border: 1px solid transparent;
 }
 
+.notes_sticky_header .ql-toolbar .ql-picker-label:hover,
 .notes_editor_wrapper .ql-toolbar .ql-picker-label:hover {
   background: #f1f3f4;
 }
 
+.notes_sticky_header .ql-toolbar .ql-picker.ql-expanded .ql-picker-label,
 .notes_editor_wrapper .ql-toolbar .ql-picker.ql-expanded .ql-picker-label {
   border-color: #dadce0;
 }
 
 /* Icon colors */
+.notes_sticky_header .ql-toolbar .ql-stroke,
 .notes_editor_wrapper .ql-toolbar .ql-stroke {
   stroke: #5f6368;
 }
 
+.notes_sticky_header .ql-toolbar .ql-fill,
 .notes_editor_wrapper .ql-toolbar .ql-fill {
   fill: #5f6368;
 }
 
+.notes_sticky_header .ql-toolbar button:hover .ql-stroke,
+.notes_sticky_header .ql-toolbar button.ql-active .ql-stroke,
 .notes_editor_wrapper .ql-toolbar button:hover .ql-stroke,
 .notes_editor_wrapper .ql-toolbar button.ql-active .ql-stroke {
   stroke: #1a73e8;
 }
 
+.notes_sticky_header .ql-toolbar button:hover .ql-fill,
+.notes_sticky_header .ql-toolbar button.ql-active .ql-fill,
 .notes_editor_wrapper .ql-toolbar button:hover .ql-fill,
 .notes_editor_wrapper .ql-toolbar button.ql-active .ql-fill {
   fill: #1a73e8;
 }
 
 /* Custom drawing button styling */
+.notes_sticky_header .ql-toolbar button.ql-drawing,
 .notes_editor_wrapper .ql-toolbar button.ql-drawing {
   font-size: 16px;
 }
 
+.notes_sticky_header .ql-toolbar button.ql-drawing::before,
 .notes_editor_wrapper .ql-toolbar button.ql-drawing::before {
   content: '✏️';
   font-size: 15px;
 }
 
 /* Custom embed file button styling */
+.notes_sticky_header .ql-toolbar button.ql-embedFile,
 .notes_editor_wrapper .ql-toolbar button.ql-embedFile {
   font-size: 16px;
 }
 
+.notes_sticky_header .ql-toolbar button.ql-embedFile::before,
 .notes_editor_wrapper .ql-toolbar button.ql-embedFile::before {
   content: '📎';
   font-size: 15px;
 }
 
 /* Convert to Sheet button styling */
+.notes_sticky_header .ql-toolbar button.ql-convertToSheet,
 .notes_editor_wrapper .ql-toolbar button.ql-convertToSheet {
   width: auto !important;
   padding: 4px 10px !important;
@@ -218,6 +262,7 @@
   white-space: nowrap;
 }
 
+.notes_sticky_header .ql-toolbar button.ql-convertToSheet:hover,
 .notes_editor_wrapper .ql-toolbar button.ql-convertToSheet:hover {
   background: linear-gradient(135deg, #3b78e7 0%, #2d9248 100%);
   transform: translateY(-1px);
@@ -225,6 +270,7 @@
 }
 
 /* Clean button styling */
+.notes_sticky_header .ql-toolbar button.ql-clean,
 .notes_editor_wrapper .ql-toolbar button.ql-clean {
   margin-left: 4px;
 }
@@ -550,7 +596,7 @@
   background: #f8f9fa;
 }
 
-/* Formula/Math Styling */
+/* Formula/Math Styling - Atomic, non-editable blocks */
 .notes_editor_wrapper .ql-editor .ql-formula {
   background: #f8f9fa;
   padding: 4px 8px;
@@ -561,11 +607,46 @@
   cursor: pointer;
   user-select: none;
   line-height: 1;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  /* Make it clear this is a non-editable block */
+  -webkit-user-modify: read-only;
 }
 
 .notes_editor_wrapper .ql-editor .ql-formula:hover {
   background: #e8f0fe;
-  outline: 1px solid #4285f4;
+  border-color: #4285f4;
+  box-shadow: 0 1px 4px rgba(66, 133, 244, 0.2);
+}
+
+/* Show a subtle edit indicator on hover */
+.notes_editor_wrapper .ql-editor .ql-formula::after {
+  content: '✎';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 10px;
+  background: #4285f4;
+  color: white;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.15s ease;
+  pointer-events: none;
+}
+
+.notes_editor_wrapper .ql-editor .ql-formula {
+  position: relative;
+}
+
+.notes_editor_wrapper .ql-editor .ql-formula:hover::after {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Link Styling */
@@ -697,11 +778,6 @@
     font-size: 1.5rem;
   }
 
-  /* Adjust toolbar position for smaller title bar on mobile */
-  .notes_editor_wrapper .ql-toolbar {
-    top: 49px; /* Smaller top offset for mobile (matches smaller title bar) */
-  }
-
   .notes_editor_wrapper .ql-editor {
     padding: 40px 24px;
   }
@@ -809,4 +885,364 @@
 .ql-toolbar .ql-formats:has(.ql-convertToSheet) {
   display: flex !important;
   align-items: center !important;
+}
+
+/* LaTeX Modal Styles */
+.latex_modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.latex_modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.latex_modal_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.latex_modal_header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.latex_modal_close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.latex_modal_close:hover {
+  color: #333;
+}
+
+.latex_modal_body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* LaTeX Mode Toggle */
+.latex_mode_toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  background: #f1f3f4;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.latex_mode_btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5f6368;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.latex_mode_btn:hover {
+  color: #333;
+}
+
+.latex_mode_btn.active {
+  background: white;
+  color: #1a73e8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.latex_input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 150px;
+}
+
+.latex_input:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+}
+
+.latex_input::placeholder {
+  color: #999;
+  font-size: 13px;
+}
+
+.latex_preview {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.latex_preview_label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.latex_preview_content {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.latex_preview_placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.latex_help {
+  margin-top: 16px;
+}
+
+.latex_help summary {
+  cursor: pointer;
+  color: #4285f4;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.latex_help_content {
+  margin-top: 12px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.latex_help_content p {
+  margin: 8px 0 4px 0;
+  font-style: normal;
+  color: #333;
+}
+
+.latex_help_content code {
+  display: block;
+  background: #f1f3f4;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  white-space: pre;
+  overflow-x: auto;
+  margin: 4px 0;
+}
+
+.latex_modal_footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.latex_btn_cancel {
+  padding: 10px 20px;
+  background: #f1f3f4;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  color: #5f6368;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.latex_btn_cancel:hover {
+  background: #e8eaed;
+}
+
+.latex_btn_insert {
+  padding: 10px 24px;
+  background: #4285f4;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.latex_btn_insert:hover:not(:disabled) {
+  background: #3367d6;
+}
+
+.latex_btn_insert:disabled {
+  background: #c4c4c4;
+  cursor: not-allowed;
+}
+
+.latex_btn_delete {
+  padding: 10px 24px;
+  background: #dc3545;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.latex_btn_delete:hover {
+  background: #c82333;
+}
+
+.latex_shortcut_hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: #999;
+}
+
+/* Custom Toolbar Tooltip (JavaScript-controlled) */
+.toolbar_tooltip {
+  position: fixed;
+  background: #333;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s;
+  z-index: 99999;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+
+/* ============ MONACO CODE BLOCK STYLES ============ */
+
+/* Monaco code block placeholder (before React renders) */
+.ql-monaco-code {
+  margin: 16px 0;
+  user-select: none;
+}
+
+.monaco-placeholder {
+  background: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #404040;
+}
+
+.monaco-placeholder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #404040;
+}
+
+.monaco-placeholder-lang {
+  color: #e0e0e0;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.monaco-placeholder-loading {
+  color: #888;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.monaco-placeholder-code {
+  margin: 0;
+  padding: 16px;
+  color: #d4d4d4;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 150px;
+  overflow: hidden;
+}
+
+/* Monaco React container */
+.monaco-react-container {
+  min-height: 100px;
+}
+
+/* Toolbar button for Monaco code */
+.ql-monacoCode {
+  width: 28px !important;
+  height: 24px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.ql-monacoCode::before {
+  content: '</>';
+  font-size: 11px;
+  font-weight: bold;
+  font-family: 'Consolas', 'Monaco', monospace;
+  color: #444;
+}
+
+.ql-monacoCode:hover::before {
+  color: #06c;
+}
+
+/* Delete button styling for code modal */
+.code-insert-btn-delete {
+  background: #ff4444 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.code-insert-btn-delete:hover {
+  background: #cc0000 !important;
 }

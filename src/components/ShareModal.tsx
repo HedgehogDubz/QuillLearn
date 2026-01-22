@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './ShareModal.css';
+import { useAuth } from '../auth/AuthContext';
 
 export type PermissionLevel = 'owner' | 'edit' | 'view' | 'none';
 
 interface Collaborator {
   userId: string;
+  username?: string;
+  email?: string;
   permission: PermissionLevel;
 }
 
@@ -27,12 +30,18 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   currentUserPermission,
   onShareUpdate
 }) => {
+  const { user } = useAuth();
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [newUserInput, setNewUserInput] = useState('');
   const [newUserPermission, setNewUserPermission] = useState<'edit' | 'view'>('view');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(false);
+  const [publicDescription, setPublicDescription] = useState('');
+  const [publicLoading, setPublicLoading] = useState(false);
+  const [snapshotId, setSnapshotId] = useState<string | null>(null);
+  const descriptionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Determine if current user can manage permissions
   const canManagePermissions = currentUserPermission === 'owner' || currentUserPermission === 'edit';
@@ -41,34 +50,147 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       loadCollaborators();
+      loadPublicStatus();
     }
   }, [isOpen, sessionId]);
+
+  // Auto-save description with debounce
+  const autoSaveDescription = useCallback(async (description: string) => {
+    if (!isPublic || currentUserPermission !== 'owner') return;
+
+    try {
+      const endpoint = documentType === 'sheet'
+        ? `/api/sheets/${sessionId}/public-description`
+        : `/api/notes/${sessionId}/public-description`;
+
+      await fetch(endpoint, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          description
+        })
+      });
+    } catch (err) {
+      console.error('Error auto-saving description:', err);
+    }
+  }, [isPublic, currentUserPermission, documentType, sessionId, currentUserId]);
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newDescription = e.target.value;
+    setPublicDescription(newDescription);
+
+    // Clear existing timeout
+    if (descriptionTimeoutRef.current) {
+      clearTimeout(descriptionTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (1 second debounce)
+    descriptionTimeoutRef.current = setTimeout(() => {
+      autoSaveDescription(newDescription);
+    }, 1000);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (descriptionTimeoutRef.current) {
+        clearTimeout(descriptionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const loadPublicStatus = async () => {
+    try {
+      const endpoint = documentType === 'sheet'
+        ? `/api/sheets/${sessionId}`
+        : `/api/notes/${sessionId}`;
+
+      const response = await fetch(endpoint);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        setIsPublic(result.data.is_public || false);
+        setPublicDescription(result.data.description || '');
+      }
+    } catch (err) {
+      console.error('Error loading public status:', err);
+    }
+  };
+
+  const handleTogglePublic = async () => {
+    if (currentUserPermission !== 'owner') {
+      setError('Only the owner can change public visibility');
+      return;
+    }
+
+    try {
+      setPublicLoading(true);
+      setError(null);
+
+      const endpoint = documentType === 'sheet'
+        ? `/api/sheets/${sessionId}/public`
+        : `/api/notes/${sessionId}/public`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          username: user?.username || 'Anonymous',
+          isPublic: !isPublic,
+          description: publicDescription
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsPublic(!isPublic);
+        if (result.snapshotId) {
+          setSnapshotId(result.snapshotId);
+        }
+        setSuccess(!isPublic ? 'Published to Discover! A snapshot copy has been created.' : 'Unpublished from Discover');
+        onShareUpdate?.();
+      } else {
+        setError(result.error || 'Failed to update public status');
+      }
+    } catch (err) {
+      console.error('Error toggling public:', err);
+      setError('Failed to update public status');
+    } finally {
+      setPublicLoading(false);
+    }
+  };
 
   const loadCollaborators = async () => {
     try {
       setLoading(true);
-      const endpoint = documentType === 'sheet' 
+      const endpoint = documentType === 'sheet'
         ? `/api/sheets/${sessionId}`
         : `/api/notes/${sessionId}`;
-      
+
       const response = await fetch(endpoint);
       const result = await response.json();
 
       if (result.success && result.data) {
         const collabs: Collaborator[] = [];
-        
+        const userIds: string[] = [];
+
         // Add owner
         if (result.data.user_id) {
           collabs.push({
             userId: result.data.user_id,
             permission: 'owner'
           });
+          userIds.push(result.data.user_id);
         }
 
         // Add edit users
         if (result.data.edit_users) {
           result.data.edit_users.forEach((userId: string) => {
             collabs.push({ userId, permission: 'edit' });
+            userIds.push(userId);
           });
         }
 
@@ -76,7 +198,33 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         if (result.data.view_users) {
           result.data.view_users.forEach((userId: string) => {
             collabs.push({ userId, permission: 'view' });
+            userIds.push(userId);
           });
+        }
+
+        // Fetch usernames for all user IDs
+        if (userIds.length > 0) {
+          try {
+            const lookupResponse = await fetch('/api/auth/lookup-users', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userIds })
+            });
+            const lookupResult = await lookupResponse.json();
+
+            if (lookupResult.success && lookupResult.users) {
+              // Update collaborators with usernames
+              collabs.forEach(collab => {
+                const userInfo = lookupResult.users[collab.userId];
+                if (userInfo) {
+                  collab.username = userInfo.username;
+                  collab.email = userInfo.email;
+                }
+              });
+            }
+          } catch (lookupErr) {
+            console.error('Error looking up usernames:', lookupErr);
+          }
         }
 
         setCollaborators(collabs);
@@ -296,7 +444,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 {collaborators.map((collab) => (
                   <li key={collab.userId} className="share-modal-collaborator">
                     <div className="collaborator-info">
-                      <span className="collaborator-id">{collab.userId}</span>
+                      <div className="collaborator-details">
+                        <span className="collaborator-name">
+                          {collab.username || 'Unknown User'}
+                        </span>
+                        {collab.email && (
+                          <span className="collaborator-email">{collab.email}</span>
+                        )}
+                      </div>
                       <span className={`collaborator-badge ${collab.permission}`}>
                         {collab.permission === 'owner' && '👑 Owner'}
                         {collab.permission === 'edit' && '✏️ Can edit'}
@@ -337,6 +492,56 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               </ul>
             )}
           </div>
+
+          {/* Public Sharing Section */}
+          {currentUserPermission === 'owner' && (
+            <div className="share-modal-public">
+              <h3>🌐 Public Sharing</h3>
+              <p className="public-description">
+                Publish a snapshot of this {documentType} to the Discover page.
+                The published version won't change unless you update it.
+              </p>
+
+              <div className="public-toggle">
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={handleTogglePublic}
+                    disabled={publicLoading}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+                <span className={`public-status ${isPublic ? 'active' : ''}`}>
+                  {isPublic ? 'Published' : 'Not Published'}
+                </span>
+              </div>
+
+              {isPublic && (
+                <div className="public-details">
+                  <div className="public-info">
+                    <span className="info-badge">📸 Snapshot published as: {user?.username || 'Anonymous'}</span>
+                  </div>
+                  <label>Description (auto-saves)</label>
+                  <textarea
+                    value={publicDescription}
+                    onChange={handleDescriptionChange}
+                    placeholder="Add a description to help others find your content..."
+                    rows={2}
+                    maxLength={200}
+                  />
+                  <p className="public-link">
+                    🔗 <a href={`/discover/${documentType}/${snapshotId || sessionId}`} target="_blank" rel="noopener noreferrer">
+                      View on Discover
+                    </a>
+                  </p>
+                  <p className="public-note">
+                    💡 To update the published content, toggle off and on again.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
