@@ -1,123 +1,123 @@
-/* User Profile Component */
+/* ============================================
+   USER PROFILE
+   Uses design tokens from design-tokens.css
+   ============================================ */
 
 .user-profile {
-    position: relative;
+  position: relative;
 }
 
 .user-profile-button {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background: white;
-    border: 2px solid #e2e8f0;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-neutral-0);
+  border: var(--border-width-2) solid var(--color-neutral-200);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .user-profile-button:hover {
-    border-color: #667eea;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  border-color: var(--color-primary-500);
+  box-shadow: var(--shadow-sm);
 }
 
+/* User Avatar - GRADIENT ALLOWED */
 .user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+  color: var(--color-neutral-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-bold);
+  font-size: var(--text-base);
 }
 
 .user-name {
-    font-weight: 600;
-    color: #2d3748;
-    font-size: 14px;
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-700);
+  font-size: var(--text-sm);
 }
 
 .user-menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 999;
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-dropdown) - 1);
 }
 
 .user-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    min-width: 220px;
-    z-index: 1000;
-    animation: slideDown 0.2s ease-out;
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  min-width: 220px;
+  z-index: var(--z-dropdown);
+  animation: slideDown 0.2s ease-out;
 }
 
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .user-menu-header {
-    padding: 16px;
+  padding: var(--space-4);
 }
 
 .user-menu-name {
-    font-weight: 700;
-    color: #1a202c;
-    font-size: 16px;
-    margin-bottom: 4px;
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+  font-size: var(--text-base);
+  margin-bottom: var(--space-1);
 }
 
 .user-menu-email {
-    font-size: 13px;
-    color: #718096;
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
 }
 
 .user-menu-divider {
-    height: 1px;
-    background: #e2e8f0;
-    margin: 0 8px;
+  height: 1px;
+  background: var(--color-neutral-200);
+  margin: 0 var(--space-2);
 }
 
 .user-menu-item {
-    width: 100%;
-    padding: 12px 16px;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    font-size: 14px;
-    color: #2d3748;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background 0.15s ease;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-neutral-700);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transition: background var(--transition-fast);
 }
 
 .user-menu-item:hover {
-    background: #f7fafc;
+  background: var(--color-neutral-50);
 }
 
 .user-menu-item:first-of-type {
-    border-radius: 0 0 12px 12px;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 }
 
 .user-menu-item span {
-    font-size: 18px;
+  font-size: var(--text-lg);
 }
-

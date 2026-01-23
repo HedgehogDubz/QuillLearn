@@ -1,25 +1,93 @@
+/* ==========================================
+   HEADER / NAVIGATION
+   ========================================== */
+
 nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--space-6);
+  height: var(--header-height);
+  background: var(--color-neutral-0);
+  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.nav-logo {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-fast);
+}
+
+.nav-logo:hover {
+  transform: scale(1.05);
+}
+
+.nav-logo svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-neutral-0);
+}
+
+.nav-logo-text {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+  letter-spacing: -0.02em;
+}
+
+.nav-logo-text span {
+  color: var(--color-primary-500);
 }
 
 .nav-links {
-    display: flex;
-    gap: 20px;
-    align-items: center;
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
 }
 
 .nav-links a {
-    text-decoration: none;
-    color: #2d3748;
-    font-weight: 500;
-    transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-neutral-600);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
 }
 
 .nav-links a:hover {
-    color: #667eea;
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.nav-links a.active {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.nav-links a svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }

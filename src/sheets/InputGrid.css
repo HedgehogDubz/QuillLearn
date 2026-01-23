@@ -1,93 +1,106 @@
-/* Sheets now uses the shared DocumentHeader component */
+/* ============================================
+   SHEETS - INPUT GRID STYLES
+   Uses design tokens from design-tokens.css
+   ============================================ */
 
-/* Sheet Container - Centered layout matching notes */
+/* Sheet Container */
 .sheet_container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
-  background: #f5f5f5;
+  padding: var(--space-5);
+  background: var(--color-neutral-100);
   min-height: 100vh;
 }
 
-/* Title Bar - Wrapper for DocumentHeader component */
+/* Title Bar */
 .sheet_title_bar {
-  margin-bottom: 0; /* Remove gap - connect to toolbar */
-  background: white;
-  padding: 16px 24px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom: 1px solid #e0e0e0; /* Subtle divider */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0;
+  background: var(--color-neutral-0);
+  padding: var(--space-4) var(--space-6);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
-  z-index: 1001; /* Higher than toolbar to stay on top */
+  z-index: var(--z-sticky);
 }
 
-/* Override DocumentHeader styles for sheets */
 .sheet_title_bar .document_header {
   margin-bottom: 0;
 }
 
+/* Toolbar */
 .sheet_toolbar {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
+/* Base Button */
 .sheet_btn {
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 8px;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-neutral-200);
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
 }
 
 .sheet_btn:hover:not(:disabled) {
-  background: #f7f7f7;
+  background: var(--color-neutral-50);
 }
 
 .sheet_btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  color: #999;
+  color: var(--color-neutral-400);
 }
 
+/* Publish Button - GRADIENT ALLOWED */
 .sheet_btn_publish {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  border-color: #6366f1;
+  background: linear-gradient(135deg, var(--color-secondary-500) 0%, var(--color-secondary-600) 100%);
+  color: var(--color-neutral-0);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-semibold);
+  box-shadow: var(--shadow-sm);
 }
 
 .sheet_btn_publish:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, var(--color-secondary-600) 0%, var(--color-secondary-700) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
+/* Share Button */
 .sheet_btn_share {
-  background: #4285f4;
-  color: white;
-  border-color: #4285f4;
+  background: var(--color-primary-500);
+  color: var(--color-neutral-0);
+  border-color: var(--color-primary-500);
 }
 
 .sheet_btn_share:hover:not(:disabled) {
-  background: #3367d6;
+  background: var(--color-primary-600);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
+/* Hint Text */
 .sheet_hint {
-  color: #5f6368;
-  font-size: 12px;
-  padding: 4px 0;
+  color: var(--color-neutral-500);
+  font-size: var(--text-xs);
+  padding: var(--space-1) 0;
 }
 
+/* Table Wrapper */
 .sheet_wrap {
   overflow: auto;
-  border: 1px solid #ddd;
-  border-radius: 10px;
+  border: var(--border-width) solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
 }
 
 .sheet_table {
@@ -96,32 +109,32 @@
   width: max-content;
 }
 
-/* Sticky corner (top-left empty cell) */
+/* Sticky Corner */
 .sheet_corner {
   position: sticky;
   left: 0;
   top: 0;
   width: 48px;
   min-width: 48px;
-  background: #f7f7f7;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
+  background: var(--color-neutral-100);
+  border-right: var(--border-width) solid var(--color-neutral-200);
+  border-bottom: var(--border-width) solid var(--color-neutral-200);
   z-index: 3;
 }
 
-/* Column headers A, B, C... */
+/* Column Headers */
 .sheet_colHeader {
   position: sticky;
   top: 0;
-  background: #f7f7f7;
-  border-bottom: 1px solid #ddd;
-  border-right: 1px solid #eee;
-  padding: 6px 8px;
+  background: var(--color-neutral-100);
+  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  border-right: var(--border-width) solid var(--color-neutral-100);
+  padding: var(--space-2);
   text-align: center;
-  font-size: 12px;
+  font-size: var(--text-xs);
   z-index: 2;
   cursor: default;
-  position: relative; /* For absolute positioning of resize handle */
+  position: relative;
 }
 
 .sheet_colHeader_content {
@@ -130,36 +143,29 @@
   justify-content: center;
   height: 100%;
   width: 100%;
-  /* Ensure content doesn't overlap with resize handle */
   pointer-events: auto;
 }
 
-/* Base styles for both resize handles */
+/* Resize Handles */
 .sheet_resize_handle {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 24px; /* Generous width for easy clicking */
+  width: 24px;
   cursor: col-resize;
   user-select: none;
-  z-index: 20; /* Higher than header content */
+  z-index: 20;
   background: transparent;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
   pointer-events: auto;
 }
 
-/* Right resize handle - positioned on right border */
 .sheet_resize_handle_right {
-  /* Extra wide clickable area with generous leeway on both sides */
-  /* Centered on the border: 12px on each side = 24px total */
-  right: -12px; /* Centers 24px handle on the right border */
+  right: -12px;
 }
 
-/* Left resize handle - positioned on left border */
 .sheet_resize_handle_left {
-  /* Extra wide clickable area with generous leeway on both sides */
-  /* Centered on the border: 12px on each side = 24px total */
-  left: -12px; /* Centers 24px handle on the left border */
+  left: -12px;
 }
 
 .sheet_resize_handle::before {
@@ -171,7 +177,7 @@
   width: 2px;
   transform: translateX(-50%);
   background: transparent;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .sheet_resize_handle:hover {
@@ -190,42 +196,41 @@
   background: rgba(59, 130, 246, 0.8);
 }
 
-/* Row headers 1,2,3... */
+/* Row Headers */
 .sheet_rowHeader {
   position: sticky;
   left: 0;
-  background: #f7f7f7;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #eee;
+  background: var(--color-neutral-100);
+  border-right: var(--border-width) solid var(--color-neutral-200);
+  border-bottom: var(--border-width) solid var(--color-neutral-100);
   width: 48px;
   min-width: 48px;
   text-align: center;
-  font-size: 12px;
+  font-size: var(--text-xs);
   z-index: 1;
 }
 
+/* Cells */
 .sheet_cell {
-  border-bottom: 1px solid #eee;
-  border-right: 1px solid #eee;
+  border-bottom: var(--border-width) solid var(--color-neutral-100);
+  border-right: var(--border-width) solid var(--color-neutral-100);
   padding: 0;
   vertical-align: top;
   position: relative;
 }
 
-/* Cell with images */
 .sheet_cell_has_images {
-  padding: 8px;
+  padding: var(--space-2);
 }
 
-/* Images container in cell */
+/* Cell Images */
 .sheet_cell_images {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
-/* When exactly 2 images, display horizontally if they fit */
 .sheet_cell_images:has(.sheet_cell_image:nth-child(2):last-child) {
   flex-direction: row;
   flex-wrap: wrap;
@@ -233,22 +238,20 @@
   align-items: flex-start;
 }
 
-/* Individual image in cell - uniform square container */
 .sheet_cell_image {
   width: 120px;
   height: 120px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   object-fit: contain;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f9fafb;
+  background: var(--color-neutral-50);
   flex-shrink: 0;
   overflow: hidden;
 }
 
-/* Actual img element inside the container */
 .sheet_cell_image img {
   max-width: 100%;
   max-height: 100%;
@@ -258,197 +261,192 @@
   display: block;
 }
 
-/* Add image button - integrated subtle design */
+/* Add Image Button */
 .sheet_add_image_btn {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
+  bottom: var(--space-1);
+  right: var(--space-1);
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e0e0e0;
-  color: #5f6368;
-  font-size: 14px;
+  border: var(--border-width) solid var(--color-neutral-200);
+  color: var(--color-neutral-500);
+  font-size: var(--text-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
   z-index: 10;
   opacity: 0;
   backdrop-filter: blur(8px);
 }
 
-/* Show button on cell hover or when cell is selected */
 .sheet_cell:hover .sheet_add_image_btn,
 .sheet_cell_selected .sheet_add_image_btn {
   opacity: 1;
 }
 
 .sheet_add_image_btn:hover {
-  background: #f8f9fa;
-  border-color: #4285f4;
-  color: #4285f4;
+  background: var(--color-neutral-50);
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-500);
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .sheet_add_image_btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Add drawing button - positioned next to image button */
+/* Add Drawing Button */
 .sheet_add_drawing_btn {
   position: absolute;
-  bottom: 4px;
-  right: 36px; /* Position to the left of the image button */
+  bottom: var(--space-1);
+  right: 36px;
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e0e0e0;
-  color: #5f6368;
-  font-size: 14px;
+  border: var(--border-width) solid var(--color-neutral-200);
+  color: var(--color-neutral-500);
+  font-size: var(--text-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
   z-index: 10;
   opacity: 0;
   backdrop-filter: blur(8px);
 }
 
-/* Show drawing button on cell hover or when cell is selected */
 .sheet_cell:hover .sheet_add_drawing_btn,
 .sheet_cell_selected .sheet_add_drawing_btn {
   opacity: 1;
 }
 
 .sheet_add_drawing_btn:hover {
-  background: #f8f9fa;
-  border-color: #4285f4;
-  color: #4285f4;
+  background: var(--color-neutral-50);
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-500);
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .sheet_add_drawing_btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
+/* Header Row Highlight */
 .sheet_cell_row_0 {
-  background: #47cb8b !important;
+  background: var(--color-secondary-400) !important;
 }
 
 .sheet_cell_row_0 textarea {
-  background: #47cb8b !important;
+  background: var(--color-secondary-400) !important;
 }
 
-/* Selection layer - positioned above textarea to capture mouse events for drag selection */
+/* Selection Layer */
 .sheet_selection_layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 1;
   cursor: cell;
-  /* Enable pointer events to allow drag selection */
   pointer-events: auto;
 }
 
-/* Selected cell styling */
+/* Selected Cell */
 .sheet_cell_selected {
-  border: 2px solid rgba(66, 133, 244, 0.8);
+  border: var(--border-width-2) solid rgba(59, 130, 246, 0.8);
   z-index: 2;
 }
 
+/* Cell Input */
 .sheet_input {
   width: 100%;
   min-height: 32px;
-  padding: 6px 8px;
+  padding: var(--space-2);
   border: none;
   outline: none;
-  background: #fff;
+  background: var(--color-neutral-0);
   resize: none;
   overflow: hidden;
   font-family: inherit;
   font-size: inherit;
-  line-height: 1.4;
+  line-height: var(--leading-normal);
   white-space: pre-wrap;
   word-wrap: break-word;
   box-sizing: border-box;
 }
 
-/* Optional: show focus nicely */
 .sheet_input:focus {
-  box-shadow: inset 0 0 0 2px #00000020;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
+/* Debug Info */
 .sheet_debug {
-  margin-top: 12px;
-  font-size: 12px;
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
   opacity: 0.8;
   white-space: pre-wrap;
 }
 
-/* Context menu for row operations */
+/* Context Menu */
 .sheet_context_menu {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 4px 0;
+  background: var(--color-neutral-0);
+  border: var(--border-width) solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-1) 0;
   min-width: 180px;
 }
 
 .sheet_context_menu_item {
   display: block;
   width: 100%;
-  padding: 8px 16px;
+  padding: var(--space-2) var(--space-4);
   border: none;
-  background: white;
+  background: var(--color-neutral-0);
   text-align: left;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.15s ease;
+  font-size: var(--text-sm);
+  transition: background var(--transition-fast);
 }
 
 .sheet_context_menu_item:hover {
-  background: #f0f0f0;
+  background: var(--color-neutral-100);
 }
 
 .sheet_context_menu_item:active {
-  background: #e0e0e0;
+  background: var(--color-neutral-200);
 }
 
-/* Danger item (delete) */
+/* Danger Menu Item */
 .sheet_context_menu_item_danger {
-  color: #d32f2f;
+  color: var(--color-error-600);
 }
 
 .sheet_context_menu_item_danger:hover {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--color-error-50);
+  color: var(--color-error-700);
 }
 
 .sheet_context_menu_item_danger:active {
-  background: #ffcdd2;
+  background: var(--color-error-100);
 }
 
-/* Make row headers look clickable */
+/* Header Interactions */
 .sheet_rowHeader {
   cursor: context-menu;
   user-select: none;
 }
 
-/* Make column headers look clickable */
 .sheet_colHeader {
   cursor: context-menu;
   user-select: none;

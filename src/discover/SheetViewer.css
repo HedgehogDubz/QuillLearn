@@ -1,86 +1,88 @@
-/* Sheet Viewer Styles */
+/* ============================================
+   SHEET VIEWER
+   Uses design tokens from design-tokens.css
+   ============================================ */
 
 .sheet-viewer {
-    width: 100%;
+  width: 100%;
 }
 
 .sheet-viewer-empty {
-    text-align: center;
-    padding: 2rem;
-    color: #6b7280;
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--color-neutral-500);
 }
 
 .sheet-viewer-table-wrapper {
-    overflow-x: auto;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--color-neutral-200);
 }
 
 .sheet-viewer-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
 }
 
 .sheet-viewer-cell {
-    border: 1px solid #e5e7eb;
-    padding: 0.75rem;
-    vertical-align: top;
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: white;
+  border: var(--border-width) solid var(--color-neutral-200);
+  padding: var(--space-3);
+  vertical-align: top;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--color-neutral-0);
 }
 
 .sheet-viewer-header-row .sheet-viewer-cell {
-    background: #f3f4f6;
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 1;
+  background: var(--color-neutral-100);
+  font-weight: var(--font-semibold);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .sheet-viewer-table tr:nth-child(even) .sheet-viewer-cell {
-    background: #fafafa;
+  background: var(--color-neutral-50);
 }
 
 .sheet-viewer-header-row .sheet-viewer-cell {
-    background: #f3f4f6;
+  background: var(--color-neutral-100);
 }
 
-/* Cell images */
+/* Cell Images */
 .sheet-viewer-cell-images {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .sheet-viewer-cell-image {
-    max-width: 200px;
-    max-height: 150px;
-    border-radius: 4px;
-    object-fit: contain;
-    border: 1px solid #e5e7eb;
-    cursor: pointer;
-    transition: transform 0.2s;
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  border: var(--border-width) solid var(--color-neutral-200);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
 }
 
 .sheet-viewer-cell-image:hover {
-    transform: scale(1.02);
+  transform: scale(1.02);
 }
 
 .sheet-viewer-cell-text {
-    display: block;
-    line-height: 1.5;
+  display: block;
+  line-height: var(--leading-relaxed);
 }
 
 .sheet-viewer-truncated {
-    text-align: center;
-    color: #6b7280;
-    font-size: 0.9rem;
-    margin-top: 1rem;
-    padding: 0.5rem;
-    background: #f9fafb;
-    border-radius: 4px;
+  text-align: center;
+  color: var(--color-neutral-500);
+  font-size: var(--text-sm);
+  margin-top: var(--space-4);
+  padding: var(--space-2);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-sm);
 }
-

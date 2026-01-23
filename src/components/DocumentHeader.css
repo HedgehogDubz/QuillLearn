@@ -1,60 +1,64 @@
-/* Document Header - Shared component for sheets and notes */
+/* ============================================
+   DOCUMENT HEADER
+   Shared component for sheets and notes
+   Uses design tokens from design-tokens.css
+   ============================================ */
+
 .document_header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .document_header_title {
   flex: 1;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--border-width-2) solid transparent;
   background: transparent;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   outline: none;
-  transition: border-color 0.2s ease;
-  color: #333;
+  transition: border-color var(--transition-fast);
+  color: var(--color-neutral-800);
   min-width: 200px;
 }
 
 .document_header_title:hover {
-  border-bottom-color: #ddd;
+  border-bottom-color: var(--color-neutral-200);
 }
 
 .document_header_title:focus {
-  border-bottom-color: #4a90d9;
+  border-bottom-color: var(--color-primary-500);
 }
 
 .document_header_save_indicator {
-  font-size: 0.875rem;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
   white-space: nowrap;
 }
 
 .document_header_save_indicator.saved {
-  color: #2e7d32;
-  background-color: #e8f5e9;
+  color: var(--color-secondary-700);
+  background-color: var(--color-secondary-50);
 }
 
 .document_header_save_indicator.unsaved {
-  color: #f57c00;
-  background-color: #fff3e0;
+  color: var(--color-warning-700);
+  background-color: var(--color-warning-50);
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
   .document_header_title {
-    font-size: 1.25rem;
+    font-size: var(--text-xl);
   }
-  
+
   .document_header_save_indicator {
-    font-size: 0.75rem;
-    padding: 4px 8px;
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
   }
 }
-

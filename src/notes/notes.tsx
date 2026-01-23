@@ -1430,12 +1430,13 @@ function Notes() {
                 return part.slice(1, -1)
             } else if (part.trim()) {
                 // This is regular text - wrap in \text{} for LaTeX
-                // Escape special LaTeX characters in the text
+                // For special characters, we use Unicode equivalents or escape sequences
+                // that work reliably in KaTeX's \text{} mode
                 const escaped = part
-                    .replace(/\\/g, '\\textbackslash{}')
-                    .replace(/[&%$#_{}]/g, '\\$&')
-                    .replace(/\^/g, '\\textasciicircum{}')
-                    .replace(/~/g, '\\textasciitilde{}')
+                    .replace(/\\/g, '\u29F5')      // Use Unicode reverse solidus operator for backslash
+                    .replace(/\^/g, '\u02C6')      // Use Unicode modifier letter circumflex
+                    .replace(/~/g, '\u02DC')       // Use Unicode small tilde
+                    .replace(/[&%$#_{}]/g, '\\$&') // Escape remaining special chars
                 return `\\text{${escaped}}`
             } else {
                 return ''

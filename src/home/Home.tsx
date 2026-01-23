@@ -350,10 +350,11 @@ function Home() {
               </select>
             </span>
             <span>
+              🔍
               <input
                 type="text"
                 className="search-sessions-input"
-                placeholder="Search"
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
