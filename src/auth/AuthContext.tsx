@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface User {
+export interface User {
     id: string;
     email: string;
     username: string;
+    avatar?: string; // JSON string of 10x10 pixel art grid
 }
 
 interface AuthContextType {
@@ -11,6 +12,7 @@ interface AuthContextType {
     loading: boolean;
     login: (user: User, token: string) => void;
     logout: () => void;
+    updateUser: (updates: Partial<User>) => void;
     isAuthenticated: boolean;
 }
 
@@ -89,11 +91,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('user');
     };
 
+    const updateUser = (updates: Partial<User>) => {
+        if (user) {
+            const updatedUser = { ...user, ...updates };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+    };
+
     const value = {
         user,
         loading,
         login,
         logout,
+        updateUser,
         isAuthenticated: !!user
     };
 

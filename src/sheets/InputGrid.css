@@ -1,6 +1,6 @@
 /* ============================================
    SHEETS - INPUT GRID STYLES
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 /* Sheet Container */
@@ -8,22 +8,30 @@
   max-width: 900px;
   margin: 0 auto;
   padding: var(--space-5);
-  background: var(--color-neutral-100);
+  background: var(--bg-secondary);
   min-height: 100vh;
+}
+
+/* Sticky Header - positioned below main nav */
+.sheet_sticky_header {
+  position: sticky;
+  top: var(--header-height);
+  z-index: calc(var(--z-sticky) - 1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-md);
+  border: var(--border-width) solid var(--border-primary);
+  border-bottom: none;
 }
 
 /* Title Bar */
 .sheet_title_bar {
   margin-bottom: 0;
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
   padding: var(--space-4) var(--space-6);
   border-top-left-radius: var(--radius-lg);
   border-top-right-radius: var(--radius-lg);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
-  box-shadow: var(--shadow-sm);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
+  border-bottom: var(--border-width) solid var(--border-primary);
 }
 
 .sheet_title_bar .document_header {
@@ -35,14 +43,17 @@
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-primary);
+  border-bottom: var(--border-width) solid var(--border-primary);
 }
 
 /* Base Button */
 .sheet_btn {
   padding: var(--space-2) var(--space-3);
-  border: var(--border-width) solid var(--color-neutral-200);
-  background: var(--color-neutral-0);
+  border: var(--border-width) solid var(--border-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -51,47 +62,34 @@
 }
 
 .sheet_btn:hover:not(:disabled) {
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
+  border-color: var(--color-accent-500);
 }
 
 .sheet_btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  color: var(--color-neutral-400);
+  color: var(--text-tertiary);
 }
 
-/* Publish Button - GRADIENT ALLOWED */
+/* Publish Button - Neon accent */
 .sheet_btn_publish {
-  background: linear-gradient(135deg, var(--color-secondary-500) 0%, var(--color-secondary-600) 100%);
-  color: var(--color-neutral-0);
-  border: none;
-  border-radius: var(--radius-lg);
+  background: var(--color-accent-500);
+  color: #000000;
+  border: var(--border-width-2) solid var(--color-accent-500);
+  border-radius: var(--radius-md);
   font-weight: var(--font-semibold);
-  box-shadow: var(--shadow-sm);
 }
 
 .sheet_btn_publish:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-secondary-600) 0%, var(--color-secondary-700) 100%);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Share Button */
-.sheet_btn_share {
-  background: var(--color-primary-500);
-  color: var(--color-neutral-0);
-  border-color: var(--color-primary-500);
-}
-
-.sheet_btn_share:hover:not(:disabled) {
-  background: var(--color-primary-600);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: var(--color-accent-400);
+  border-color: var(--color-accent-400);
+  box-shadow: var(--accent-glow);
 }
 
 /* Hint Text */
 .sheet_hint {
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   font-size: var(--text-xs);
   padding: var(--space-1) 0;
 }
@@ -99,7 +97,7 @@
 /* Table Wrapper */
 .sheet_wrap {
   overflow: auto;
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-primary);
   border-radius: var(--radius-lg);
 }
 
@@ -116,9 +114,9 @@
   top: 0;
   width: 48px;
   min-width: 48px;
-  background: var(--color-neutral-100);
-  border-right: var(--border-width) solid var(--color-neutral-200);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  background: var(--bg-tertiary);
+  border-right: var(--border-width) solid var(--border-primary);
+  border-bottom: var(--border-width) solid var(--border-primary);
   z-index: 3;
 }
 
@@ -126,9 +124,10 @@
 .sheet_colHeader {
   position: sticky;
   top: 0;
-  background: var(--color-neutral-100);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
-  border-right: var(--border-width) solid var(--color-neutral-100);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-bottom: var(--border-width) solid var(--border-primary);
+  border-right: var(--border-width) solid var(--bg-tertiary);
   padding: var(--space-2);
   text-align: center;
   font-size: var(--text-xs);
@@ -181,28 +180,29 @@
 }
 
 .sheet_resize_handle:hover {
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(0, 255, 136, 0.1);
 }
 
 .sheet_resize_handle:hover::before {
-  background: rgba(59, 130, 246, 0.6);
+  background: var(--color-accent-500);
 }
 
 .sheet_resize_handle:active {
-  background: rgba(59, 130, 246, 0.25);
+  background: rgba(0, 255, 136, 0.2);
 }
 
 .sheet_resize_handle:active::before {
-  background: rgba(59, 130, 246, 0.8);
+  background: var(--color-accent-400);
 }
 
 /* Row Headers */
 .sheet_rowHeader {
   position: sticky;
   left: 0;
-  background: var(--color-neutral-100);
-  border-right: var(--border-width) solid var(--color-neutral-200);
-  border-bottom: var(--border-width) solid var(--color-neutral-100);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-right: var(--border-width) solid var(--border-primary);
+  border-bottom: var(--border-width) solid var(--bg-tertiary);
   width: 48px;
   min-width: 48px;
   text-align: center;
@@ -212,8 +212,8 @@
 
 /* Cells */
 .sheet_cell {
-  border-bottom: var(--border-width) solid var(--color-neutral-100);
-  border-right: var(--border-width) solid var(--color-neutral-100);
+  border-bottom: var(--border-width) solid var(--bg-tertiary);
+  border-right: var(--border-width) solid var(--bg-tertiary);
   padding: 0;
   vertical-align: top;
   position: relative;
@@ -242,12 +242,12 @@
   width: 120px;
   height: 120px;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border: var(--border-width) solid var(--border-primary);
   object-fit: contain;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -269,19 +269,17 @@
   width: 28px;
   height: 28px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.9);
-  border: var(--border-width) solid var(--color-neutral-200);
-  color: var(--color-neutral-500);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-secondary);
+  color: var(--text-tertiary);
   font-size: var(--text-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
   transition: all var(--transition-fast);
   z-index: 10;
   opacity: 0;
-  backdrop-filter: blur(8px);
 }
 
 .sheet_cell:hover .sheet_add_image_btn,
@@ -290,16 +288,14 @@
 }
 
 .sheet_add_image_btn:hover {
-  background: var(--color-neutral-50);
-  border-color: var(--color-primary-400);
-  color: var(--color-primary-500);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: var(--bg-primary);
+  border-color: var(--color-accent-500);
+  border-width: var(--border-width-2);
+  color: var(--color-accent-500);
 }
 
 .sheet_add_image_btn:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
+  background: rgba(0, 255, 136, 0.1);
 }
 
 /* Add Drawing Button */
@@ -310,19 +306,17 @@
   width: 28px;
   height: 28px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.9);
-  border: var(--border-width) solid var(--color-neutral-200);
-  color: var(--color-neutral-500);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-secondary);
+  color: var(--text-tertiary);
   font-size: var(--text-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
   transition: all var(--transition-fast);
   z-index: 10;
   opacity: 0;
-  backdrop-filter: blur(8px);
 }
 
 .sheet_cell:hover .sheet_add_drawing_btn,
@@ -331,25 +325,24 @@
 }
 
 .sheet_add_drawing_btn:hover {
-  background: var(--color-neutral-50);
-  border-color: var(--color-primary-400);
-  color: var(--color-primary-500);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: var(--bg-primary);
+  border-color: var(--color-accent-500);
+  border-width: var(--border-width-2);
+  color: var(--color-accent-500);
 }
 
 .sheet_add_drawing_btn:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
+  background: rgba(0, 255, 136, 0.1);
 }
 
 /* Header Row Highlight */
 .sheet_cell_row_0 {
-  background: var(--color-secondary-400) !important;
+  background: var(--color-accent-500) !important;
 }
 
 .sheet_cell_row_0 textarea {
-  background: var(--color-secondary-400) !important;
+  background: var(--color-accent-500) !important;
+  color: #000000 !important;
 }
 
 /* Selection Layer */
@@ -363,7 +356,7 @@
 
 /* Selected Cell */
 .sheet_cell_selected {
-  border: var(--border-width-2) solid rgba(59, 130, 246, 0.8);
+  border: var(--border-width-2) solid var(--color-accent-500);
   z-index: 2;
 }
 
@@ -374,7 +367,8 @@
   padding: var(--space-2);
   border: none;
   outline: none;
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   resize: none;
   overflow: hidden;
   font-family: inherit;
@@ -386,7 +380,8 @@
 }
 
 .sheet_input:focus {
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1);
+  outline: none;
+  border: var(--border-width-2) solid var(--color-accent-500);
 }
 
 /* Debug Info */
@@ -395,12 +390,13 @@
   font-size: var(--text-xs);
   opacity: 0.8;
   white-space: pre-wrap;
+  color: var(--text-secondary);
 }
 
 /* Context Menu */
 .sheet_context_menu {
-  background: var(--color-neutral-0);
-  border: var(--border-width) solid var(--color-neutral-200);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: var(--space-1) 0;
@@ -412,7 +408,8 @@
   width: 100%;
   padding: var(--space-2) var(--space-4);
   border: none;
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   text-align: left;
   cursor: pointer;
   font-size: var(--text-sm);
@@ -420,25 +417,25 @@
 }
 
 .sheet_context_menu_item:hover {
-  background: var(--color-neutral-100);
+  background: var(--bg-secondary);
 }
 
 .sheet_context_menu_item:active {
-  background: var(--color-neutral-200);
+  background: var(--bg-tertiary);
 }
 
 /* Danger Menu Item */
 .sheet_context_menu_item_danger {
-  color: var(--color-error-600);
+  color: var(--color-error-500);
 }
 
 .sheet_context_menu_item_danger:hover {
-  background: var(--color-error-50);
-  color: var(--color-error-700);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error-400);
 }
 
 .sheet_context_menu_item_danger:active {
-  background: var(--color-error-100);
+  background: rgba(239, 68, 68, 0.2);
 }
 
 /* Header Interactions */

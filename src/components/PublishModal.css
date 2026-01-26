@@ -1,12 +1,12 @@
 /* ============================================
    PUBLISH MODAL
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 .publish-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -15,7 +15,8 @@
 }
 
 .publish-modal {
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   width: 90%;
   max-width: 500px;
@@ -30,14 +31,14 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--space-5) var(--space-6);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  border-bottom: var(--border-width) solid var(--border-primary);
 }
 
 .publish-modal-header h2 {
   margin: 0;
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-neutral-800);
+  color: var(--text-primary);
 }
 
 .publish-modal-close {
@@ -45,7 +46,7 @@
   border: none;
   font-size: var(--text-3xl);
   cursor: pointer;
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   padding: 0;
   width: 32px;
   height: 32px;
@@ -57,8 +58,8 @@
 }
 
 .publish-modal-close:hover {
-  background-color: var(--color-neutral-100);
-  color: var(--color-neutral-800);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .publish-modal-content {
@@ -68,21 +69,22 @@
 }
 
 .publish-modal-error {
-  background-color: var(--color-error-50);
-  color: var(--color-error-600);
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error-500);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
   font-size: var(--text-sm);
+  border: 1px solid var(--color-error-500);
 }
 
 .publish-modal-loading {
   text-align: center;
   padding: var(--space-10) var(--space-5);
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
 }
 
-/* Status Display - GRADIENT ALLOWED */
+/* Status Display */
 .publish-status {
   display: flex;
   align-items: center;
@@ -93,11 +95,13 @@
 }
 
 .publish-status.published {
-  background: linear-gradient(135deg, var(--color-secondary-50) 0%, var(--color-secondary-100) 100%);
+  background: rgba(0, 255, 136, 0.1);
+  border: var(--border-width) solid var(--color-accent-500);
 }
 
 .publish-status.not-published {
-  background: linear-gradient(135deg, var(--color-neutral-100) 0%, var(--color-neutral-200) 100%);
+  background: var(--bg-secondary);
+  border: var(--border-width) solid var(--border-primary);
 }
 
 .publish-status .status-icon {
@@ -111,12 +115,12 @@
 }
 
 .publish-status .status-info strong {
-  color: var(--color-neutral-800);
+  color: var(--text-primary);
   font-size: var(--text-base);
 }
 
 .publish-status .status-info span {
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   font-size: var(--text-sm);
 }
 
@@ -125,13 +129,13 @@
   gap: var(--space-5);
   margin-bottom: var(--space-5);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
 }
 
 .publish-stats span {
   font-size: var(--text-sm);
-  color: var(--color-neutral-600);
+  color: var(--text-secondary);
 }
 
 .publish-form {
@@ -150,28 +154,30 @@
 .publish-form label span {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-neutral-700);
+  color: var(--text-secondary);
 }
 
 .publish-form input,
 .publish-form textarea {
   padding: var(--space-2) var(--space-3);
-  border: var(--border-width) solid var(--color-neutral-300);
+  border: var(--border-width) solid var(--border-secondary);
   border-radius: var(--radius-lg);
   font-size: var(--text-base);
   font-family: inherit;
   transition: border-color var(--transition-fast);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .publish-form input:focus,
 .publish-form textarea:focus {
   outline: none;
-  border-color: var(--color-primary-500);
+  border-color: var(--color-accent-500);
 }
 
 .publish-form input:disabled {
-  background: var(--color-neutral-100);
-  color: var(--color-neutral-500);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
 }
 
 .publish-form textarea {
@@ -202,43 +208,45 @@
   cursor: not-allowed;
 }
 
-/* Publish Button - GRADIENT ALLOWED */
+/* Publish Button - Neon accent */
 .btn-publish {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-  color: var(--color-neutral-0);
+  background: var(--color-accent-500);
+  color: #000000;
+  border: none;
 }
 
 .btn-publish:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-accent-400);
+  box-shadow: var(--accent-glow);
 }
 
-/* Update Button - GRADIENT ALLOWED */
+/* Update Button - Neon accent */
 .btn-update {
-  background: linear-gradient(135deg, var(--color-secondary-500) 0%, var(--color-secondary-600) 100%);
-  color: var(--color-neutral-0);
+  background: var(--color-accent-500);
+  color: #000000;
+  border: none;
 }
 
 .btn-update:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-accent-400);
+  box-shadow: var(--accent-glow);
 }
 
 /* Unpublish Button */
 .btn-unpublish {
-  background: var(--color-neutral-0);
-  color: var(--color-error-600);
-  border: var(--border-width) solid var(--color-error-600) !important;
+  background: var(--bg-primary);
+  color: var(--color-error-500);
+  border: var(--border-width) solid var(--color-error-500) !important;
 }
 
 .btn-unpublish:hover:not(:disabled) {
-  background: var(--color-error-50);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .view-published-link {
   display: block;
   text-align: center;
-  color: var(--color-primary-600);
+  color: var(--color-accent-500);
   font-size: var(--text-sm);
   text-decoration: none;
   padding: var(--space-2);
@@ -247,38 +255,40 @@
 }
 
 .view-published-link:hover {
-  background: var(--color-neutral-100);
+  background: var(--bg-secondary);
   text-decoration: underline;
 }
 
 .publish-note {
   font-size: var(--text-sm);
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   text-align: center;
   margin: 0;
   padding: var(--space-3);
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
   border-radius: var(--radius-lg);
 }
 
-/* Anonymous Publish Button - GRADIENT ALLOWED */
+/* Anonymous Publish Button */
 .btn-publish-anonymous {
-  background: linear-gradient(135deg, var(--color-neutral-500) 0%, var(--color-neutral-600) 100%);
-  color: var(--color-neutral-0);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: var(--border-width) solid var(--border-secondary);
 }
 
 .btn-publish-anonymous:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+  background: var(--bg-secondary);
+  border-color: var(--color-accent-500);
 }
 
-/* Anonymous Update Button - GRADIENT ALLOWED */
+/* Anonymous Update Button */
 .btn-update-anonymous {
-  background: linear-gradient(135deg, var(--color-neutral-500) 0%, var(--color-neutral-600) 100%);
-  color: var(--color-neutral-0);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: var(--border-width) solid var(--border-secondary);
 }
 
 .btn-update-anonymous:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+  background: var(--bg-secondary);
+  border-color: var(--color-accent-500);
 }

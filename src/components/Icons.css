@@ -1,0 +1,149 @@
+/**
+ * Icons Styles
+ * Consistent styling for all SVG icons
+ * Uses semantic theme variables for light/dark mode
+ */
+
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* Icon color variants */
+.icon-primary {
+    color: var(--color-accent-500);
+}
+
+.icon-secondary {
+    color: var(--color-secondary-500);
+}
+
+.icon-success {
+    color: var(--color-success-500);
+}
+
+.icon-error {
+    color: var(--color-error-500);
+}
+
+.icon-warning {
+    color: var(--color-warning-500);
+}
+
+.icon-muted {
+    color: var(--text-tertiary);
+}
+
+/* Specific icon colors for semantic meaning */
+.icon-sheet {
+    color: var(--color-accent-500);
+}
+
+.icon-note {
+    color: var(--color-warning-500);
+}
+
+.icon-crown {
+    color: #f59e0b; /* Amber/gold for owner */
+}
+
+.icon-edit {
+    color: var(--color-accent-400);
+}
+
+.icon-view {
+    color: var(--text-tertiary);
+}
+
+.icon-tag {
+    color: var(--text-tertiary);
+}
+
+.icon-check {
+    color: var(--color-success-500);
+}
+
+.icon-publish {
+    color: white;
+}
+
+.icon-heart {
+    color: var(--color-error-400);
+}
+
+.icon-heart.liked {
+    color: var(--color-error-500);
+}
+
+.icon-rocket {
+    color: var(--color-accent-500);
+}
+
+.icon-refresh {
+    color: var(--color-accent-500);
+}
+
+.icon-incognito {
+    color: var(--text-secondary);
+}
+
+.icon-logout {
+    color: var(--text-secondary);
+}
+
+/* Icon with text spacing */
+.icon + span,
+span + .icon {
+    margin-left: var(--space-1);
+}
+
+/* Icon button styling */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+    background: var(--bg-secondary);
+}
+
+.icon-btn:active {
+    background: var(--bg-tertiary);
+}
+
+/* Icon sizes */
+.icon-xs {
+    width: 12px;
+    height: 12px;
+}
+
+.icon-sm {
+    width: 14px;
+    height: 14px;
+}
+
+.icon-md {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-lg {
+    width: 20px;
+    height: 20px;
+}
+
+.icon-xl {
+    width: 24px;
+    height: 24px;
+}
+

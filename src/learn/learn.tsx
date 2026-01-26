@@ -20,6 +20,7 @@ interface FlashcardItem {
 interface SessionData {
     headers: string[]
     cards: FlashcardItem[]
+    title: string
 }
 
 // ============ Helper Functions ============
@@ -105,6 +106,7 @@ async function loadSessionData(sessionId: string): Promise<SessionData | null> {
 
         if (result.success && result.data) {
             const data = result.data
+            const title = data.title || 'Untitled Sheet'
             let rawData: string[][] | null = null
 
             // Handle rows format from API
@@ -122,7 +124,7 @@ async function loadSessionData(sessionId: string): Promise<SessionData | null> {
                     .filter(row => row.some(cell => cell.trim() !== ''))
                     .map(data => ({ data, difficulty: 0, seen: false, masteredOnFirstTry: false }))
 
-                return { headers, cards }
+                return { headers, cards, title }
             }
         }
     } catch (error) {
@@ -163,6 +165,7 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
     // State for flashcard deck
     const [deck, setDeck] = useState<FlashcardItem[]>(initialData.cards)
     const headers = initialData.headers
+    const title = initialData.title
 
     // State for column selection (which columns are questions vs answers)
     const [questionColumns, setQuestionColumns] = useState<Set<number>>(new Set([0]))
@@ -640,8 +643,7 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
         return (
             <>
                 <Header />
-                <h1>Learn</h1>
-                <p>Session: {sessionId}</p>
+                <h1 className="learn_title">{title}</h1>
                 <p>No flashcards available. The session data may be empty.</p>
                 <a href="/learn">← Back to sessions</a>
             </>
@@ -651,33 +653,52 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
     return (
         <div className="learn_container">
             <Header />
-            <h1>Learn</h1>
-            <p className="learn_session_info">Session: {sessionId.substring(0, 8)}...</p>
+            <h1 className="learn_title">{title}</h1>
 
-            <div className="learning_mode_controls">
-                <div className="learn_mode_grid">
+            {/* Controls Row - Learning Mode and Display Mode on same line */}
+            <div className="learn_controls_row">
+                {/* Learning Mode Segmented Control */}
+                <div className="learn_segmented_control">
                     <button
-                        className={`learn_mode_btn ${learningMode === 'spaced' ? 'active' : ''}`}
+                        className={`learn_segment ${learningMode === 'spaced' ? 'active' : ''}`}
                         onClick={() => handleLearningModeChange('spaced')}
                     >
-                        <span className="learn_mode_btn_label">Spaced Repetition</span>
+                        Spaced
                     </button>
                     <button
-                        className={`learn_mode_btn ${learningMode === 'random' ? 'active' : ''}`}
+                        className={`learn_segment ${learningMode === 'random' ? 'active' : ''}`}
                         onClick={() => handleLearningModeChange('random')}
                     >
-                        <span className="learn_mode_btn_label">Random Order</span>
+                        Random
                     </button>
                     <button
-                        className={`learn_mode_btn ${learningMode === 'sequential' ? 'active' : ''}`}
+                        className={`learn_segment ${learningMode === 'sequential' ? 'active' : ''}`}
                         onClick={() => handleLearningModeChange('sequential')}
                     >
-                        <span className="learn_mode_btn_label">Sequential</span>
+                        Sequential
+                    </button>
+                </div>
+
+                {/* Display Mode Segmented Control */}
+                <div className="learn_segmented_control">
+                    <button
+                        className={`learn_segment ${displayMode === 'grid' ? 'active' : ''}`}
+                        onClick={() => setDisplayMode('grid')}
+                        title="Multi-Card Grid View"
+                    >
+                        Grid
+                    </button>
+                    <button
+                        className={`learn_segment ${displayMode === 'unified' ? 'active' : ''}`}
+                        onClick={() => setDisplayMode('unified')}
+                        title="Single Unified Card View"
+                    >
+                        Compact
                     </button>
                 </div>
             </div>
+
             {/* Column Selection Controls */}
-            
             <div className="learn_column_controls">
                 <div className="learn_column_grid">
                     {headers.map((header, i) => (
@@ -704,36 +725,24 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
 
             {/* Progress Stats */}
             <div className="learn_progress">
-                <span>Not Seen: {notSeenCount}</span>
-                <span>Learning: {learningCount}</span>
-                <span>Mastered: {masteredCount}</span>
+                <span className="learn_progress_stat">Not Seen: {notSeenCount}</span>
+                <span className="learn_progress_stat">Learning: {learningCount}</span>
+                <span className="learn_progress_stat">Mastered: {masteredCount}</span>
                 <span
-                    className={`learn_banned_stat ${bannedCards.length > 0 ? 'clickable' : ''}`}
+                    className={`learn_banned_stat ${bannedCards.length > 0 ? 'clickable' : ''} "learn_progress_stat"`}
                     onClick={() => bannedCards.length > 0 && setShowBanList(true)}
                 >
                     Banned: {bannedCards.length}
                 </span>
-                <span style={{ backgroundColor: `rgb(${difficultyToColor(currentCard?.difficulty ?? 0)})` }}>Difficulty: {currentCard?.difficulty ?? 0}</span>
+                <span 
+                    style={{ backgroundColor: `rgb(${difficultyToColor(currentCard?.difficulty ?? 0)})` }}
+                    className = "learn_progress_stat"
+                >
+                    Difficulty: {currentCard?.difficulty ?? 0}
+                </span>
             </div>
 
-            {/* Display Mode Toggle */}
-            <div className="learn_display_mode_toggle">
-                <button
-                    className={`learn_display_btn ${displayMode === 'grid' ? 'active' : ''}`}
-                    onClick={() => setDisplayMode('grid')}
-                    title="Multi-Card Grid View"
-                >
-                    Grid View
-                </button>
-                <button
-                    className={`learn_display_btn ${displayMode === 'unified' ? 'active' : ''}`}
-                    onClick={() => setDisplayMode('unified')}
-                    title="Single Unified Card View"
-                >
-                    Compact View
-                </button>
-            </div>
-
+            
             {/* Flashcard with Navigation Arrows */}
             <div className="learn_flashcard_nav_container">
                 {/* Left Arrow - Previous Card */}

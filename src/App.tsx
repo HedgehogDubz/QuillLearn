@@ -7,12 +7,15 @@ import Notes from './notes/notes.tsx'
 import Login from './auth/Login.tsx'
 import Register from './auth/Register.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
+import { ThemeProvider } from './theme/ThemeContext.tsx'
 import ProtectedRoute from './auth/ProtectedRoute.tsx'
 import Discover from './discover/Discover.tsx'
 import PublicContent from './discover/PublicContent.tsx'
+import Profile from './profile/Profile.tsx'
 
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Routes>
         {/* Public routes */}
@@ -31,6 +34,7 @@ function App() {
         <Route path="/learn/:sessionId" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
         <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
         <Route path="/notes/:sessionId" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
         <Route
           path="*"
@@ -38,6 +42,7 @@ function App() {
         />
       </Routes>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
 

@@ -1,6 +1,6 @@
 /* ============================================
    ACTIVE USERS
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 .active-users {
@@ -8,9 +8,10 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  border: var(--border-width) solid var(--border-primary);
   position: fixed;
   top: 70px;
   right: var(--space-5);
@@ -19,7 +20,7 @@
 
 .active-users-label {
   font-size: var(--text-sm);
-  color: var(--color-neutral-500);
+  color: var(--text-muted);
   font-weight: var(--font-medium);
 }
 
@@ -35,12 +36,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-neutral-0);
+  color: #000000;
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
   cursor: pointer;
   transition: transform var(--transition-fast);
-  border: var(--border-width-2) solid var(--color-neutral-0);
+  border: var(--border-width-2) solid var(--bg-primary);
   box-shadow: var(--shadow-sm);
 }
 

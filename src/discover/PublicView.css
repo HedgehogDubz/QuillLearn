@@ -1,11 +1,11 @@
 /* ============================================
    PUBLIC VIEW PAGE
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 .public-view-page {
   min-height: 100vh;
-  background: var(--color-neutral-100);
+  background: var(--bg-primary);
 }
 
 .public-view-container {
@@ -18,24 +18,31 @@
 .public-view-error {
   text-align: center;
   padding: var(--space-16) var(--space-8);
+  color: var(--text-secondary);
 }
 
 .public-view-error h2 {
-  color: var(--color-error-600);
+  color: var(--color-error-500);
   margin-bottom: var(--space-4);
 }
 
 .public-view-error button {
   padding: var(--space-3) var(--space-6);
-  background: var(--color-primary-500);
-  color: var(--color-neutral-0);
+  background: var(--color-accent-500);
+  color: #000000;
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.public-view-error button:hover {
+  box-shadow: var(--accent-glow);
 }
 
 .public-view-header {
-  background: var(--color-neutral-0);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   margin-bottom: var(--space-6);
@@ -45,7 +52,7 @@
 .back-btn {
   background: none;
   border: none;
-  color: var(--color-primary-600);
+  color: var(--color-accent-500);
   cursor: pointer;
   font-size: var(--text-base);
   padding: 0;
@@ -58,12 +65,12 @@
 
 .public-view-title-section h1 {
   font-size: var(--text-2xl);
-  color: var(--color-neutral-800);
+  color: var(--text-primary);
   margin: 0 0 var(--space-2) 0;
 }
 
 .public-view-title-section .description {
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   margin: 0;
   line-height: var(--leading-relaxed);
 }
@@ -74,7 +81,7 @@
   align-items: center;
   margin-top: var(--space-4);
   padding-top: var(--space-4);
-  border-top: var(--border-width) solid var(--color-neutral-100);
+  border-top: var(--border-width) solid var(--border-primary);
 }
 
 .author-info {
@@ -90,13 +97,14 @@
   object-fit: cover;
 }
 
-/* Author Avatar - GRADIENT ALLOWED */
+/* Author Avatar - Neon accent */
 .author-avatar-placeholder {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
-  color: var(--color-neutral-0);
+  background: var(--color-accent-500);
+  border: none;
+  color: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,7 +113,7 @@
 }
 
 .author-info span {
-  color: var(--color-neutral-700);
+  color: var(--text-secondary);
 }
 
 .stats {
@@ -115,26 +123,56 @@
 }
 
 .stats span {
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
 }
 
 .like-btn {
-  background: var(--color-neutral-100);
+  background: var(--bg-tertiary);
   border: none;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
   cursor: pointer;
   font-size: var(--text-base);
   transition: all var(--transition-fast);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .like-btn:hover {
-  background: var(--color-neutral-200);
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--color-accent-500);
 }
 
 .like-btn.liked {
-  background: var(--color-error-100);
-  color: var(--color-error-600);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error-500);
+}
+
+.like-btn:disabled,
+.copy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.copy-btn {
+  background: var(--bg-tertiary);
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-size: var(--text-base);
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.copy-btn:hover:not(:disabled) {
+  background: rgba(0, 200, 255, 0.1);
+  color: var(--color-accent-500);
 }
 
 .tags {
@@ -147,14 +185,15 @@
 .tags .tag {
   font-size: var(--text-sm);
   padding: var(--space-1) var(--space-3);
-  background: var(--color-neutral-200);
-  color: var(--color-neutral-700);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   border-radius: var(--radius-full);
 }
 
 /* Sheet Preview */
 .sheet-preview {
-  background: var(--color-neutral-0);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   padding: var(--space-4);
   margin-bottom: var(--space-6);
@@ -168,20 +207,21 @@
 }
 
 .sheet-table td {
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-primary);
   padding: var(--space-2);
   font-size: var(--text-sm);
   white-space: pre-wrap;
   word-break: break-word;
   vertical-align: top;
+  color: var(--text-primary);
 }
 
 .sheet-table tr:nth-child(even) {
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
 }
 
 .sheet-table tr.header-row td {
-  background: var(--color-neutral-100);
+  background: var(--bg-tertiary);
   font-weight: var(--font-semibold);
 }
 
@@ -198,7 +238,7 @@
   max-height: 200px;
   border-radius: var(--radius-sm);
   object-fit: contain;
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-primary);
 }
 
 .cell-text {
@@ -207,14 +247,15 @@
 
 .truncated-notice {
   text-align: center;
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   font-size: var(--text-sm);
   margin-top: var(--space-4);
 }
 
 /* Note Preview */
 .note-preview {
-  background: var(--color-neutral-0);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   padding: var(--space-8);
   margin-bottom: var(--space-6);
@@ -229,6 +270,7 @@
   padding: 0;
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
+  color: var(--text-primary);
 }
 
 .note-content-viewer .ql-container {
@@ -237,7 +279,8 @@
 
 /* Public Content Wrapper */
 .public-content-wrapper {
-  background: var(--color-neutral-0);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   margin-bottom: var(--space-6);
   box-shadow: var(--shadow-sm);
@@ -256,14 +299,14 @@
   gap: var(--space-4);
   margin-bottom: var(--space-6);
   padding-bottom: var(--space-4);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  border-bottom: var(--border-width) solid var(--border-primary);
 }
 
 .note-viewer-drawing img {
   max-width: 100%;
   max-height: 400px;
   border-radius: var(--radius-lg);
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-primary);
 }
 
 .note-viewer-content .ql-container {
@@ -275,6 +318,7 @@
   padding: 0;
   min-height: 100px;
   line-height: 1.7;
+  color: var(--text-primary);
 }
 
 .note-viewer-content .ql-editor p {
@@ -286,6 +330,7 @@
 .note-viewer-content .ql-editor h3 {
   margin-top: 1.5em;
   margin-bottom: 0.5em;
+  color: var(--text-primary);
 }
 
 .note-viewer-content .ql-editor img {
@@ -302,22 +347,22 @@
 }
 
 .note-viewer-content .ql-editor blockquote {
-  border-left: 4px solid var(--color-primary-500);
+  border-left: 4px solid var(--color-accent-500);
   padding-left: var(--space-4);
   margin-left: 0;
-  color: var(--color-neutral-600);
+  color: var(--text-secondary);
   font-style: italic;
 }
 
 .note-viewer-attachments {
   margin-top: var(--space-6);
   padding-top: var(--space-4);
-  border-top: var(--border-width) solid var(--color-neutral-200);
+  border-top: var(--border-width) solid var(--border-primary);
 }
 
 .note-viewer-attachments h4 {
   font-size: var(--text-sm);
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   margin-bottom: var(--space-3);
 }
 
@@ -332,7 +377,7 @@
 }
 
 .note-viewer-attachments a {
-  color: var(--color-primary-600);
+  color: var(--color-accent-500);
   text-decoration: none;
   font-size: var(--text-sm);
 }

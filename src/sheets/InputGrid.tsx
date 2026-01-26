@@ -7,7 +7,7 @@ import { useAuth } from '../auth/AuthContext'
 import DocumentHeader from '../components/DocumentHeader'
 import TagInput from '../components/TagInput'
 import PublishModal from '../components/PublishModal'
-import { ShareModal } from '../components/ShareModal'
+import LoadingScreen from '../components/LoadingScreen'
 
 // Constants
 const DRAG_THRESHOLD = 5; // Minimum distance in pixels to count as a drag (not just a click)
@@ -284,9 +284,6 @@ function InputGrid({ sessionId }: InputGridProps) {
 
     // Publish modal state
     const [publishModalOpen, setPublishModalOpen] = useState(false);
-
-    // Share modal state
-    const [shareModalOpen, setShareModalOpen] = useState(false);
 
     // Square canvas sizes for sheets
     const SQUARE_CANVAS_SIZES: CanvasSize[] = [
@@ -1406,54 +1403,54 @@ function InputGrid({ sessionId }: InputGridProps) {
     // Keep refs to inputs for keyboard navigation
     const inputRefs = useRef<(HTMLTextAreaElement | null)[][]>([]);
 
+    // Show loading screen while data is loading
+    if (isLoading) {
+        return <LoadingScreen type="sheet" message="Loading sheet..." />;
+    }
+
     return (
         <div className="sheet_container">
-            <div className="sheet_title_bar">
-                <DocumentHeader
-                    title={title}
-                    onTitleChange={setTitle}
-                    isSaved={isSaved}
-                    placeholder="Untitled Sheet"
-                    savedText="✓ Saved"
-                    unsavedText="● Unsaved"
-                    readOnly={isReadOnly}
-                    permission={userPermission as 'owner' | 'editor' | 'view' | null}
-                />
-                <TagInput
-                    tags={tags}
-                    onTagsChange={handleTagsChange}
-                    readOnly={isReadOnly}
-                    placeholder="Add tags..."
-                    suggestions={allUserTags}
-                />
-            </div>
-            <div className="sheet_toolbar">
-                <button className="sheet_btn" onClick={addRow} disabled={isReadOnly}>+ Row</button>
-                <button className="sheet_btn" onClick={addCol} disabled={isReadOnly}>+ Column</button>
-                <button
-                    className="sheet_btn"
-                    onClick={undo}
-                    disabled={!canUndo || isReadOnly}
-                    title={canUndo ? "Undo (Ctrl+Z / ⌘+Z)" : "Nothing to undo"}
-                >
-                    ↶ Undo
-                </button>
-                <button
-                    className="sheet_btn sheet_btn_publish"
-                    onClick={() => setPublishModalOpen(true)}
-                    title="Publish to Discover"
-                >
-                    📢 Publish
-                </button>
-                <button
-                    className="sheet_btn sheet_btn_share"
-                    onClick={() => setShareModalOpen(true)}
-                    title="Share this sheet"
-                >
-                    Share
-                </button>
-                <div className="sheet_hint">
-                    {isReadOnly ? "View-only mode - You cannot edit this sheet" : (lastActionDescription || "Tip: type in last row/col to auto-expand")}
+            <div className="sheet_sticky_header">
+                <div className="sheet_title_bar">
+                    <DocumentHeader
+                        title={title}
+                        onTitleChange={setTitle}
+                        isSaved={isSaved}
+                        placeholder="Untitled Sheet"
+                        savedText="✓ Saved"
+                        unsavedText="● Unsaved"
+                        readOnly={isReadOnly}
+                        permission={userPermission as 'owner' | 'editor' | 'view' | null}
+                    />
+                    <TagInput
+                        tags={tags}
+                        onTagsChange={handleTagsChange}
+                        readOnly={isReadOnly}
+                        placeholder="Add tags..."
+                        suggestions={allUserTags}
+                    />
+                </div>
+                <div className="sheet_toolbar">
+                    <button className="sheet_btn" onClick={addRow} disabled={isReadOnly}>+ Row</button>
+                    <button className="sheet_btn" onClick={addCol} disabled={isReadOnly}>+ Column</button>
+                    <button
+                        className="sheet_btn"
+                        onClick={undo}
+                        disabled={!canUndo || isReadOnly}
+                        title={canUndo ? "Undo (Ctrl+Z / ⌘+Z)" : "Nothing to undo"}
+                    >
+                        ↶ Undo
+                    </button>
+                    <button
+                        className="sheet_btn sheet_btn_publish"
+                        onClick={() => setPublishModalOpen(true)}
+                        title="Publish to Discover"
+                    >
+                        📢 Publish
+                    </button>
+                    <div className="sheet_hint">
+                        {isReadOnly ? "View-only mode - You cannot edit this sheet" : (lastActionDescription || "Tip: type in last row/col to auto-expand")}
+                    </div>
                 </div>
             </div>
 
@@ -1649,18 +1646,6 @@ function InputGrid({ sessionId }: InputGridProps) {
                     currentUserId={user.id}
                     currentTitle={title}
                     currentTags={tags}
-                />
-            )}
-
-            {/* Share modal */}
-            {shareModalOpen && user && (
-                <ShareModal
-                    isOpen={shareModalOpen}
-                    onClose={() => setShareModalOpen(false)}
-                    sessionId={sessionId}
-                    documentType="sheet"
-                    currentUserId={user.id}
-                    currentUserPermission={userPermission === 'owner' ? 'owner' : userPermission === 'editor' ? 'edit' : 'view'}
                 />
             )}
         </div>

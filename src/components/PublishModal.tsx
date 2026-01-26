@@ -8,6 +8,8 @@ import React, { useState, useEffect } from 'react';
 import './PublishModal.css';
 import TagInput from './TagInput';
 import { useAuth } from '../auth/AuthContext';
+import { PublishIcon, CheckIcon, ViewIcon, HeartIcon, RefreshIcon, NoteIcon, RocketIcon, IncognitoIcon } from './Icons';
+import './Icons.css';
 
 interface PublishModalProps {
     isOpen: boolean;
@@ -156,7 +158,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
         <div className="publish-modal-overlay" onClick={onClose}>
             <div className="publish-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="publish-modal-header">
-                    <h2>📢 Publish to Discover</h2>
+                    <h2><PublishIcon size={18} /> Publish to Discover</h2>
                     <button className="publish-modal-close" onClick={onClose}>×</button>
                 </div>
 
@@ -168,7 +170,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                     ) : publishedInfo ? (
                         <>
                             <div className="publish-status published">
-                                <span className="status-icon">✅</span>
+                                <span className="status-icon"><CheckIcon size={18} color="var(--color-success-500)" /></span>
                                 <div className="status-info">
                                     <strong>Published to Discover</strong>
                                     <span className="publish-date">Published {formatDate(publishedInfo.published_at)}</span>
@@ -176,8 +178,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                             </div>
 
                             <div className="publish-stats">
-                                <span>👁️ {publishedInfo.view_count} views</span>
-                                <span>❤️ {publishedInfo.like_count} likes</span>
+                                <span><ViewIcon size={14} /> {publishedInfo.view_count} views</span>
+                                <span><HeartIcon size={14} filled /> {publishedInfo.like_count} likes</span>
                             </div>
 
                             <div className="publish-form">
@@ -207,17 +209,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                                     }}
                                     disabled={loading}
                                 >
-                                    {loading && !publishAnonymously ? 'Updating...' : `🔄 Update as ${user?.username || user?.email || 'Anonymous'}`}
-                                </button>
-                                <button
-                                    className="btn-update-anonymous"
-                                    onClick={() => {
-                                        setPublishAnonymously(true);
-                                        handlePublish();
-                                    }}
-                                    disabled={loading}
-                                >
-                                    {loading && publishAnonymously ? 'Updating...' : '🕵️ Update Anonymously'}
+                                    {loading && !publishAnonymously ? 'Updating...' : <><RefreshIcon size={14} /> Update as {user?.username || user?.email || 'Anonymous'}</>}
                                 </button>
                                 <button
                                     className="btn-unpublish"
@@ -240,7 +232,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                     ) : (
                         <>
                             <div className="publish-status not-published">
-                                <span className="status-icon">📝</span>
+                                <span className="status-icon"><NoteIcon size={18} /></span>
                                 <div className="status-info">
                                     <strong>Not Published</strong>
                                     <span>Share your {contentType} with the community</span>
@@ -279,7 +271,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                                     }}
                                     disabled={loading}
                                 >
-                                    {loading && !publishAnonymously ? 'Publishing...' : `🚀 Publish as ${user?.username || user?.email || 'Anonymous'}`}
+                                    {loading && !publishAnonymously ? 'Publishing...' : <><RocketIcon size={14} /> Publish as {user?.username || user?.email || 'Anonymous'}</>}
                                 </button>
                                 <button
                                     className="btn-publish-anonymous"
@@ -289,7 +281,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                                     }}
                                     disabled={loading}
                                 >
-                                    {loading && publishAnonymously ? 'Publishing...' : '🕵️ Publish Anonymously'}
+                                    {loading && publishAnonymously ? 'Publishing...' : <><IncognitoIcon size={14} /> Publish Anonymously</>}
                                 </button>
                             </div>
 

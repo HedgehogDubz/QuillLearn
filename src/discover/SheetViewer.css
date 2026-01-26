@@ -1,6 +1,6 @@
 /* ============================================
    SHEET VIEWER
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 .sheet-viewer {
@@ -10,13 +10,13 @@
 .sheet-viewer-empty {
   text-align: center;
   padding: var(--space-8);
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
 }
 
 .sheet-viewer-table-wrapper {
   overflow-x: auto;
   border-radius: var(--radius-lg);
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-primary);
 }
 
 .sheet-viewer-table {
@@ -26,16 +26,17 @@
 }
 
 .sheet-viewer-cell {
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-primary);
   padding: var(--space-3);
   vertical-align: top;
   white-space: pre-wrap;
   word-break: break-word;
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .sheet-viewer-header-row .sheet-viewer-cell {
-  background: var(--color-neutral-100);
+  background: var(--bg-secondary);
   font-weight: var(--font-semibold);
   position: sticky;
   top: 0;
@@ -43,11 +44,11 @@
 }
 
 .sheet-viewer-table tr:nth-child(even) .sheet-viewer-cell {
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
 }
 
 .sheet-viewer-header-row .sheet-viewer-cell {
-  background: var(--color-neutral-100);
+  background: var(--bg-tertiary);
 }
 
 /* Cell Images */
@@ -63,7 +64,7 @@
   max-height: 150px;
   border-radius: var(--radius-sm);
   object-fit: contain;
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-primary);
   cursor: pointer;
   transition: transform var(--transition-fast);
 }
@@ -79,10 +80,10 @@
 
 .sheet-viewer-truncated {
   text-align: center;
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   font-size: var(--text-sm);
   margin-top: var(--space-4);
   padding: var(--space-2);
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
   border-radius: var(--radius-sm);
 }

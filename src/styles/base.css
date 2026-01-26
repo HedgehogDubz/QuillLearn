@@ -1,8 +1,9 @@
 /* ==========================================
    BASE STYLES - Global resets and defaults
+   Neon theme with light/dark mode support
    ========================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=VT323&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -14,22 +15,25 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Smooth theme transitions */
+  color-scheme: light dark;
 }
 
 body {
   font-family: var(--font-family-sans);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  color: var(--color-neutral-800);
-  background-color: var(--color-neutral-50);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
   min-height: 100vh;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 /* === TYPOGRAPHY DEFAULTS === */
 h1, h2, h3, h4, h5, h6 {
   font-weight: var(--font-semibold);
   line-height: var(--leading-tight);
-  color: var(--color-neutral-900);
+  color: var(--text-primary);
 }
 
 h1 { font-size: var(--text-4xl); }
@@ -39,21 +43,22 @@ h4 { font-size: var(--text-lg); }
 
 p {
   margin-bottom: var(--space-4);
+  color: var(--text-secondary);
 }
 
 a {
-  color: var(--color-primary-600);
+  color: var(--text-accent);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--color-primary-700);
+  color: var(--color-accent-500);
 }
 
 /* === FOCUS STATES === */
 :focus-visible {
-  outline: 2px solid var(--color-primary-500);
+  outline: 2px solid var(--color-accent-500);
   outline-offset: 2px;
 }
 
@@ -66,6 +71,7 @@ textarea:focus-visible {
 }
 
 /* === BUTTONS === */
+/* Default button - black/white with accent on hover */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -77,10 +83,17 @@ textarea:focus-visible {
   font-weight: var(--font-medium);
   line-height: 1;
   border-radius: var(--radius-md);
-  border: var(--border-width) solid transparent;
+  border: var(--border-width) solid var(--border-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--color-accent-500);
+  box-shadow: var(--accent-glow);
 }
 
 .btn:disabled {
@@ -88,60 +101,68 @@ textarea:focus-visible {
   cursor: not-allowed;
 }
 
+/* Primary button - accent colored (use sparingly for key actions) */
 .btn-primary {
-  background: var(--color-primary-500);
-  color: var(--color-neutral-0);
-  border-color: var(--color-primary-500);
+  background: var(--color-accent-500);
+  color: #000000;
+  border-color: var(--color-accent-500);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-600);
-  border-color: var(--color-primary-600);
+  background: var(--color-accent-400);
+  border-color: var(--color-accent-400);
+  box-shadow: var(--accent-glow-strong);
 }
 
+/* Secondary button - outlined */
 .btn-secondary {
-  background: var(--color-neutral-0);
-  color: var(--color-neutral-700);
-  border-color: var(--color-neutral-300);
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border-secondary);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-neutral-50);
-  border-color: var(--color-neutral-400);
+  border-color: var(--color-accent-500);
+  color: var(--text-accent);
 }
 
+/* Ghost button - minimal */
 .btn-ghost {
   background: transparent;
-  color: var(--color-neutral-600);
+  color: var(--text-secondary);
   border-color: transparent;
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: var(--color-neutral-100);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
+/* Danger button - for destructive actions */
 .btn-danger {
-  background: var(--color-error-500);
-  color: var(--color-neutral-0);
+  background: transparent;
+  color: var(--color-error-500);
   border-color: var(--color-error-500);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: var(--color-error-600);
-  border-color: var(--color-error-600);
+  background: var(--color-error-500);
+  color: #ffffff;
 }
 
-/* Special gradient button for "To Sheets" */
-.btn-gradient {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-  color: var(--color-neutral-0);
-  border: none;
+/* AI/Accent button - neon glow effect (no gradient) */
+.btn-gradient,
+.btn-ai {
+  background: var(--color-accent-500);
+  color: #000000;
+  border: var(--border-width) solid var(--color-accent-400);
 }
 
-.btn-gradient:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-secondary-600) 100%);
+.btn-gradient:hover:not(:disabled),
+.btn-ai:hover:not(:disabled) {
+  background: var(--color-accent-400);
+  box-shadow: var(--accent-glow-strong);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
 }
 
 /* Button sizes */
@@ -167,23 +188,23 @@ textarea:focus-visible {
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-family-sans);
   font-size: var(--text-sm);
-  color: var(--color-neutral-800);
-  background: var(--color-neutral-0);
-  border: var(--border-width) solid var(--color-neutral-300);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-primary);
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
 }
 
 .input:hover {
-  border-color: var(--color-neutral-400);
+  border-color: var(--border-secondary);
 }
 
 .input:focus {
-  border-color: var(--color-primary-500);
+  border-color: var(--color-accent-500);
   box-shadow: var(--shadow-focus);
 }
 
 .input::placeholder {
-  color: var(--color-neutral-400);
+  color: var(--text-tertiary);
 }
 

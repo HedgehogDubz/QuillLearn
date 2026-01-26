@@ -1,22 +1,22 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import './Home.css'
 import Header from '../header/header.tsx'
 import type { SessionInfo } from '../gaurdian.ts'
 import ModeModal from '../mode/mode.tsx'
 import { useAuth } from '../auth/AuthContext'
-import { ShareModal } from '../components/ShareModal'
-import type { PermissionLevel } from '../components/ShareModal'
 import PublishModal from '../components/PublishModal'
+import { SheetIcon, NoteIcon, PublishIcon, TagIcon, CheckIcon, HeartIcon, ViewIcon, SearchIcon } from '../components/Icons'
+import '../components/Icons.css'
 
 // Extended SessionInfo to include type and created_at
 type SessionWithType = SessionInfo & {
   type: 'sheet' | 'note'
   created_at?: number
   content?: string // For search functionality
-  permission?: PermissionLevel // Permission level for this session
   tags?: string[] // Tags for organization
   isPublished?: boolean // Whether this session is published
   publishedId?: string // ID of the published content
+  publishedStats?: { like_count: number; view_count: number } // Stats for published content
 }
 
 // Published content type
@@ -40,8 +40,6 @@ function Home() {
   const [selectedSheet, setSelectedSheet] = useState<SessionWithType | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [shareModalOpen, setShareModalOpen] = useState(false)
-  const [shareModalSession, setShareModalSession] = useState<SessionWithType | null>(null)
   const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [publishModalSession, setPublishModalSession] = useState<SessionWithType | null>(null)
   const [allTags, setAllTags] = useState<string[]>([])
@@ -49,6 +47,8 @@ function Home() {
   const [tagSearchQuery, setTagSearchQuery] = useState('')
   const [publishedContent, setPublishedContent] = useState<PublishedContent[]>([])
   const [loadingPublished, setLoadingPublished] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const tagSearchInputRef = useRef<HTMLInputElement>(null)
   // Fetch sessions from API when component mounts
   useEffect(() => {
     const fetchSessions = async () => {
@@ -71,11 +71,15 @@ function Home() {
           publishedResponse.json()
         ])
 
-        // Create a map of published session IDs for quick lookup
-        const publishedMap = new Map<string, string>()
+        // Create a map of published session IDs for quick lookup (includes stats)
+        const publishedMap = new Map<string, { id: string; like_count: number; view_count: number }>()
         if (publishedResult.success && publishedResult.data) {
           publishedResult.data.forEach((pub: PublishedContent) => {
-            publishedMap.set(pub.original_session_id, pub.id)
+            publishedMap.set(pub.original_session_id, {
+              id: pub.id,
+              like_count: pub.like_count,
+              view_count: pub.view_count
+            })
           })
           setPublishedContent(publishedResult.data)
         }
@@ -90,6 +94,7 @@ function Home() {
                 ).join(' ');
               }
 
+              const publishedData = publishedMap.get(sheet.session_id);
               return {
                 title: sheet.title || 'Untitled Sheet',
                 storageKey: `sheet_${sheet.session_id}`,
@@ -100,8 +105,9 @@ function Home() {
                 content,
                 permission: sheet.permission || 'owner',
                 tags: sheet.tags || [],
-                isPublished: publishedMap.has(sheet.session_id),
-                publishedId: publishedMap.get(sheet.session_id)
+                isPublished: !!publishedData,
+                publishedId: publishedData?.id,
+                publishedStats: publishedData ? { like_count: publishedData.like_count, view_count: publishedData.view_count } : undefined
               };
             })
           : []
@@ -113,6 +119,7 @@ function Home() {
                 ? note.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
                 : '';
 
+              const publishedData = publishedMap.get(note.session_id);
               return {
                 title: note.title || 'Untitled Document',
                 storageKey: `note_${note.session_id}`,
@@ -123,8 +130,9 @@ function Home() {
                 content,
                 permission: note.permission || 'owner',
                 tags: note.tags || [],
-                isPublished: publishedMap.has(note.session_id),
-                publishedId: publishedMap.get(note.session_id)
+                isPublished: !!publishedData,
+                publishedId: publishedData?.id,
+                publishedStats: publishedData ? { like_count: publishedData.like_count, view_count: publishedData.view_count } : undefined
               };
             })
           : []
@@ -292,8 +300,8 @@ function Home() {
 
   return (
     <div className="home_container">
-      <Header />
-      <h1>Home</h1>
+      <Header/>
+      <br></br>
       <div className="home_actions">
         <button>
           <a href="/sheets">New Sheet</a>
@@ -334,7 +342,7 @@ function Home() {
               className={filter === 'published' ? 'active' : ''}
               onClick={() => setFilter('published')}
             >
-              📢 Published
+              <PublishIcon size={14} /> Published
             </button>
             </span>
             <span>
@@ -349,9 +357,10 @@ function Home() {
                 <option value="dateCreated">Date Created</option>
               </select>
             </span>
-            <span>
-              🔍
+            <span onClick={() => searchInputRef.current?.focus()}>
+              <SearchIcon size={14} />
               <input
+                ref={searchInputRef}
                 type="text"
                 className="search-sessions-input"
                 placeholder="Search..."
@@ -365,8 +374,9 @@ function Home() {
           {allTags.length > 0 && (
             <div className="home_tag_filter">
               <div className="tag_filter_header">
-                <span className="tag_filter_label">🏷️ Filter by tags:</span>
+                <span className="tag_filter_label"><TagIcon size={14} /> Filter by tags:</span>
                 <input
+                  ref={tagSearchInputRef}
                   type="text"
                   className="tag_search_input"
                   placeholder="Search tags..."
@@ -387,7 +397,7 @@ function Home() {
                     onClick={() => toggleTag(tag)}
                   >
                     {tag}
-                    {selectedTags.includes(tag) && ' ✓'}
+                    {selectedTags.includes(tag) && <CheckIcon size={12} />}
                   </button>
                 ))}
               </div>
@@ -412,8 +422,8 @@ function Home() {
                         href={`/discover/${item.id}`}
                         className="home_sheet_link"
                       >
-                        {item.content_type === 'sheet' ? '📊' : '📝'} {item.title}
-                        <span className="published_badge">📢 Published</span>
+                        {item.content_type === 'sheet' ? <SheetIcon size={14} /> : <NoteIcon size={14} />} {item.title}
+                        <span className="published_badge"><PublishIcon size={12} /> Published</span>
                       </a>
                       {item.tags && item.tags.length > 0 && (
                         <div className="home_sheet_tags">
@@ -425,8 +435,8 @@ function Home() {
                         </div>
                       )}
                       <div className="published_stats">
-                        <span>❤️ {item.like_count}</span>
-                        <span>👁️ {item.view_count}</span>
+                        <span><HeartIcon size={12} filled /> {item.like_count}</span>
+                        <span><ViewIcon size={12} /> {item.view_count}</span>
                         <span>Published {new Date(item.published_at).toLocaleDateString()}</span>
                       </div>
                     </div>
@@ -451,63 +461,71 @@ function Home() {
               </p>
             ) : (
               filteredSessions.map((session) => (
-                <div key={session.storageKey} className={`home_sheet_item ${session.isPublished ? 'is-published' : ''}`}>
+                <div
+                  key={session.storageKey}
+                  className={`home_sheet_item ${session.type} ${session.isPublished ? 'is-published' : ''}`}
+                  onClick={() => handleSessionClick(session)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="home_sheet_main">
-                    <span
-                      className="home_sheet_link"
-                      onClick={() => handleSessionClick(session)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {session.type === 'sheet' ? '📊' : '📝'} {session.title}
-                      <span className={`permission-badge ${session.permission || 'owner'}`}>
-                        {session.permission === 'owner' && '👑'}
-                        {session.permission === 'edit' && '✏️'}
-                        {session.permission === 'view' && '👁️'}
+                    <div className="home_sheet_title_row">
+                      <span className="home_sheet_link">
+                        {session.type === 'sheet' ? <SheetIcon size={14} /> : <NoteIcon size={14} />} {session.title}
                       </span>
                       {session.isPublished && (
-                        <span className="published-marker" title="Published to Discover">📢</span>
+                        <a
+                          href={`/discover/${session.publishedId}`}
+                          className="published-indicator"
+                          title="View on Discover"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span>Live</span>
+                        </a>
                       )}
-                    </span>
-                    {session.tags && session.tags.length > 0 && (
-                      <div className="home_sheet_tags">
-                        {session.tags.map(tag => (
-                          <span
-                            key={tag}
-                            className={`home_tag ${selectedTags.includes(tag) ? 'active' : ''}`}
-                            onClick={(e) => { e.stopPropagation(); toggleTag(tag); }}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    </div>
+                    <div className="tags_and_stats">
+                      {session.isPublished && session.publishedStats && (
+                        <span className="home_published_stats">
+                          <span><ViewIcon size={12} /> {session.publishedStats.view_count}</span>
+                          <span><HeartIcon size={12} filled /> {session.publishedStats.like_count}</span>
+                        </span>
+                      )}
+                      {session.tags && session.tags.length > 0 && (
+                        <span className="home_sheet_tags">
+                          {session.tags.map(tag => (
+                            <span
+                              key={tag}
+                              className={`home_tag ${selectedTags.includes(tag) ? 'active' : ''}`}
+                              onClick={(e) => { e.stopPropagation(); toggleTag(tag); }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="home_sheet_actions">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setShareModalSession(session);
-                        setShareModalOpen(true);
+                        setPublishModalSession(session);
+                        setPublishModalOpen(true);
                       }}
-                      className="share-button"
+                      className={`publish-button ${session.isPublished ? 'is-published' : ''}`}
                     >
-                      Share
+                      
+                      {session.isPublished ? 
+                        (<><PublishIcon size={12} color='var(--color-success-500)'/> Manage</>): 
+                        (<><PublishIcon size={12} color='var(--color-accent-500)'/> Publish</>)
+                      }
                     </button>
-                    {session.permission === 'owner' && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPublishModalSession(session);
-                          setPublishModalOpen(true);
-                        }}
-                        className={`publish-button ${session.isPublished ? 'is-published' : ''}`}
-                      >
-                        {session.isPublished ? '📢 Manage' : '📢 Publish'}
-                      </button>
-                    )}
-                    {session.permission === 'owner' && (
-                      <button onClick={(e) => handleDelete(e, session)}>Delete</button>
-                    )}
+                    <button
+                      onClick={(e) => handleDelete(e, session)}
+                      className="home_delete_btn"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))
@@ -521,75 +539,6 @@ function Home() {
           sessionId={selectedSheet.sessionId}
           title={selectedSheet.title}
           onClose={handleCloseModal}
-        />
-      )}
-
-      {shareModalOpen && shareModalSession && user && (
-        <ShareModal
-          isOpen={shareModalOpen}
-          onClose={() => {
-            setShareModalOpen(false);
-            setShareModalSession(null);
-          }}
-          sessionId={shareModalSession.sessionId}
-          documentType={shareModalSession.type}
-          currentUserId={user.id}
-          currentUserPermission={shareModalSession.permission || 'owner'}
-          onShareUpdate={() => {
-            // Refresh sessions after sharing update
-            const fetchSessions = async () => {
-              try {
-                const sheetsResponse = await fetch(`/api/sheets/user/${user.id}`)
-                const sheetsResult = await sheetsResponse.json()
-                const notesResponse = await fetch(`/api/notes/user/${user.id}`)
-                const notesResult = await notesResponse.json()
-
-                const sheets: SessionWithType[] = sheetsResult.success && sheetsResult.data
-                  ? sheetsResult.data.map((sheet: any) => {
-                      let content = '';
-                      if (sheet.rows && Array.isArray(sheet.rows)) {
-                        content = sheet.rows.map((row: any) =>
-                          Object.values(row || {}).join(' ')
-                        ).join(' ');
-                      }
-                      return {
-                        title: sheet.title || 'Untitled Sheet',
-                        storageKey: `sheet_${sheet.session_id}`,
-                        sessionId: sheet.session_id,
-                        lastTimeSaved: sheet.last_time_saved,
-                        created_at: sheet.created_at,
-                        type: 'sheet' as const,
-                        content,
-                        permission: sheet.permission || 'owner'
-                      };
-                    })
-                  : []
-
-                const notes: SessionWithType[] = notesResult.success && notesResult.data
-                  ? notesResult.data.map((note: any) => {
-                      const content = note.content
-                        ? note.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-                        : '';
-                      return {
-                        title: note.title || 'Untitled Document',
-                        storageKey: `note_${note.session_id}`,
-                        sessionId: note.session_id,
-                        lastTimeSaved: note.last_time_saved,
-                        created_at: note.created_at,
-                        type: 'note' as const,
-                        content,
-                        permission: note.permission || 'owner'
-                      };
-                    })
-                  : []
-
-                setSessions([...sheets, ...notes])
-              } catch (error) {
-                console.error('Error refreshing sessions:', error)
-              }
-            }
-            fetchSessions()
-          }}
         />
       )}
 

@@ -3,23 +3,31 @@
  * Shared header for displaying published content with author info, likes, and views
  */
 
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import './PublicView.css'
+import { ViewIcon, HeartIcon, CopyIcon } from '../components/Icons'
+import '../components/Icons.css'
+import PixelAvatar from '../components/PixelAvatar'
 
 interface PublicContentHeaderProps {
+    contentId: string
     title: string
     description?: string
     tags?: string[]
-    author: { name: string; avatar_url: string | null }
+    author: { name: string; avatar?: string | null; userId?: string }
     publishedAt: string
     viewCount: number
     likeCount: number
     liked: boolean
+    liking?: boolean
     onLikeToggle: () => void
     onBack: () => void
 }
 
 function PublicContentHeader({
+    contentId,
     title,
     description,
     tags,
@@ -28,15 +36,46 @@ function PublicContentHeader({
     viewCount,
     likeCount,
     liked,
+    liking = false,
     onLikeToggle,
     onBack
 }: PublicContentHeaderProps) {
     const { user } = useAuth()
+    const navigate = useNavigate()
+    const [copying, setCopying] = useState(false)
 
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString('en-US', {
             month: 'long', day: 'numeric', year: 'numeric'
         })
+    }
+
+    const handleCopy = async () => {
+        if (!user || copying) return
+
+        setCopying(true)
+        try {
+            const response = await fetch(`/api/discover/copy/${contentId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            })
+
+            const result = await response.json()
+
+            if (result.success) {
+                // Navigate to the copied content
+                const path = result.type === 'sheet' ? `/sheets/${result.sessionId}` : `/notes/${result.sessionId}`
+                navigate(path)
+            } else {
+                alert(result.error || 'Failed to copy content')
+            }
+        } catch (err) {
+            console.error('Failed to copy:', err)
+            alert('Failed to copy content')
+        } finally {
+            setCopying(false)
+        }
     }
 
     return (
@@ -55,23 +94,32 @@ function PublicContentHeader({
             </div>
             <div className="public-view-meta">
                 <div className="author-info">
-                    {author.avatar_url ? (
-                        <img src={author.avatar_url} alt={author.name} className="author-avatar" />
-                    ) : (
-                        <div className="author-avatar-placeholder">{author.name[0]?.toUpperCase()}</div>
-                    )}
+                    <PixelAvatar
+                        avatarData={author.avatar}
+                        userId={author.userId || 'unknown'}
+                        size={32}
+                        className="author-avatar"
+                    />
                     <span>by {author.name}</span>
                     <span className="publish-date">• {formatDate(publishedAt)}</span>
                 </div>
                 <div className="stats">
-                    <span>👁️ {viewCount || 0} views</span>
-                    <button 
-                        className={`like-btn ${liked ? 'liked' : ''}`} 
+                    <span><ViewIcon size={14} /> {viewCount || 0} views</span>
+                    <button
+                        className={`like-btn ${liked ? 'liked' : ''}`}
                         onClick={onLikeToggle}
-                        disabled={!user}
+                        disabled={!user || liking}
                         title={user ? (liked ? 'Unlike' : 'Like') : 'Login to like'}
                     >
-                        {liked ? '❤️' : '🤍'} {likeCount}
+                        <HeartIcon size={14} filled={liked} /> {likeCount}
+                    </button>
+                    <button
+                        className="copy-btn"
+                        onClick={handleCopy}
+                        disabled={!user || copying}
+                        title={user ? 'Copy to my library' : 'Login to copy'}
+                    >
+                        <CopyIcon size={14} /> {copying ? 'Copying...' : 'Copy'}
                     </button>
                 </div>
             </div>

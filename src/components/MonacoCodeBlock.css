@@ -1,19 +1,19 @@
 /* ============================================
    MONACO CODE BLOCK
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 .monaco-code-block {
   margin: var(--space-2) 0;
   border-radius: var(--radius-md);
   overflow: hidden;
-  border: var(--border-width) solid #404040;
+  border: var(--border-width) solid var(--border-secondary);
   background: #1e1e1e;
   user-select: none;
 }
 
 .monaco-code-block:hover {
-  border-color: var(--color-primary-500);
+  border-color: var(--color-accent-500);
   box-shadow: var(--shadow-sm);
 }
 
@@ -23,7 +23,7 @@
   justify-content: space-between;
   padding: var(--space-1) var(--space-2);
   background: #2d2d2d;
-  border-bottom: var(--border-width) solid #404040;
+  border-bottom: var(--border-width) solid var(--border-secondary);
 }
 
 .monaco-language-select {
@@ -43,7 +43,7 @@
 }
 
 .monaco-language-select:focus {
-  border-color: var(--color-primary-500);
+  border-color: var(--color-accent-500);
 }
 
 .monaco-language-select:disabled {
@@ -69,13 +69,13 @@
 }
 
 .monaco-edit-btn:hover {
-  background: var(--color-primary-500);
-  color: var(--color-neutral-0);
+  background: var(--color-accent-500);
+  color: #000000;
 }
 
 .monaco-delete-btn:hover {
   background: var(--color-error-500);
-  color: var(--color-neutral-0);
+  color: #ffffff;
 }
 
 .monaco-editor-container {
@@ -106,7 +106,7 @@
 .code-insert-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -115,7 +115,8 @@
 }
 
 .code-insert-modal {
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   width: 90%;
   max-width: 800px;
@@ -130,13 +131,14 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  border-bottom: var(--border-width) solid var(--border-primary);
 }
 
 .code-insert-modal-header h3 {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
+  color: var(--text-primary);
 }
 
 .code-insert-modal-close {
@@ -144,14 +146,14 @@
   border: none;
   font-size: var(--text-2xl);
   cursor: pointer;
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   padding: var(--space-1);
   line-height: 1;
   transition: color var(--transition-fast);
 }
 
 .code-insert-modal-close:hover {
-  color: var(--color-neutral-700);
+  color: var(--text-primary);
 }
 
 .code-insert-modal-body {
@@ -169,19 +171,21 @@
 
 .code-insert-language-row label {
   font-weight: var(--font-medium);
-  color: var(--color-neutral-700);
+  color: var(--text-secondary);
 }
 
 .code-insert-language-select {
   flex: 1;
   padding: var(--space-2) var(--space-3);
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-secondary);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .code-insert-editor-wrapper {
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-secondary);
   border-radius: var(--radius-lg);
   overflow: hidden;
   height: 300px;
@@ -192,7 +196,7 @@
   justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  border-top: var(--border-width) solid var(--color-neutral-200);
+  border-top: var(--border-width) solid var(--border-primary);
 }
 
 .code-insert-btn {
@@ -205,21 +209,23 @@
 }
 
 .code-insert-btn-cancel {
-  background: var(--color-neutral-100);
-  border: var(--border-width) solid var(--color-neutral-200);
-  color: var(--color-neutral-600);
+  background: var(--bg-secondary);
+  border: var(--border-width) solid var(--border-secondary);
+  color: var(--text-secondary);
 }
 
 .code-insert-btn-cancel:hover {
-  background: var(--color-neutral-200);
+  background: var(--bg-tertiary);
+  border-color: var(--color-accent-500);
 }
 
 .code-insert-btn-insert {
-  background: var(--color-primary-500);
+  background: var(--color-accent-500);
   border: none;
-  color: var(--color-neutral-0);
+  color: #000000;
 }
 
 .code-insert-btn-insert:hover {
-  background: var(--color-primary-600);
+  background: var(--color-accent-400);
+  box-shadow: var(--accent-glow);
 }

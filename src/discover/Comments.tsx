@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import './Comments.css'
+import PixelAvatar from '../components/PixelAvatar'
 
 interface Comment {
     id: string
@@ -125,13 +126,12 @@ function Comments({ contentId, contentOwnerId }: CommentsProps) {
             {user ? (
                 <form className="comment-form" onSubmit={handleSubmit}>
                     <div className="comment-input-wrapper">
-                        {user.avatar_url ? (
-                            <img src={user.avatar_url} alt="You" className="comment-avatar" />
-                        ) : (
-                            <div className="comment-avatar-placeholder">
-                                {(user.name || user.email)?.[0]?.toUpperCase()}
-                            </div>
-                        )}
+                        <PixelAvatar
+                            avatarData={user.avatar}
+                            userId={user.id}
+                            size={32}
+                            className="comment-avatar"
+                        />
                         <textarea
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
@@ -156,13 +156,12 @@ function Comments({ contentId, contentOwnerId }: CommentsProps) {
                     {comments.map(comment => (
                         <div key={comment.id} className="comment">
                             <div className="comment-header">
-                                {comment.user_avatar ? (
-                                    <img src={comment.user_avatar} alt={comment.user_name} className="comment-avatar" />
-                                ) : (
-                                    <div className="comment-avatar-placeholder">
-                                        {comment.user_name[0]?.toUpperCase()}
-                                    </div>
-                                )}
+                                <PixelAvatar
+                                    avatarData={comment.user_avatar}
+                                    userId={comment.user_id}
+                                    size={32}
+                                    className="comment-avatar"
+                                />
                                 <div className="comment-meta">
                                     <span className="comment-author">{comment.user_name}</span>
                                     <span className="comment-date">{formatDate(comment.created_at)}</span>

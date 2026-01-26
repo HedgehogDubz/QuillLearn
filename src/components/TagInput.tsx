@@ -96,9 +96,15 @@ const TagInput: React.FC<TagInputProps> = ({
         );
     }
 
+    const handleWrapperClick = () => {
+        if (!readOnly && inputRef.current) {
+            inputRef.current.focus();
+        }
+    };
+
     return (
         <div className="tag-input-container" ref={containerRef}>
-            <div className="tag-input-wrapper">
+            <div className="tag-input-wrapper" onClick={handleWrapperClick}>
                 <span className="tag-icon">🏷️</span>
                 <div className="tag-list">
                     {tags.map(tag => (

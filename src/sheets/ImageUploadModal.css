@@ -1,13 +1,13 @@
 /* ============================================
    IMAGE UPLOAD MODAL
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 /* Modal Overlay */
 .img_modal_overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -17,7 +17,8 @@
 
 /* Modal Content */
 .img_modal_content {
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-xl);
   width: 90%;
@@ -34,21 +35,21 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-5) var(--space-6);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  border-bottom: var(--border-width) solid var(--border-primary);
 }
 
 .img_modal_header h3 {
   margin: 0;
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-neutral-800);
+  color: var(--text-primary);
 }
 
 .img_modal_close {
   background: none;
   border: none;
   font-size: var(--text-3xl);
-  color: var(--color-neutral-400);
+  color: var(--text-tertiary);
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -60,8 +61,8 @@
 }
 
 .img_modal_close:hover {
-  background: var(--color-neutral-100);
-  color: var(--color-neutral-600);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 /* Modal Body */
@@ -74,13 +75,13 @@
   gap: var(--space-5);
 }
 
-/* Upload Area - GRADIENT ALLOWED */
+/* Upload Area */
 .img_upload_area {
-  border: var(--border-width-2) dashed var(--color-neutral-300);
-  border-radius: var(--radius-xl);
+  border: var(--border-width-2) dashed var(--border-secondary);
+  border-radius: var(--radius-lg);
   padding: var(--space-12) var(--space-6);
   text-align: center;
-  background: linear-gradient(135deg, var(--color-neutral-50) 0%, var(--color-neutral-100) 100%);
+  background: var(--bg-secondary);
   transition: all var(--transition-fast);
 }
 
@@ -91,16 +92,16 @@
 
 .img_upload_area p {
   margin: 0;
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   font-size: var(--text-sm);
 }
 
 /* Preview Container */
 .img_preview_container {
-  border: var(--border-width-2) solid var(--color-neutral-200);
+  border: var(--border-width-2) solid var(--border-primary);
   border-radius: var(--radius-xl);
   padding: var(--space-4);
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,32 +136,34 @@
   gap: var(--space-2);
 }
 
-/* Secondary Button - GRADIENT ALLOWED */
+/* Secondary Button */
 .img_btn_secondary {
-  background: linear-gradient(135deg, var(--color-neutral-50) 0%, var(--color-neutral-100) 100%);
-  color: var(--color-neutral-600);
-  border: var(--border-width) solid var(--color-neutral-300);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: var(--border-width) solid var(--border-secondary);
   flex: 1;
   justify-content: center;
 }
 
 .img_btn_secondary:hover {
-  background: linear-gradient(135deg, var(--color-neutral-100) 0%, var(--color-neutral-200) 100%);
-  border-color: var(--color-neutral-400);
-  transform: translateY(-1px);
+  background: var(--bg-tertiary);
+  border-color: var(--color-accent-500);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
 
-/* Primary Button - GRADIENT ALLOWED */
+/* Primary Button - Neon accent */
 .img_btn_primary {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-  color: var(--color-neutral-0);
-  box-shadow: var(--shadow-md);
+  background: var(--color-accent-500);
+  color: #000000;
+  border: var(--border-width) solid var(--color-accent-500);
+  box-shadow: var(--shadow-sm);
 }
 
 .img_btn_primary:hover:not(:disabled) {
+  background: var(--color-accent-400);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--accent-glow);
 }
 
 .img_btn_primary:disabled {
@@ -170,20 +173,20 @@
 
 /* Cancel Button */
 .img_btn_cancel {
-  background: var(--color-neutral-0);
-  color: var(--color-neutral-500);
-  border: var(--border-width) solid var(--color-neutral-300);
+  background: var(--bg-primary);
+  color: var(--text-tertiary);
+  border: var(--border-width) solid var(--border-secondary);
 }
 
 .img_btn_cancel:hover {
-  background: var(--color-neutral-50);
-  border-color: var(--color-neutral-400);
+  background: var(--bg-secondary);
+  border-color: var(--border-primary);
 }
 
 /* Modal Footer */
 .img_modal_footer {
   padding: var(--space-4) var(--space-6);
-  border-top: var(--border-width) solid var(--color-neutral-200);
+  border-top: var(--border-width) solid var(--border-primary);
   display: flex;
   gap: var(--space-3);
   justify-content: flex-end;

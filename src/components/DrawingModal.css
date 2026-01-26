@@ -1,12 +1,12 @@
 /* ============================================
    DRAWING MODAL
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 .drawing_modal {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -15,7 +15,8 @@
 }
 
 .drawing_container {
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   padding: var(--space-5);
   max-width: 90vw;
@@ -35,7 +36,7 @@
 .drawing_header h3 {
   margin: 0;
   font-size: var(--text-xl);
-  color: var(--color-neutral-800);
+  color: var(--text-primary);
 }
 
 .drawing_header button {
@@ -43,7 +44,7 @@
   border: none;
   font-size: var(--text-2xl);
   cursor: pointer;
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   padding: 0;
   width: 30px;
   height: 30px;
@@ -55,8 +56,8 @@
 }
 
 .drawing_header button:hover {
-  background: var(--color-neutral-100);
-  color: var(--color-neutral-700);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .drawing_toolbar {
@@ -64,7 +65,7 @@
   gap: var(--space-5);
   margin-bottom: var(--space-4);
   padding: var(--space-3);
-  background: var(--color-neutral-50);
+  background: var(--bg-secondary);
   border-radius: var(--radius-md);
   flex-wrap: wrap;
 }
@@ -76,23 +77,24 @@
 
 .drawing_tools button {
   padding: var(--space-2) var(--space-3);
-  border: var(--border-width-2) solid var(--color-neutral-200);
-  background: var(--color-neutral-0);
+  border: var(--border-width-2) solid var(--border-secondary);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-size: var(--text-lg);
   transition: all var(--transition-fast);
+  color: var(--text-primary);
 }
 
 .drawing_tools button:hover {
-  border-color: var(--color-primary-400);
-  background: var(--color-primary-50);
+  border-color: var(--color-accent-500);
+  background: rgba(0, 255, 136, 0.1);
 }
 
 .drawing_tools button.active {
-  border-color: var(--color-primary-500);
-  background: var(--color-primary-500);
-  color: var(--color-neutral-0);
+  border-color: var(--color-accent-500);
+  background: var(--color-accent-500);
+  color: #000000;
 }
 
 .drawing_options {
@@ -110,7 +112,7 @@
 
 .drawing_option label {
   font-size: var(--text-sm);
-  color: var(--color-neutral-600);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
@@ -121,17 +123,19 @@
 .drawing_option input[type="color"] {
   width: 40px;
   height: 30px;
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-secondary);
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
 .drawing_option select {
   padding: var(--space-1) var(--space-2);
-  border: var(--border-width) solid var(--color-neutral-200);
+  border: var(--border-width) solid var(--border-secondary);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   cursor: pointer;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .drawing_color_palette {
@@ -152,15 +156,16 @@
 }
 
 .drawing_color_palette button.active {
-  border: 3px solid var(--color-primary-500) !important;
-  box-shadow: 0 0 0 2px var(--color-neutral-0), 0 0 0 4px var(--color-primary-500);
+  border: 3px solid var(--color-accent-500) !important;
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
 }
 
 .drawing_canvas {
-  border: var(--border-width-2) solid var(--color-neutral-200);
+  border: var(--border-width-2) solid var(--border-secondary);
   border-radius: var(--radius-md);
   cursor: crosshair;
-  background: var(--color-neutral-0);
+  background: #ffffff;
   display: block;
   margin: 0 auto;
 }
@@ -174,24 +179,27 @@
 
 .drawing_controls button {
   padding: var(--space-2) var(--space-5);
-  border: var(--border-width) solid var(--color-neutral-200);
-  background: var(--color-neutral-0);
+  border: var(--border-width) solid var(--border-secondary);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-size: var(--text-sm);
   transition: all var(--transition-fast);
+  color: var(--text-primary);
 }
 
 .drawing_controls button:hover {
-  background: var(--color-neutral-100);
+  background: var(--bg-secondary);
+  border-color: var(--color-accent-500);
 }
 
 .drawing_controls button.primary {
-  background: var(--color-primary-500);
-  color: var(--color-neutral-0);
-  border-color: var(--color-primary-500);
+  background: var(--color-accent-500);
+  color: #000000;
+  border: none;
 }
 
 .drawing_controls button.primary:hover {
-  background: var(--color-primary-600);
+  background: var(--color-accent-400);
+  box-shadow: var(--accent-glow);
 }

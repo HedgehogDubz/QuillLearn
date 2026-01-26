@@ -1,13 +1,13 @@
 /* ============================================
    MODE SELECTION MODAL
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 /* Modal Overlay */
 .mode_overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -23,12 +23,13 @@
 
 /* Modal Container */
 .mode_modal {
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-primary);
   border-radius: var(--radius-2xl);
   padding: var(--space-6);
   width: 90%;
   max-width: 500px;
-  box-shadow: var(--shadow-2xl);
+  box-shadow: var(--shadow-xl);
   animation: slideIn 0.2s ease-out;
 }
 
@@ -50,21 +51,21 @@
   align-items: center;
   margin-bottom: var(--space-5);
   padding-bottom: var(--space-3);
-  border-bottom: var(--border-width) solid var(--color-neutral-200);
+  border-bottom: var(--border-width) solid var(--border-primary);
 }
 
 .mode_title {
   margin: 0;
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-neutral-800);
+  color: var(--text-primary);
 }
 
 .mode_close_btn {
   background: none;
   border: none;
   font-size: var(--text-2xl);
-  color: var(--color-neutral-400);
+  color: var(--text-tertiary);
   cursor: pointer;
   padding: 0;
   line-height: 1;
@@ -72,7 +73,7 @@
 }
 
 .mode_close_btn:hover {
-  color: var(--color-neutral-700);
+  color: var(--text-primary);
 }
 
 /* Button Grid */
@@ -89,19 +90,19 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-6) var(--space-4);
-  border: var(--border-width-2) solid var(--color-neutral-200);
+  border: var(--border-width-2) solid var(--border-primary);
   border-radius: var(--radius-xl);
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
   min-height: 140px;
 }
 
 .mode_btn:hover:not(:disabled) {
-  border-color: var(--color-primary-500);
-  background: var(--color-neutral-50);
+  border-color: var(--color-accent-500);
+  background: var(--bg-secondary);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--accent-glow);
 }
 
 .mode_btn:active:not(:disabled) {
@@ -116,36 +117,34 @@
 .mode_btn_label {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-neutral-800);
+  color: var(--text-primary);
   margin-bottom: var(--space-1);
 }
 
 .mode_btn_desc {
   font-size: var(--text-sm);
-  color: var(--color-neutral-500);
+  color: var(--text-secondary);
   text-align: center;
 }
 
 /* Edit Button Hover */
 .mode_btn_edit:hover:not(:disabled) {
-  border-color: var(--color-primary-500);
-  background: var(--color-primary-50);
+  border-color: var(--color-accent-500);
 }
 
 /* Learn Button Hover */
 .mode_btn_learn:hover:not(:disabled) {
   border-color: var(--color-success-500);
-  background: var(--color-success-50);
 }
 
 /* Disabled Buttons */
 .mode_btn_disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background: var(--color-neutral-100);
+  background: var(--bg-tertiary);
 }
 
 .mode_btn_disabled .mode_btn_desc {
-  color: var(--color-neutral-400);
+  color: var(--text-tertiary);
   font-style: italic;
 }

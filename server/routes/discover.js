@@ -7,6 +7,7 @@
 
 import express from 'express';
 import { supabase } from '../config/supabase.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -64,6 +65,22 @@ router.get('/', async (req, res) => {
         const { data, error } = await query;
         if (error) throw error;
 
+        // Get unique user IDs to look up avatars
+        const userIds = [...new Set((data || []).map(item => item.user_id))];
+
+        // Look up user avatars
+        const userAvatars = {};
+        for (const userId of userIds) {
+            try {
+                const user = await User.findById(userId);
+                if (user) {
+                    userAvatars[userId] = user.avatar || null;
+                }
+            } catch (e) {
+                // Ignore lookup errors
+            }
+        }
+
         // Transform results for frontend compatibility
         const results = (data || []).map(item => ({
             id: item.id,
@@ -80,7 +97,7 @@ router.get('/', async (req, res) => {
             content: item.content,
             user: {
                 name: item.publisher_username,
-                avatar_url: null
+                avatar: userAvatars[item.user_id] || null
             }
         }));
 
@@ -168,6 +185,20 @@ router.get('/hot', async (req, res) => {
         const { data: allContent, error: contentError } = await query;
         if (contentError) throw contentError;
 
+        // Get unique user IDs to look up avatars
+        const hotUserIds = [...new Set((allContent || []).map(item => item.user_id))];
+        const hotUserAvatars = {};
+        for (const userId of hotUserIds) {
+            try {
+                const user = await User.findById(userId);
+                if (user) {
+                    hotUserAvatars[userId] = user.avatar || null;
+                }
+            } catch (e) {
+                // Ignore lookup errors
+            }
+        }
+
         // Add recent like counts and sort
         const hotItems = (allContent || [])
             .map(item => ({
@@ -176,13 +207,14 @@ router.get('/hot', async (req, res) => {
                 title: item.title,
                 description: item.description,
                 type: item.content_type,
+                user_id: item.user_id,
                 like_count: item.like_count || 0,
                 view_count: item.view_count || 0,
                 tags: item.tags || [],
                 published_at: item.published_at,
                 content: item.content,
                 recentLikes: likeCounts[item.id] || 0,
-                user: { name: item.publisher_username || 'Anonymous', avatar_url: null }
+                user: { name: item.publisher_username || 'Anonymous', avatar: hotUserAvatars[item.user_id] || null }
             }))
             .filter(item => item.recentLikes > 0)
             .sort((a, b) => b.recentLikes - a.recentLikes)
@@ -229,12 +261,29 @@ router.get('/content/:id', async (req, res) => {
             return res.status(403).json({ success: false, error: 'This content is not public' });
         }
 
-        // Increment view count (don't increment for owner)
-        if (data.user_id !== userId) {
-            await supabase
-                .from('published_content')
-                .update({ view_count: (data.view_count || 0) + 1 })
-                .eq('id', id);
+        // Track unique views - only count once per user
+        if (userId && data.user_id !== userId) {
+            // Check if user has already viewed this content
+            const { data: existingView } = await supabase
+                .from('views')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('content_id', id)
+                .single();
+
+            if (!existingView) {
+                // Insert view record
+                await supabase.from('views').insert({
+                    user_id: userId,
+                    content_id: id
+                });
+
+                // Increment view count
+                await supabase
+                    .from('published_content')
+                    .update({ view_count: (data.view_count || 0) + 1 })
+                    .eq('id', id);
+            }
         }
 
         // Check if current user has liked this
@@ -247,6 +296,17 @@ router.get('/content/:id', async (req, res) => {
                 .eq('content_id', id)
                 .single();
             hasLiked = !!likeData;
+        }
+
+        // Look up user avatar
+        let userAvatar = null;
+        try {
+            const contentUser = await User.findById(data.user_id);
+            if (contentUser) {
+                userAvatar = contentUser.avatar || null;
+            }
+        } catch (e) {
+            // Ignore lookup errors
         }
 
         res.json({
@@ -265,7 +325,7 @@ router.get('/content/:id', async (req, res) => {
                 user_id: data.user_id,
                 user: {
                     name: data.publisher_username || 'Anonymous',
-                    avatar_url: null
+                    avatar: userAvatar
                 },
                 hasLiked
             }
@@ -299,9 +359,14 @@ router.post('/like', async (req, res) => {
 
         if (existingLike) {
             // Unlike - remove the like
-            await supabase.from('likes').delete().eq('id', existingLike.id);
+            const { error: deleteError } = await supabase
+                .from('likes')
+                .delete()
+                .eq('id', existingLike.id);
 
-            // Decrement like count
+            if (deleteError) throw deleteError;
+
+            // Decrement like count atomically
             const { data: content } = await supabase
                 .from('published_content')
                 .select('like_count')
@@ -315,12 +380,25 @@ router.post('/like', async (req, res) => {
 
             res.json({ success: true, liked: false });
         } else {
-            // Like - add the like
-            await supabase.from('likes').insert({
+            // Like - try to insert (will fail if duplicate due to UNIQUE constraint)
+            const { error: insertError } = await supabase.from('likes').insert({
                 user_id: userId,
-                content_type: 'published', // Mark as published content like
+                content_type: 'published',
                 content_id: contentId
             });
+
+            // If insert failed due to duplicate, user already liked
+            if (insertError) {
+                console.error('Like insert error:', insertError.code, insertError.message);
+                if (insertError.code === '23505') { // Unique violation
+                    return res.json({ success: true, liked: true, message: 'Already liked' });
+                }
+                if (insertError.code === '23514') { // Check constraint violation
+                    // The CHECK constraint doesn't allow 'published' - need to run migration
+                    console.error('CHECK constraint violation - run update_likes_constraint.sql migration');
+                }
+                throw insertError;
+            }
 
             // Increment like count
             const { data: content } = await supabase
@@ -461,6 +539,93 @@ router.get('/tags', async (req, res) => {
     } catch (error) {
         console.error('Error fetching tags:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch tags' });
+    }
+});
+
+/**
+ * POST /api/discover/copy/:id
+ * Copy published content to user's library
+ */
+router.post('/copy/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, error: 'Must be logged in to copy content' });
+        }
+
+        // Fetch the published content
+        const { data: published, error: fetchError } = await supabase
+            .from('published_content')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !published) {
+            return res.status(404).json({ success: false, error: 'Content not found' });
+        }
+
+        // Generate a new session ID for the copy
+        const newSessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const copyTitle = `${published.title} (Copy)`;
+
+        if (published.content_type === 'sheet') {
+            // Copy as a sheet
+            const content = published.content;
+            const { error: insertError } = await supabase
+                .from('sheets')
+                .insert({
+                    session_id: newSessionId,
+                    user_id: userId,
+                    title: copyTitle,
+                    rows: content.rows || [],
+                    column_widths: content.column_widths || [],
+                    tags: published.tags || [],
+                    last_time_saved: Date.now(),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+
+            if (insertError) throw insertError;
+
+            res.json({
+                success: true,
+                message: 'Sheet copied to your library',
+                sessionId: newSessionId,
+                type: 'sheet'
+            });
+        } else {
+            // Copy as a note
+            const content = published.content;
+            const { error: insertError } = await supabase
+                .from('notes')
+                .insert({
+                    session_id: newSessionId,
+                    user_id: userId,
+                    title: copyTitle,
+                    content: content.content || '',
+                    delta: content.delta || null,
+                    drawings: content.drawings || null,
+                    attachments: content.attachments || null,
+                    tags: published.tags || [],
+                    last_time_saved: Date.now(),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+
+            if (insertError) throw insertError;
+
+            res.json({
+                success: true,
+                message: 'Note copied to your library',
+                sessionId: newSessionId,
+                type: 'note'
+            });
+        }
+    } catch (error) {
+        console.error('Error copying content:', error);
+        res.status(500).json({ success: false, error: 'Failed to copy content', message: error.message });
     }
 });
 

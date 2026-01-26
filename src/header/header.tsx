@@ -1,6 +1,8 @@
 import './header.css'
 import UserProfile from '../auth/UserProfile'
+import ThemeToggle from '../theme/ThemeToggle'
 import { useLocation } from 'react-router-dom'
+import Logo from '../images/logo.png'
 
 function Header() {
   const location = useLocation()
@@ -10,11 +12,7 @@ function Header() {
     <nav>
       <div className="nav-brand">
         <a href="/" className="nav-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 19l7-7 3 3-7 7-3-3z" />
-            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
-            <path d="M2 2l7.586 7.586" />
-          </svg>
+          <img src={Logo} alt="QuillLearn" className="nav-logo-img" />
         </a>
         <span className="nav-logo-text">Quill<span>Learn</span></span>
       </div>
@@ -44,6 +42,7 @@ function Header() {
       </div>
 
       <div className="nav-right">
+        <ThemeToggle />
         <UserProfile />
       </div>
     </nav>

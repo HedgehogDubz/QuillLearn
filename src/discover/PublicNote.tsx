@@ -11,6 +11,8 @@ import { useAuth } from '../auth/AuthContext'
 import Comments from './Comments.tsx'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
+import PixelAvatar from '../components/PixelAvatar'
+import { ViewIcon, HeartIcon, CopyIcon } from '../components/Icons'
 
 interface NoteData {
     session_id: string
@@ -19,7 +21,7 @@ interface NoteData {
     content: string
     delta: any
     user_id: string
-    user: { name: string; avatar_url: string | null }
+    user: { name: string; avatar: string | null }
     like_count: number
     view_count: number
     hasLiked: boolean
@@ -36,6 +38,8 @@ function PublicNote() {
     const [error, setError] = useState<string | null>(null)
     const [liked, setLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(0)
+    const [liking, setLiking] = useState(false)
+    const [copying, setCopying] = useState(false)
     const editorRef = useRef<HTMLDivElement>(null)
     const quillRef = useRef<Quill | null>(null)
 
@@ -86,8 +90,9 @@ function PublicNote() {
     }, [note])
 
     const handleLike = async () => {
-        if (!user) return
+        if (!user || liking) return
 
+        setLiking(true)
         try {
             const response = await fetch('/api/discover/like', {
                 method: 'POST',
@@ -106,6 +111,35 @@ function PublicNote() {
             }
         } catch (err) {
             console.error('Failed to toggle like:', err)
+        } finally {
+            setLiking(false)
+        }
+    }
+
+    const handleCopy = async () => {
+        if (!user || copying) return
+
+        setCopying(true)
+        try {
+            const response = await fetch(`/api/discover/copy/${sessionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            })
+
+            const result = await response.json()
+
+            if (result.success) {
+                // Navigate to the copied content
+                navigate(`/notes/${result.sessionId}`)
+            } else {
+                alert(result.error || 'Failed to copy note')
+            }
+        } catch (err) {
+            console.error('Failed to copy:', err)
+            alert('Failed to copy note')
+        } finally {
+            setCopying(false)
         }
     }
 
@@ -142,17 +176,26 @@ function PublicNote() {
                     </div>
                     <div className="public-view-meta">
                         <div className="author-info">
-                            {note.user.avatar_url ? (
-                                <img src={note.user.avatar_url} alt={note.user.name} className="author-avatar" />
-                            ) : (
-                                <div className="author-avatar-placeholder">{note.user.name[0]?.toUpperCase()}</div>
-                            )}
+                            <PixelAvatar
+                                avatarData={note.user.avatar}
+                                userId={note.user_id}
+                                size={32}
+                                className="author-avatar"
+                            />
                             <span>by {note.user.name}</span>
                         </div>
                         <div className="stats">
-                            <span>👁️ {note.view_count || 0} views</span>
-                            <button className={`like-btn ${liked ? 'liked' : ''}`} onClick={handleLike}>
-                                {liked ? '❤️' : '🤍'} {likeCount}
+                            <span><ViewIcon size={14} /> {note.view_count || 0} views</span>
+                            <button className={`like-btn ${liked ? 'liked' : ''}`} onClick={handleLike} disabled={!user || liking}>
+                                <HeartIcon size={14} filled={liked} /> {likeCount}
+                            </button>
+                            <button
+                                className="copy-btn"
+                                onClick={handleCopy}
+                                disabled={!user || copying}
+                                title={user ? 'Copy to my library' : 'Login to copy'}
+                            >
+                                <CopyIcon size={14} /> {copying ? 'Copying...' : 'Copy'}
                             </button>
                         </div>
                     </div>

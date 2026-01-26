@@ -9,6 +9,8 @@ import './PublicView.css'
 import Header from '../header/header.tsx'
 import { useAuth } from '../auth/AuthContext'
 import Comments from './Comments.tsx'
+import PixelAvatar from '../components/PixelAvatar'
+import { ViewIcon, HeartIcon, CopyIcon } from '../components/Icons'
 
 interface SheetData {
     session_id: string
@@ -17,7 +19,7 @@ interface SheetData {
     rows: Array<{ data: string[] }>
     column_widths: number[]
     user_id: string
-    user: { name: string; avatar_url: string | null }
+    user: { name: string; avatar: string | null }
     like_count: number
     view_count: number
     hasLiked: boolean
@@ -34,6 +36,8 @@ function PublicSheet() {
     const [error, setError] = useState<string | null>(null)
     const [liked, setLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(0)
+    const [liking, setLiking] = useState(false)
+    const [copying, setCopying] = useState(false)
 
     useEffect(() => {
         const fetchSheet = async () => {
@@ -60,8 +64,9 @@ function PublicSheet() {
     }, [sessionId, user?.id])
 
     const handleLike = async () => {
-        if (!user) return
+        if (!user || liking) return
 
+        setLiking(true)
         try {
             const response = await fetch('/api/discover/like', {
                 method: 'POST',
@@ -80,6 +85,35 @@ function PublicSheet() {
             }
         } catch (err) {
             console.error('Failed to toggle like:', err)
+        } finally {
+            setLiking(false)
+        }
+    }
+
+    const handleCopy = async () => {
+        if (!user || copying) return
+
+        setCopying(true)
+        try {
+            const response = await fetch(`/api/discover/copy/${sessionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            })
+
+            const result = await response.json()
+
+            if (result.success) {
+                // Navigate to the copied content
+                navigate(`/sheets/${result.sessionId}`)
+            } else {
+                alert(result.error || 'Failed to copy sheet')
+            }
+        } catch (err) {
+            console.error('Failed to copy:', err)
+            alert('Failed to copy sheet')
+        } finally {
+            setCopying(false)
         }
     }
 
@@ -118,17 +152,26 @@ function PublicSheet() {
                     </div>
                     <div className="public-view-meta">
                         <div className="author-info">
-                            {sheet.user.avatar_url ? (
-                                <img src={sheet.user.avatar_url} alt={sheet.user.name} className="author-avatar" />
-                            ) : (
-                                <div className="author-avatar-placeholder">{sheet.user.name[0]?.toUpperCase()}</div>
-                            )}
+                            <PixelAvatar
+                                avatarData={sheet.user.avatar}
+                                userId={sheet.user_id}
+                                size={32}
+                                className="author-avatar"
+                            />
                             <span>by {sheet.user.name}</span>
                         </div>
                         <div className="stats">
-                            <span>👁️ {sheet.view_count || 0} views</span>
-                            <button className={`like-btn ${liked ? 'liked' : ''}`} onClick={handleLike}>
-                                {liked ? '❤️' : '🤍'} {likeCount}
+                            <span><ViewIcon size={14} /> {sheet.view_count || 0} views</span>
+                            <button className={`like-btn ${liked ? 'liked' : ''}`} onClick={handleLike} disabled={!user || liking}>
+                                <HeartIcon size={14} filled={liked} /> {likeCount}
+                            </button>
+                            <button
+                                className="copy-btn"
+                                onClick={handleCopy}
+                                disabled={!user || copying}
+                                title={user ? 'Copy to my library' : 'Login to copy'}
+                            >
+                                <CopyIcon size={14} /> {copying ? 'Copying...' : 'Copy'}
                             </button>
                         </div>
                     </div>

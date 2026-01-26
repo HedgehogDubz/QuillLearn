@@ -1,6 +1,6 @@
 /* ============================================
    USER PROFILE
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
 .user-profile {
@@ -12,35 +12,41 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  background: var(--color-neutral-0);
-  border: var(--border-width-2) solid var(--color-neutral-200);
+  background: var(--bg-primary);
+  border: var(--border-width-2) solid var(--border-primary);
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .user-profile-button:hover {
-  border-color: var(--color-primary-500);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-accent-500);
+  box-shadow: var(--accent-glow);
 }
 
-/* User Avatar - GRADIENT ALLOWED */
+/* User Avatar - Pixel Art */
 .user-avatar {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-  color: var(--color-neutral-0);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: var(--font-bold);
-  font-size: var(--text-base);
+  overflow: hidden;
+}
+
+.user-avatar.pixel-avatar {
+  border: 1px solid var(--border-primary);
+}
+
+.user-avatar svg {
+  border-radius: var(--radius-sm);
 }
 
 .user-name {
   font-weight: var(--font-semibold);
-  color: var(--color-neutral-700);
+  color: var(--text-primary);
   font-size: var(--text-sm);
 }
 
@@ -54,7 +60,8 @@
   position: absolute;
   top: calc(100% + var(--space-2));
   right: 0;
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-primary);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   min-width: 220px;
@@ -75,23 +82,45 @@
 
 .user-menu-header {
   padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.user-menu-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.user-menu-avatar svg {
+  border-radius: var(--radius-sm);
+}
+
+.user-menu-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .user-menu-name {
   font-weight: var(--font-bold);
-  color: var(--color-neutral-900);
+  color: var(--text-primary);
   font-size: var(--text-base);
   margin-bottom: var(--space-1);
 }
 
 .user-menu-email {
   font-size: var(--text-sm);
-  color: var(--color-neutral-500);
+  color: var(--text-secondary);
 }
 
 .user-menu-divider {
   height: 1px;
-  background: var(--color-neutral-200);
+  background: var(--border-primary);
   margin: 0 var(--space-2);
 }
 
@@ -103,18 +132,20 @@
   text-align: left;
   cursor: pointer;
   font-size: var(--text-sm);
-  color: var(--color-neutral-700);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: var(--space-3);
   transition: background var(--transition-fast);
+  text-decoration: none;
 }
 
 .user-menu-item:hover {
-  background: var(--color-neutral-50);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
-.user-menu-item:first-of-type {
+.user-menu-item:last-child {
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 }
 

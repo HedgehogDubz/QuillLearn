@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="quillGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fcd34d"/>
+      <stop offset="50%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
+    </linearGradient>
+    <linearGradient id="quillHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fcd34d"/>
+    </linearGradient>
+  </defs>
+  <!-- Quill feather body -->
+  <path d="M52 8 C48 12, 44 18, 38 26 C32 34, 24 44, 16 52 C14 54, 12 56, 10 58 L8 56 C10 52, 14 46, 20 38 C26 30, 34 20, 44 12 C48 9, 52 8, 52 8 Z" 
+        fill="url(#quillGold)" stroke="#b45309" stroke-width="1"/>
+  <!-- Feather spine/rachis -->
+  <path d="M50 10 C42 18, 32 30, 20 44 C16 49, 12 54, 9 57" 
+        fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>
+  <!-- Feather barbs left -->
+  <path d="M46 14 C40 16, 36 20, 32 26 M42 20 C36 22, 32 26, 28 32 M38 26 C32 28, 28 32, 24 38 M34 32 C28 34, 24 38, 20 44 M30 38 C24 40, 20 44, 16 50" 
+        fill="none" stroke="url(#quillHighlight)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+  <!-- Feather barbs right -->
+  <path d="M50 12 C52 16, 50 22, 46 28 M48 18 C50 22, 48 28, 44 34 M46 24 C48 28, 46 34, 42 40 M44 30 C46 34, 44 40, 40 46 M42 36 C44 40, 42 46, 38 52" 
+        fill="none" stroke="url(#quillHighlight)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+  <!-- Nib/tip -->
+  <path d="M10 58 L6 62 L8 56 Z" fill="#92400e"/>
+</svg>
+

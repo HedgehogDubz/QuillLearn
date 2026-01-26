@@ -40,8 +40,8 @@ import DocumentHeader from '../components/DocumentHeader';
 import { ConvertToSheetModal } from './ConvertToSheetModal';
 import TagInput from '../components/TagInput';
 import PublishModal from '../components/PublishModal';
-import { ShareModal } from '../components/ShareModal';
 import { MonacoCodeBlock, SUPPORTED_LANGUAGES } from '../components/MonacoCodeBlock';
+import LoadingScreen from '../components/LoadingScreen';
 import Editor, { loader } from '@monaco-editor/react';
 
 // Configure Monaco to load workers from CDN for full IntelliSense support
@@ -229,6 +229,7 @@ function Notes() {
     const [title, setTitle] = useState('Untitled Document')
     const [content, setContent] = useState('')
     const [isSaved, setIsSaved] = useState(true)
+    const [isLoading, setIsLoading] = useState(true)
     const [showDrawing, setShowDrawing] = useState(false)
     const [drawings, setDrawings] = useState<DrawingData[]>([])
     const [attachments, setAttachments] = useState<FileAttachment[]>([])
@@ -244,7 +245,6 @@ function Notes() {
     const [userPermission, setUserPermission] = useState<string | null>(null)
     const [showConvertModal, setShowConvertModal] = useState(false)
     const [showPublishModal, setShowPublishModal] = useState(false)
-    const [showShareModal, setShowShareModal] = useState(false)
     const [tags, setTags] = useState<string[]>([])
     const [allUserTags, setAllUserTags] = useState<string[]>([])
 
@@ -1313,6 +1313,7 @@ function Notes() {
         if (!sessionId) return
 
         const loadData = async () => {
+            setIsLoading(true)
             const noteData = await loadNoteData(sessionId)
 
             if (noteData) {
@@ -1380,6 +1381,7 @@ function Notes() {
             }
 
             setIsDataLoaded(true)
+            setIsLoading(false)
         }
 
         loadData()
@@ -2136,21 +2138,14 @@ function Notes() {
 
     // Show loading state while redirecting to new session
     if (!sessionId) {
-        return (
-            <>
-                <Header />
-                <div className="notes_container">
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#5f6368' }}>
-                        <p>Creating new note...</p>
-                    </div>
-                </div>
-            </>
-        )
+        return <LoadingScreen type="note" message="Creating new note..." />
     }
 
     return (
         <>
             <Header />
+            {/* Show loading overlay while data is loading - editor must still render for Quill to initialize */}
+            {isLoading && <LoadingScreen type="note" message="Loading note..." />}
             <div className="notes_container">
                 {/* Sticky Header - Title Bar + Toolbar together */}
                 <div className="notes_sticky_header">
@@ -2172,13 +2167,6 @@ function Notes() {
                             placeholder="Add tags..."
                             suggestions={allUserTags}
                         />
-                        <button
-                            className="notes_share_button"
-                            onClick={() => setShowShareModal(true)}
-                            title="Share this note"
-                        >
-                            Share
-                        </button>
                     </div>
                     {/* Toolbar will be moved here by JS */}
                     <div id="notes-toolbar-container"></div>
@@ -2352,18 +2340,6 @@ function Notes() {
                         currentUserId={user.id}
                         currentTitle={title}
                         currentTags={tags}
-                    />
-                )}
-
-                {/* Share Modal */}
-                {showShareModal && user && sessionId && (
-                    <ShareModal
-                        isOpen={showShareModal}
-                        onClose={() => setShowShareModal(false)}
-                        sessionId={sessionId}
-                        documentType="note"
-                        currentUserId={user.id}
-                        currentUserPermission={userPermission === 'owner' ? 'owner' : userPermission === 'editor' ? 'edit' : 'view'}
                     />
                 )}
 

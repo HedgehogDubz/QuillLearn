@@ -21,6 +21,7 @@ const USERS_FILE = path.join(__dirname, '../data/users.json');
  *   email: string (unique)
  *   username: string (unique)
  *   password: string (hashed with bcrypt)
+ *   avatar: string (JSON string of 10x10 pixel art grid, default: "[]")
  *   createdAt: string (ISO date)
  *   updatedAt: string (ISO date)
  * }
@@ -95,6 +96,7 @@ class User {
             email: userData.email,
             username: userData.username,
             password: userData.password, // Should already be hashed
+            avatar: userData.avatar || '[]', // Default to empty array (will generate on client)
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };

@@ -291,12 +291,29 @@ router.get('/:id', async (req, res) => {
             return res.status(403).json({ success: false, error: 'This content is not public' });
         }
 
-        // Increment view count (don't increment for owner)
-        if (data.user_id !== userId) {
-            await supabase
-                .from('published_content')
-                .update({ view_count: (data.view_count || 0) + 1 })
-                .eq('id', id);
+        // Track unique views - only count once per user
+        if (userId && data.user_id !== userId) {
+            // Check if user has already viewed this content
+            const { data: existingView } = await supabase
+                .from('views')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('content_id', id)
+                .single();
+
+            if (!existingView) {
+                // Insert view record
+                await supabase.from('views').insert({
+                    user_id: userId,
+                    content_id: id
+                });
+
+                // Increment view count
+                await supabase
+                    .from('published_content')
+                    .update({ view_count: (data.view_count || 0) + 1 })
+                    .eq('id', id);
+            }
         }
 
         // Check if current user has liked this

@@ -85,6 +85,9 @@ const Register: React.FC = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
+                <div className="auth-logo">
+                    <img src="/quill-logo.svg" alt="QuillLearn" />
+                </div>
                 <h1 className="auth-title">Create Account</h1>
                 <p className="auth-subtitle">Join QuillLearn today</p>
 

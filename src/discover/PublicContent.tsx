@@ -41,6 +41,7 @@ function PublicContent() {
     const [error, setError] = useState<string | null>(null)
     const [liked, setLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(0)
+    const [liking, setLiking] = useState(false)
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -87,8 +88,9 @@ function PublicContent() {
     }
 
     const handleLike = async () => {
-        if (!user) return
+        if (!user || liking) return
 
+        setLiking(true)
         try {
             const response = await fetch('/api/discover/like', {
                 method: 'POST',
@@ -106,6 +108,8 @@ function PublicContent() {
             }
         } catch (err) {
             console.error('Failed to toggle like:', err)
+        } finally {
+            setLiking(false)
         }
     }
 
@@ -144,6 +148,7 @@ function PublicContent() {
                     viewCount={content.view_count}
                     likeCount={likeCount}
                     liked={liked}
+                    liking={liking}
                     onLikeToggle={handleLike}
                     onBack={() => navigate('/discover')}
                 />

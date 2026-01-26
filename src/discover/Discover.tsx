@@ -8,6 +8,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Discover.css'
 import Header from '../header/header.tsx'
+import { SheetIcon, NoteIcon, HeartIcon, ViewIcon } from '../components/Icons'
+import '../components/Icons.css'
+import PixelAvatar from '../components/PixelAvatar'
 
 interface PublicContent {
     id: string  // UUID from published_content table
@@ -18,7 +21,7 @@ interface PublicContent {
     user_id: string
     user: {
         name: string
-        avatar_url: string | null
+        avatar: string | null
     }
     published_at: string
     updated_at: string
@@ -214,7 +217,7 @@ function Discover() {
                                 >
                                     <div className="discover-card-header">
                                         <span className={`discover-card-type ${item.type}`}>
-                                            {item.type === 'sheet' ? '📊' : '📝'} {item.type}
+                                            {item.type === 'sheet' ? <SheetIcon size={14} /> : <NoteIcon size={14} />} {item.type}
                                         </span>
                                         <span className="discover-card-date">{formatDate(item.published_at)}</span>
                                     </div>
@@ -222,16 +225,17 @@ function Discover() {
                                     <p className="discover-card-preview">{getPreview(item)}</p>
                                     <div className="discover-card-footer">
                                         <div className="discover-card-author">
-                                            {item.user.avatar_url ? (
-                                                <img src={item.user.avatar_url} alt={item.user.name} className="author-avatar" />
-                                            ) : (
-                                                <div className="author-avatar-placeholder">{item.user.name[0]?.toUpperCase()}</div>
-                                            )}
+                                            <PixelAvatar
+                                                avatarData={item.user.avatar}
+                                                userId={item.user_id}
+                                                size={24}
+                                                className="author-avatar"
+                                            />
                                             <span>{item.user.name}</span>
                                         </div>
                                         <div className="discover-card-stats">
-                                            <span className="stat">❤️ {item.like_count || 0}</span>
-                                            <span className="stat">👁️ {item.view_count || 0}</span>
+                                            <span className="stat"><HeartIcon size={12} filled /> {item.like_count || 0}</span>
+                                            <span className="stat"><ViewIcon size={12} /> {item.view_count || 0}</span>
                                         </div>
                                     </div>
                                     {item.tags && item.tags.length > 0 && (

@@ -70,6 +70,9 @@ const Login: React.FC = () => {
     return (
         <div className="auth-container">
             <div className="auth-card">
+                <div className="auth-logo">
+                    <img src="/quill-logo.svg" alt="QuillLearn" />
+                </div>
                 <h1 className="auth-title">Welcome Back</h1>
                 <p className="auth-subtitle">Sign in to your QuillLearn account</p>
 

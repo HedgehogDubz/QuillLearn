@@ -1,22 +1,23 @@
 /* ============================================
    AUTHENTICATION PAGES
-   Uses design tokens from design-tokens.css
+   Uses semantic theme variables for light/dark mode
    ============================================ */
 
-/* Auth Container - GRADIENT ALLOWED */
+/* Auth Container - Neon accent background */
 .auth-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+  background: var(--bg-inverse);
   padding: var(--space-5);
 }
 
 .auth-card {
-  background: var(--color-neutral-0);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-primary);
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2xl);
+  box-shadow: var(--shadow-xl);
   padding: var(--space-10);
   width: 100%;
   max-width: 450px;
@@ -34,25 +35,37 @@
   }
 }
 
+.auth-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+.auth-logo img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
 .auth-title {
   font-size: var(--text-3xl);
   font-weight: var(--font-bold);
-  color: var(--color-neutral-900);
+  color: var(--text-primary);
   margin: 0 0 var(--space-2) 0;
   text-align: center;
 }
 
 .auth-subtitle {
   font-size: var(--text-base);
-  color: var(--color-neutral-500);
+  color: var(--text-secondary);
   margin: 0 0 var(--space-8) 0;
   text-align: center;
 }
 
 .auth-error {
-  background: var(--color-error-50);
-  border: var(--border-width) solid var(--color-error-200);
-  color: var(--color-error-600);
+  background: rgba(239, 68, 68, 0.1);
+  border: var(--border-width) solid var(--color-error-500);
+  color: var(--color-error-500);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-5);
@@ -81,40 +94,42 @@
 .auth-form-group label {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-neutral-700);
+  color: var(--text-secondary);
 }
 
 .auth-form-group input {
   padding: var(--space-3) var(--space-4);
-  border: var(--border-width-2) solid var(--color-neutral-200);
+  border: var(--border-width-2) solid var(--border-primary);
   border-radius: var(--radius-lg);
   font-size: var(--text-base);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   transition: all var(--transition-fast);
   outline: none;
 }
 
 .auth-form-group input:focus {
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: var(--color-accent-500);
+  box-shadow: var(--shadow-focus);
 }
 
 .auth-form-group input::placeholder {
-  color: var(--color-neutral-400);
+  color: var(--text-tertiary);
 }
 
 .auth-hint {
   font-size: var(--text-xs);
-  color: var(--color-neutral-500);
+  color: var(--text-tertiary);
   margin-top: calc(-1 * var(--space-1));
 }
 
-/* Auth Button - GRADIENT ALLOWED */
+/* Auth Button - Neon accent */
 .auth-button {
   padding: var(--space-3) var(--space-6);
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-  color: var(--color-neutral-0);
-  border: none;
-  border-radius: var(--radius-lg);
+  background: var(--color-accent-500);
+  color: #000000;
+  border: var(--border-width) solid var(--color-accent-500);
+  border-radius: var(--radius-md);
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
   cursor: pointer;
@@ -123,8 +138,9 @@
 }
 
 .auth-button:hover:not(:disabled) {
+  background: var(--color-accent-400);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--accent-glow-strong);
 }
 
 .auth-button:active:not(:disabled) {
@@ -140,19 +156,19 @@
   margin-top: var(--space-6);
   text-align: center;
   padding-top: var(--space-6);
-  border-top: var(--border-width) solid var(--color-neutral-200);
+  border-top: var(--border-width) solid var(--border-primary);
 }
 
 .auth-footer p {
   font-size: var(--text-sm);
-  color: var(--color-neutral-500);
+  color: var(--text-secondary);
   margin: 0;
 }
 
 .auth-link {
   background: none;
   border: none;
-  color: var(--color-primary-600);
+  color: var(--text-accent);
   font-weight: var(--font-semibold);
   cursor: pointer;
   padding: 0;
@@ -162,6 +178,6 @@
 }
 
 .auth-link:hover {
-  color: var(--color-secondary-600);
+  color: var(--color-accent-500);
   text-decoration: underline;
 }
