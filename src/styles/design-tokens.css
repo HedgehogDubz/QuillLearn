@@ -32,6 +32,10 @@
   --accent-glow: 0 0 10px hsla(var(--accent-hue), var(--accent-saturation), 50%, 0.5);
   --accent-glow-strong: 0 0 20px hsla(var(--accent-hue), var(--accent-saturation), 50%, 0.7);
 
+  /* Glow effects for other colors */
+  --warning-glow: 0 0 15px rgba(245, 158, 11, 0.7);
+  --purple-glow: 0 0 15px rgba(168, 85, 247, 0.7);
+
   /* ============================================
      SEMANTIC COLOR MAPPINGS
      These map to either light or dark mode values
@@ -80,6 +84,10 @@
   --color-info-50: var(--color-accent-50);
   --color-info-500: var(--color-accent-500);
   --color-info-600: var(--color-accent-600);
+
+  --color-purple-400: #c084fc;
+  --color-purple-500: #a855f7;
+  --color-purple-600: #9333ea;
 
   /* ============================================
      LIGHT MODE (Default)

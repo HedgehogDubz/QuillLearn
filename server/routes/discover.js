@@ -29,6 +29,8 @@ router.get('/', async (req, res) => {
             query = query.eq('content_type', 'sheet');
         } else if (type === 'notes') {
             query = query.eq('content_type', 'note');
+        } else if (type === 'diagrams') {
+            query = query.eq('content_type', 'diagram');
         }
 
         // Apply search filter
@@ -180,6 +182,8 @@ router.get('/hot', async (req, res) => {
             query = query.eq('content_type', 'sheet');
         } else if (type === 'notes') {
             query = query.eq('content_type', 'note');
+        } else if (type === 'diagrams') {
+            query = query.eq('content_type', 'diagram');
         }
 
         const { data: allContent, error: contentError } = await query;
@@ -595,7 +599,7 @@ router.post('/copy/:id', async (req, res) => {
                 sessionId: newSessionId,
                 type: 'sheet'
             });
-        } else {
+        } else if (published.content_type === 'note') {
             // Copy as a note
             const content = published.content;
             const { error: insertError } = await supabase
@@ -622,6 +626,33 @@ router.post('/copy/:id', async (req, res) => {
                 sessionId: newSessionId,
                 type: 'note'
             });
+        } else if (published.content_type === 'diagram') {
+            // Copy as a diagram
+            const content = published.content;
+            const { error: insertError } = await supabase
+                .from('diagrams')
+                .insert({
+                    session_id: newSessionId,
+                    user_id: userId,
+                    title: copyTitle,
+                    cards: content.cards || [],
+                    tags: published.tags || [],
+                    description: published.description || '',
+                    last_time_saved: Date.now(),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+
+            if (insertError) throw insertError;
+
+            res.json({
+                success: true,
+                message: 'Diagram copied to your library',
+                sessionId: newSessionId,
+                type: 'diagram'
+            });
+        } else {
+            return res.status(400).json({ success: false, error: `Unknown content type: ${published.content_type}` });
         }
     } catch (error) {
         console.error('Error copying content:', error);

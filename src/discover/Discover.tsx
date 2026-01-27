@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Discover.css'
 import Header from '../header/header.tsx'
-import { SheetIcon, NoteIcon, HeartIcon, ViewIcon } from '../components/Icons'
+import { SheetIcon, NoteIcon, DiagramIcon, HeartIcon, ViewIcon } from '../components/Icons'
 import '../components/Icons.css'
 import PixelAvatar from '../components/PixelAvatar'
 
@@ -32,7 +32,7 @@ interface PublicContent {
 }
 
 type SortOption = 'recent' | 'popular' | 'views' | 'oldest'
-type TypeFilter = 'all' | 'sheets' | 'notes'
+type TypeFilter = 'all' | 'sheets' | 'notes' | 'diagrams'
 
 function Discover() {
     const navigate = useNavigate()
@@ -139,6 +139,12 @@ function Discover() {
             const rows = item.content.rows || []
             return `${rows.length} rows`
         }
+        if (item.type === 'diagram' && item.content) {
+            // Content is { cards: [...] } for diagrams
+            const cards = item.content.cards || []
+            const totalLabels = cards.reduce((sum: number, card: any) => sum + (card.labels?.length || 0), 0)
+            return `${cards.length} card${cards.length !== 1 ? 's' : ''}, ${totalLabels} label${totalLabels !== 1 ? 's' : ''}`
+        }
         return 'No preview available'
     }
 
@@ -148,7 +154,7 @@ function Discover() {
             <div className="discover-container">
                 <div className="discover-header">
                     <h1>Discover</h1>
-                    <p>Explore public sheets and notes from the community</p>
+                    <p>Explore public sheets, notes, and diagrams from the community</p>
                 </div>
 
                 <div className="discover-controls">
@@ -167,6 +173,7 @@ function Discover() {
                             <option value="all">All Types</option>
                             <option value="sheets">Sheets Only</option>
                             <option value="notes">Notes Only</option>
+                            <option value="diagrams">Diagrams Only</option>
                         </select>
 
                         <select value={sort} onChange={(e) => setSort(e.target.value as SortOption)}>
@@ -217,7 +224,7 @@ function Discover() {
                                 >
                                     <div className="discover-card-header">
                                         <span className={`discover-card-type ${item.type}`}>
-                                            {item.type === 'sheet' ? <SheetIcon size={14} /> : <NoteIcon size={14} />} {item.type}
+                                            {item.type === 'sheet' ? <SheetIcon size={14} /> : item.type === 'note' ? <NoteIcon size={14} /> : <DiagramIcon size={14} color="#a855f7" />} {item.type}
                                         </span>
                                         <span className="discover-card-date">{formatDate(item.published_at)}</span>
                                     </div>

@@ -32,8 +32,18 @@ const MODEL_ID = process.env.BEDROCK_MODEL_ID || "us.anthropic.claude-sonnet-4-5
  */
 function buildPrompt(noteContent, conversionType, numRows, numColumns, columnHeaders, customPrompt = '') {
   const headersStr = columnHeaders.join(', ');
+  const isAutoRows = numRows === 'auto';
 
-  const baseInstruction = `You are a study sheet generator. Generate exactly ${numRows} DATA rows for a study sheet.
+  const baseInstruction = isAutoRows
+    ? `You are a study sheet generator. Generate as many DATA rows as appropriate for a study sheet based on the content provided.
+The columns are: ${headersStr}.
+Output ONLY valid JSON - no markdown, no explanation, no code blocks.
+The JSON should be an array of arrays, where each inner array has exactly ${numColumns} string elements.
+
+IMPORTANT: Do NOT include column headers as the first row. The headers (${headersStr}) are handled separately.
+Generate as many rows as needed to fully cover the content (typically between 5-30 rows depending on content length).
+Make sure each cell contains meaningful, educational content.`
+    : `You are a study sheet generator. Generate exactly ${numRows} DATA rows for a study sheet.
 The columns are: ${headersStr}.
 Output ONLY valid JSON - no markdown, no explanation, no code blocks.
 The JSON should be an array of arrays, where each inner array has exactly ${numColumns} string elements.
@@ -89,6 +99,10 @@ Apply these instructions to the notes content below.`
   // Strip HTML tags from note content for cleaner processing
   const cleanContent = noteContent.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
+  const rowInstruction = isAutoRows
+    ? `Generate as many rows as appropriate to fully cover the content. Output only the JSON array, nothing else.`
+    : `Generate exactly ${numRows} rows with high-quality, educational content. Output only the JSON array, nothing else.`;
+
   return `${baseInstruction}
 
 ${specificInstruction}
@@ -98,7 +112,7 @@ Notes content:
 ${cleanContent}
 """
 
-Generate exactly ${numRows} rows with high-quality, educational content. Output only the JSON array, nothing else.
+${rowInstruction}
 Example format: [["cell1", "cell2"], ["cell3", "cell4"]]`;
 }
 

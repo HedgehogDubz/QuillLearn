@@ -894,15 +894,30 @@ function Notes() {
                 }
             }
 
-            // Set custom button content
+            // Set custom button content with SVG icons (matching Quill's native style)
             const drawingButton = toolbar.querySelector('.ql-drawing')
             if (drawingButton) {
-                drawingButton.innerHTML = '✏️'
+                // Pencil/drawing icon
+                drawingButton.innerHTML = `<svg viewBox="0 0 18 18" width="18" height="18">
+                    <path class="ql-stroke" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 2.5l5 5-9 9H2.5v-4l9-9z"/>
+                    <path class="ql-stroke" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.5 4.5l5 5"/>
+                </svg>`
+                drawingButton.setAttribute('title', 'Insert Drawing (Ctrl+Shift+D)')
             }
 
             const embedFileButton = toolbar.querySelector('.ql-embedFile')
             if (embedFileButton) {
-                embedFileButton.innerHTML = '📎'
+                // Paperclip/attachment icon
+                embedFileButton.innerHTML = `<svg viewBox="0 0 18 18" width="18" height="18">
+                    <path class="ql-stroke" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.5 7.5l-6 6c-1.4 1.4-3.6 1.4-5 0s-1.4-3.6 0-5l6-6c.9-.9 2.4-.9 3.3 0s.9 2.4 0 3.3l-6 6c-.5.5-1.2.5-1.7 0s-.5-1.2 0-1.7l5-5"/>
+                </svg>`
+                embedFileButton.setAttribute('title', 'Attach File')
+            }
+
+            // Style the code-block button to match
+            const codeBlockButton = toolbar.querySelector('.ql-code-block')
+            if (codeBlockButton) {
+                codeBlockButton.setAttribute('title', 'Code Block (Ctrl+Shift+E)')
             }
 
             const convertButton = toolbar.querySelector('.ql-convertToSheet')

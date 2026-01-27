@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import './learn.css'
 import Header from '../header/header.tsx'
 import type { SessionInfo } from '../gaurdian.ts';
 import { updateLastAccessed } from '../sheets/sheetStorage.ts'
 import { useAuth } from '../auth/AuthContext'
+import { SheetIcon, DiagramIcon } from '../components/Icons'
+import '../components/Icons.css'
 // ============ Types ============
 
 
@@ -78,20 +80,67 @@ function renderCellContent(cellValue: string) {
     );
 }
 
-// Get all spreadsheet sessions from API
-async function getSessionsFromAPI(userId: string): Promise<SessionInfo[]> {
-    try {
-        const response = await fetch(`/api/sheets/user/${userId}`)
-        const result = await response.json()
+// Extended session info with type
+type LearnSessionInfo = SessionInfo & {
+    type: 'sheet' | 'diagram'
+    labelCount?: number // For diagrams - number of labels to learn
+}
 
-        if (result.success && result.data) {
-            return result.data.map((sheet: any) => ({
-                title: sheet.title || 'Untitled Sheet',
-                storageKey: `sheet_${sheet.session_id}`,
-                sessionId: sheet.session_id,
-                lastTimeSaved: sheet.last_time_saved
-            }))
+// Get all learnable sessions from API (sheets and diagrams)
+async function getSessionsFromAPI(userId: string): Promise<LearnSessionInfo[]> {
+    try {
+        // Fetch sheets and diagrams in parallel
+        // Note: For diagrams, we need cards data to count labels
+        const [sheetsResponse, diagramsResponse] = await Promise.all([
+            fetch(`/api/sheets/user/${userId}`),
+            fetch(`/api/diagrams/user/${userId}?includeCards=true`)
+        ])
+
+        const [sheetsResult, diagramsResult] = await Promise.all([
+            sheetsResponse.json(),
+            diagramsResponse.json()
+        ])
+
+        const sessions: LearnSessionInfo[] = []
+
+        // Add sheets
+        if (sheetsResult.success && sheetsResult.data) {
+            sheetsResult.data.forEach((sheet: any) => {
+                sessions.push({
+                    title: sheet.title || 'Untitled Sheet',
+                    storageKey: `sheet_${sheet.session_id}`,
+                    sessionId: sheet.session_id,
+                    lastTimeSaved: sheet.last_time_saved,
+                    type: 'sheet'
+                })
+            })
         }
+
+        // Add diagrams (only those with labels)
+        if (diagramsResult.success && diagramsResult.data) {
+            diagramsResult.data.forEach((diagram: any) => {
+                // Count total labels across all cards
+                const labelCount = diagram.cards?.reduce((total: number, card: any) =>
+                    total + (card.labels?.length || 0), 0) || 0
+
+                // Only include diagrams that have labels to learn
+                if (labelCount > 0) {
+                    sessions.push({
+                        title: diagram.title || 'Untitled Diagram',
+                        storageKey: `diagram_${diagram.session_id}`,
+                        sessionId: diagram.session_id,
+                        lastTimeSaved: diagram.last_time_saved,
+                        type: 'diagram',
+                        labelCount
+                    })
+                }
+            })
+        }
+
+        // Sort by last saved time (most recent first)
+        sessions.sort((a, b) => (b.lastTimeSaved || 0) - (a.lastTimeSaved || 0))
+
+        return sessions
     } catch (error) {
         console.error('Error fetching sessions:', error)
     }
@@ -190,11 +239,124 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
     // State for display mode (grid vs unified)
     const [displayMode, setDisplayMode] = useState<'grid' | 'unified'>('grid')
 
+    // Voice mode state
+    const [voiceEnabled, setVoiceEnabled] = useState(false)
+    const [availableLanguages, setAvailableLanguages] = useState<{ code: string; name: string }[]>([])
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('en')
+    const [isSpeaking, setIsSpeaking] = useState(false)
+    const lastSpokenCardRef = useRef<string | null>(null)
+    const lastSpokenSideRef = useRef<'question' | 'answer' | null>(null)
+    const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+
     // Calculate max difficulty based on deck size
     const maxDifficulty = useMemo(() => calculateMaxDifficulty(deck.length), [deck.length])
 
     // Get the current card (first item in deck)
     const currentCard = deck.length > 0 ? deck[0] : null
+
+    // Load available languages for TTS
+    useEffect(() => {
+        fetch('/api/tts/languages')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.languages) {
+                    setAvailableLanguages(data.languages)
+                }
+            })
+            .catch(err => console.error('Failed to load TTS languages:', err))
+    }, [])
+
+    // Speech synthesis function using Google Translate TTS API
+    const speakText = useCallback((text: string) => {
+        if (!voiceEnabled || !text.trim()) return
+
+        // Stop any currently playing audio
+        if (currentAudioRef.current) {
+            currentAudioRef.current.pause()
+            currentAudioRef.current = null
+        }
+
+        // Remove image markers and clean up text
+        const cleanText = text.replace(/\|\|\|IMG:[^|]+\|\|\|/g, '').trim()
+        if (!cleanText) return
+
+        setIsSpeaking(true)
+
+        // Create audio element and play from our TTS API
+        const audio = new Audio(`/api/tts/speak?text=${encodeURIComponent(cleanText)}&lang=${selectedLanguage}`)
+        currentAudioRef.current = audio
+
+        audio.onended = () => {
+            setIsSpeaking(false)
+            currentAudioRef.current = null
+        }
+        audio.onerror = () => {
+            setIsSpeaking(false)
+            currentAudioRef.current = null
+            console.error('TTS audio playback failed')
+        }
+
+        audio.play().catch(err => {
+            setIsSpeaking(false)
+            currentAudioRef.current = null
+            console.error('TTS audio play error:', err)
+        })
+    }, [voiceEnabled, selectedLanguage])
+
+    // Get text content from columns for speaking
+    const getColumnText = useCallback((columns: Set<number>, cardData: string[]) => {
+        return Array.from(columns)
+            .map(colIndex => {
+                const { text } = parseCellContent(cardData[colIndex] || '')
+                return text
+            })
+            .filter(t => t.trim())
+            .join('. ')
+    }, [])
+
+    // Speak when card changes (new card)
+    useEffect(() => {
+        if (!voiceEnabled || !currentCard) return
+
+        const cardId = currentCard.data.join('|')
+
+        // Only speak if this is a new card
+        if (lastSpokenCardRef.current !== cardId) {
+            // New card - speak question
+            lastSpokenCardRef.current = cardId
+            lastSpokenSideRef.current = 'question'
+            const textToSpeak = getColumnText(questionColumns, currentCard.data)
+            speakText(textToSpeak)
+        }
+    }, [voiceEnabled, currentCard, questionColumns, getColumnText, speakText, showAnswer])
+
+    // Speak when card flips to answer
+    useEffect(() => {
+        if (!voiceEnabled || !currentCard) return
+
+        const cardId = currentCard.data.join('|')
+
+        if (showAnswer && lastSpokenSideRef.current !== 'answer' && lastSpokenCardRef.current === cardId) {
+            // Card just flipped to answer
+            lastSpokenSideRef.current = 'answer'
+            const textToSpeak = getColumnText(answerColumns, currentCard.data)
+            speakText(textToSpeak)
+        } else if (!showAnswer && lastSpokenSideRef.current === 'answer') {
+            // Reset when flipped back to question
+            lastSpokenSideRef.current = 'question'
+        }
+    }, [voiceEnabled, currentCard, showAnswer, answerColumns, getColumnText, speakText])
+
+    // Stop speaking when voice mode is disabled
+    useEffect(() => {
+        if (!voiceEnabled) {
+            if (currentAudioRef.current) {
+                currentAudioRef.current.pause()
+                currentAudioRef.current = null
+            }
+            setIsSpeaking(false)
+        }
+    }, [voiceEnabled])
 
     // Toggle a column between question/answer/neither
     const toggleQuestionColumn = (colIndex: number) => {
@@ -229,14 +391,31 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
 
     const handleLearningModeChange = (mode: 'spaced' | 'random' | 'sequential') => {
         setLearningMode(mode)
-        // Shuffle the deck when switching to random mode
-        if (mode === 'random') {
-            setDeck(shuffleArray(deck))
-        }
+        // Reset deck with fresh cards when switching modes
+        const freshDeck: FlashcardItem[] = initialData.cards.map(card => ({
+            ...card,
+            difficulty: 0,
+            seen: false,
+            masteredOnFirstTry: false
+        }))
+        // Shuffle for spaced and random modes, keep order for sequential
         if (mode === 'sequential') {
-            setDeck(initialData.cards)
+            setDeck(freshDeck)
+        } else {
+            setDeck(shuffleArray(freshDeck))
         }
+        // Reset all state
+        setShowAnswer(false)
+        setCardHistory([])
+        setHistoryIndex(-1)
     }
+
+    // Ban all correct cards (cards with difficulty 0 that have been seen)
+    const banCorrectCards = useCallback(() => {
+        setDeck(prevDeck => prevDeck.map(item =>
+            item.difficulty === 0 && item.seen ? { ...item, difficulty: -1 } : item
+        ))
+    }, [])
 
     // Helper function to insert a card at a random position in the deck
     const insertAtRandomPosition = (deckWithoutCard: FlashcardItem[], card: FlashcardItem): FlashcardItem[] => {
@@ -578,6 +757,14 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                 handleNextCard()
                 return
             }
+
+            // V: Toggle voice mode
+            if (key === 'v') {
+                e.preventDefault()
+                showFeedback('V')
+                setVoiceEnabled(prev => !prev)
+                return
+            }
         }
 
         window.addEventListener('keydown', handleKeyDown)
@@ -734,12 +921,19 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                 >
                     Banned: {bannedCards.length}
                 </span>
-                <span 
+                <span
                     style={{ backgroundColor: `rgb(${difficultyToColor(currentCard?.difficulty ?? 0)})` }}
                     className = "learn_progress_stat"
                 >
                     Difficulty: {currentCard?.difficulty ?? 0}
                 </span>
+                <button
+                    className="learn_ban_correct_btn"
+                    onClick={banCorrectCards}
+                    title="Ban all cards you've gotten correct (mastered)"
+                >
+                    Ban Correct
+                </button>
             </div>
 
             
@@ -882,6 +1076,53 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                 </a>
             </div>
 
+            {/* Voice Mode Controls */}
+            <div className="learn_voice_controls">
+                <button
+                    className={`learn_voice_toggle ${voiceEnabled ? 'active' : ''} ${isSpeaking ? 'speaking' : ''}`}
+                    onClick={() => setVoiceEnabled(!voiceEnabled)}
+                    title={voiceEnabled ? 'Disable voice mode' : 'Enable voice mode'}
+                >
+                    {isSpeaking ? '🔊' : voiceEnabled ? '🔈' : '🔇'}
+                    <span>{voiceEnabled ? 'Voice On' : 'Voice Off'}</span>
+                </button>
+
+                {voiceEnabled && (
+                    <div className="learn_voice_selector">
+                        <label htmlFor="language-select">Language:</label>
+                        <select
+                            id="language-select"
+                            value={selectedLanguage}
+                            onChange={(e) => setSelectedLanguage(e.target.value)}
+                        >
+                            {availableLanguages.map(lang => (
+                                <option key={lang.code} value={lang.code}>
+                                    {lang.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {voiceEnabled && (
+                    <button
+                        className="learn_voice_test"
+                        onClick={() => {
+                            if (currentCard) {
+                                const textToSpeak = getColumnText(
+                                    showAnswer ? answerColumns : questionColumns,
+                                    currentCard.data
+                                )
+                                speakText(textToSpeak)
+                            }
+                        }}
+                        title="Read current card aloud"
+                    >
+                        🗣️ Read Card
+                    </button>
+                )}
+            </div>
+
             {/* Keyboard Shortcuts Legend */}
             <div className="learn_shortcuts_legend">
                 <h4>⌨️ Keyboard Shortcuts</h4>
@@ -921,6 +1162,10 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                     <div className="learn_shortcut_item">
                         <kbd>R</kbd>
                         <span>Restart</span>
+                    </div>
+                    <div className="learn_shortcut_item">
+                        <kbd>V</kbd>
+                        <span>Voice mode</span>
                     </div>
                 </div>
             </div>
@@ -967,10 +1212,34 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
 function Learn() {
     const { sessionId } = useParams<{ sessionId?: string }>()
     const { user } = useAuth()
-    const [sessions, setSessions] = useState<SessionInfo[]>([])
+    const [sessions, setSessions] = useState<LearnSessionInfo[]>([])
     const [sessionData, setSessionData] = useState<SessionData | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [filter, setFilter] = useState<'all' | 'sheets' | 'diagrams'>('all')
+    const [searchQuery, setSearchQuery] = useState('')
+
+    // Filter sessions based on selected filter and search query (must be before any returns)
+    const filteredSessions = useMemo(() => {
+        let result = sessions
+
+        // Filter by type
+        if (filter !== 'all') {
+            result = result.filter(s => s.type === (filter === 'sheets' ? 'sheet' : 'diagram'))
+        }
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim()
+            result = result.filter(s => s.title.toLowerCase().includes(query))
+        }
+
+        return result
+    }, [sessions, filter, searchQuery])
+
+    // Count sessions by type
+    const sheetCount = useMemo(() => sessions.filter(s => s.type === 'sheet').length, [sessions])
+    const diagramCount = useMemo(() => sessions.filter(s => s.type === 'diagram').length, [sessions])
 
     // Fetch sessions list when component mounts (no sessionId)
     useEffect(() => {
@@ -1052,23 +1321,101 @@ function Learn() {
     }
 
     return (
-        <>
+        <div className="learn_page_container">
             <Header />
-            <h1>Learn</h1>
-            <p>Select a session to learn from:</p>
+            <div className="learn_page_header">
+                <h1>Learn</h1>
+                <p className="learn_page_subtitle">Select a session to start learning</p>
+            </div>
 
             {sessions.length === 0 ? (
-                <p>No sessions found. <a href="/sheets">Create a new sheet</a> first.</p>
-            ) : (
-                <div className="learn_sessions">
-                    {sessions.map((session) => (
-                        <div key={session.storageKey} className="learn_session_item">
-                            <a href={`/learn/${session.sessionId}`}>{session.title || session.sessionId}</a>
-                        </div>
-                    ))}
+                <div className="learn_empty_state">
+                    <p>No learnable sessions found.</p>
+                    <p>Create a <a href="/sheets">sheet</a> or add labels to a <a href="/diagrams">diagram</a> to get started!</p>
                 </div>
+            ) : (
+                <>
+                    {/* Search and filter controls */}
+                    <div className="learn_controls">
+                        {/* Search input */}
+                        <div className="learn_search">
+                            <input
+                                type="text"
+                                placeholder="Search sessions..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="learn_search_input"
+                            />
+                            {searchQuery && (
+                                <button
+                                    className="learn_search_clear"
+                                    onClick={() => setSearchQuery('')}
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Filter buttons */}
+                        <div className="learn_filter_buttons">
+                            <button
+                                className={filter === 'all' ? 'active' : ''}
+                                onClick={() => setFilter('all')}
+                            >
+                                All ({sessions.length})
+                            </button>
+                            <button
+                                className={filter === 'sheets' ? 'active' : ''}
+                                onClick={() => setFilter('sheets')}
+                            >
+                                <SheetIcon size={14} /> Sheets ({sheetCount})
+                            </button>
+                            <button
+                                className={filter === 'diagrams' ? 'active' : ''}
+                                onClick={() => setFilter('diagrams')}
+                            >
+                                <DiagramIcon size={14} color="#a855f7" /> Diagrams ({diagramCount})
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Session list */}
+                    <div className="learn_sessions_list">
+                        {filteredSessions.length === 0 ? (
+                            <div className="learn_no_results">
+                                No sessions match your search.
+                            </div>
+                        ) : (
+                            filteredSessions.map((session) => (
+                                <a
+                                    key={session.storageKey}
+                                    href={session.type === 'sheet'
+                                        ? `/learn/${session.sessionId}`
+                                        : `/learn/diagram/${session.sessionId}`}
+                                    className={`learn_session_card ${session.type}`}
+                                >
+                                    <div className="learn_session_icon">
+                                        {session.type === 'sheet'
+                                            ? <SheetIcon size={20} />
+                                            : <DiagramIcon size={20} color="#a855f7" />}
+                                    </div>
+                                    <div className="learn_session_info">
+                                        <span className="learn_session_title">{session.title}</span>
+                                        <span className="learn_session_meta">
+                                            {session.type === 'sheet' ? 'Flashcards' : `${session.labelCount} labels`}
+                                            {session.lastTimeSaved && (
+                                                <> · Last opened {new Date(session.lastTimeSaved).toLocaleDateString()}</>
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="learn_session_arrow">→</div>
+                                </a>
+                            ))
+                        )}
+                    </div>
+                </>
             )}
-        </>
+        </div>
     )
 }
 

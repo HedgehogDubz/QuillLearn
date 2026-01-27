@@ -65,7 +65,11 @@ function PublicContentHeader({
 
             if (result.success) {
                 // Navigate to the copied content
-                const path = result.type === 'sheet' ? `/sheets/${result.sessionId}` : `/notes/${result.sessionId}`
+                const path = result.type === 'sheet'
+                    ? `/sheets/${result.sessionId}`
+                    : result.type === 'diagram'
+                        ? `/diagrams/${result.sessionId}`
+                        : `/notes/${result.sessionId}`
                 navigate(path)
             } else {
                 alert(result.error || 'Failed to copy content')
@@ -117,9 +121,9 @@ function PublicContentHeader({
                         className="copy-btn"
                         onClick={handleCopy}
                         disabled={!user || copying}
-                        title={user ? 'Copy to my library' : 'Login to copy'}
+                        title={user ? 'Save a copy to your library that you can edit' : 'Login to save a copy'}
                     >
-                        <CopyIcon size={14} /> {copying ? 'Copying...' : 'Copy'}
+                        <CopyIcon size={14} /> {copying ? 'Saving...' : 'Save to Library'}
                     </button>
                 </div>
             </div>

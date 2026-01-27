@@ -216,28 +216,55 @@
   fill: var(--color-accent-500);
 }
 
-/* Drawing Button */
+/* Custom Toolbar Buttons - Drawing, Embed File, Code Block */
+/* These buttons use inline SVG icons to match Quill's native button style */
+
 .notes_sticky_header .ql-toolbar button.ql-drawing,
-.notes_editor_wrapper .ql-toolbar button.ql-drawing {
-  font-size: var(--text-base);
-}
-
-.notes_sticky_header .ql-toolbar button.ql-drawing::before,
-.notes_editor_wrapper .ql-toolbar button.ql-drawing::before {
-  content: '✏️';
-  font-size: 15px;
-}
-
-/* Embed File Button */
+.notes_editor_wrapper .ql-toolbar button.ql-drawing,
 .notes_sticky_header .ql-toolbar button.ql-embedFile,
 .notes_editor_wrapper .ql-toolbar button.ql-embedFile {
-  font-size: var(--text-base);
+  position: relative;
 }
 
-.notes_sticky_header .ql-toolbar button.ql-embedFile::before,
-.notes_editor_wrapper .ql-toolbar button.ql-embedFile::before {
-  content: '📎';
-  font-size: 15px;
+/* Drawing Button SVG */
+.notes_sticky_header .ql-toolbar button.ql-drawing svg,
+.notes_editor_wrapper .ql-toolbar button.ql-drawing svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Embed File Button SVG */
+.notes_sticky_header .ql-toolbar button.ql-embedFile svg,
+.notes_editor_wrapper .ql-toolbar button.ql-embedFile svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Code Block Button - ensure consistent styling */
+.notes_sticky_header .ql-toolbar button.ql-code-block,
+.notes_editor_wrapper .ql-toolbar button.ql-code-block {
+  position: relative;
+}
+
+/* Hover states for custom buttons */
+.notes_sticky_header .ql-toolbar button.ql-drawing:hover svg path,
+.notes_sticky_header .ql-toolbar button.ql-drawing:hover svg line,
+.notes_sticky_header .ql-toolbar button.ql-drawing:hover svg polyline,
+.notes_editor_wrapper .ql-toolbar button.ql-drawing:hover svg path,
+.notes_editor_wrapper .ql-toolbar button.ql-drawing:hover svg line,
+.notes_editor_wrapper .ql-toolbar button.ql-drawing:hover svg polyline,
+.notes_sticky_header .ql-toolbar button.ql-embedFile:hover svg path,
+.notes_sticky_header .ql-toolbar button.ql-embedFile:hover svg line,
+.notes_editor_wrapper .ql-toolbar button.ql-embedFile:hover svg path,
+.notes_editor_wrapper .ql-toolbar button.ql-embedFile:hover svg line {
+  stroke: var(--color-accent-500);
+}
+
+.notes_sticky_header .ql-toolbar button.ql-drawing:hover svg [fill],
+.notes_editor_wrapper .ql-toolbar button.ql-drawing:hover svg [fill],
+.notes_sticky_header .ql-toolbar button.ql-embedFile:hover svg [fill],
+.notes_editor_wrapper .ql-toolbar button.ql-embedFile:hover svg [fill] {
+  fill: var(--color-accent-500);
 }
 
 /* Convert to Sheet Button - Neon accent */

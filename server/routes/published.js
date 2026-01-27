@@ -45,7 +45,7 @@ router.post('/:contentType/:sessionId', async (req, res) => {
         const { contentType, sessionId } = req.params;
         const { userId, username, description, tags } = req.body;
 
-        if (!['sheet', 'note'].includes(contentType)) {
+        if (!['sheet', 'note', 'diagram'].includes(contentType)) {
             return res.status(400).json({ success: false, error: 'Invalid content type' });
         }
 
@@ -54,7 +54,7 @@ router.post('/:contentType/:sessionId', async (req, res) => {
         }
 
         // Fetch the original content
-        const table = contentType === 'sheet' ? 'sheets' : 'notes';
+        const table = contentType === 'sheet' ? 'sheets' : contentType === 'note' ? 'notes' : 'diagrams';
         const { data: original, error: fetchError } = await supabase
             .from(table)
             .select('*')
@@ -77,9 +77,14 @@ router.post('/:contentType/:sessionId', async (req, res) => {
                 rows: original.rows,
                 column_widths: original.column_widths
             };
-        } else {
+        } else if (contentType === 'note') {
             contentSnapshot = {
                 content: original.content
+            };
+        } else {
+            // diagram
+            contentSnapshot = {
+                cards: original.cards
             };
         }
 
@@ -367,7 +372,7 @@ router.post('/:id/republish', async (req, res) => {
         }
 
         // Fetch latest original content
-        const table = published.content_type === 'sheet' ? 'sheets' : 'notes';
+        const table = published.content_type === 'sheet' ? 'sheets' : published.content_type === 'note' ? 'notes' : 'diagrams';
         const { data: original, error: origError } = await supabase
             .from(table)
             .select('*')
@@ -385,9 +390,14 @@ router.post('/:id/republish', async (req, res) => {
                 rows: original.rows,
                 column_widths: original.column_widths
             };
-        } else {
+        } else if (published.content_type === 'note') {
             contentSnapshot = {
                 content: original.content
+            };
+        } else {
+            // diagram
+            contentSnapshot = {
+                cards: original.cards
             };
         }
 

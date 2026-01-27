@@ -24,8 +24,8 @@ const DEFAULT_HEADERS: Record<ConversionType, string[]> = {
     direct: ['Question', 'Answer'],
     vocabulary: ['Term', 'Definition'],
     study: ['Question', 'Answer'],
-    theme: ['Topic', 'Key Points'],
-    custom: ['Column 1', 'Column 2']
+    theme: ['Question', 'Answer'],
+    custom: ['Question', 'Answer']
 };
 
 interface ConversionOption {
@@ -88,6 +88,7 @@ export const ConvertToSheetModal: React.FC<ConvertToSheetModalProps> = ({
 
     const [conversionType, setConversionType] = useState<ConversionType>('direct');
     const [numRows, setNumRows] = useState(10);
+    const [autoRows, setAutoRows] = useState(false);
     const [numColumns, setNumColumns] = useState(2);
     const [columnHeaders, setColumnHeaders] = useState<string[]>(['Question', 'Answer']);
     const [customPrompt, setCustomPrompt] = useState('');
@@ -158,7 +159,7 @@ export const ConvertToSheetModal: React.FC<ConvertToSheetModalProps> = ({
                     noteContent,
                     noteTitle,
                     conversionType,
-                    numRows,
+                    numRows: autoRows ? 'auto' : numRows,
                     numColumns,
                     columnHeaders,
                     customPrompt: conversionType === 'custom' ? customPrompt : undefined,
@@ -282,8 +283,16 @@ export const ConvertToSheetModal: React.FC<ConvertToSheetModalProps> = ({
                                     max="50"
                                     value={numRows}
                                     onChange={(e) => setNumRows(Math.max(1, Math.min(50, parseInt(e.target.value) || 10)))}
+                                    disabled={autoRows}
                                 />
-                                <span className="convert_field_hint">Max 50 rows</span>
+                                <label className="convert_auto_checkbox">
+                                    <input
+                                        type="checkbox"
+                                        checked={autoRows}
+                                        onChange={(e) => setAutoRows(e.target.checked)}
+                                    />
+                                    <span>Let AI decide</span>
+                                </label>
                             </div>
                             <div className="convert_field">
                                 <label>Number of Columns</label>

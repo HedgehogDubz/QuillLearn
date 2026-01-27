@@ -31,11 +31,15 @@ export async function getUserPermission(table, sessionId, userId) {
             .single();
 
         if (error || !data) {
+            console.log(`Permission check: No data found for ${table}/${sessionId}`);
             return PERMISSION_LEVELS.NONE;
         }
 
-        // Check if user is owner
-        if (data.user_id === userId) {
+        // Check if user is owner (use string comparison to handle type mismatches)
+        const dataUserId = String(data.user_id);
+        const checkUserId = String(userId);
+
+        if (dataUserId === checkUserId) {
             return PERMISSION_LEVELS.OWNER;
         }
 
@@ -49,6 +53,7 @@ export async function getUserPermission(table, sessionId, userId) {
             return PERMISSION_LEVELS.VIEW;
         }
 
+        console.log(`Permission check: User ${userId} has no access to ${table}/${sessionId}. Owner: ${data.user_id}`);
         return PERMISSION_LEVELS.NONE;
     } catch (error) {
         console.error('Error checking permissions:', error);

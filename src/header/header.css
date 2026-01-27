@@ -43,6 +43,10 @@ nav {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+  transition: transform var(--transition-fast);
+}
+.nav-logo-img:hover {
+  transform: rotate(360deg);
 }
 
 .nav-logo-text {

@@ -169,9 +169,9 @@ function PublicSheet() {
                                 className="copy-btn"
                                 onClick={handleCopy}
                                 disabled={!user || copying}
-                                title={user ? 'Copy to my library' : 'Login to copy'}
+                                title={user ? 'Save a copy to your library that you can edit' : 'Login to save a copy'}
                             >
-                                <CopyIcon size={14} /> {copying ? 'Copying...' : 'Copy'}
+                                <CopyIcon size={14} /> {copying ? 'Saving...' : 'Save to Library'}
                             </button>
                         </div>
                     </div>

@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "server": "node server/index.js",
     "server:dev": "nodemon server/index.js",
-    "dev:all": "concurrently \"npm run dev\" \"npm run server:dev\" --names \"VITE,API\" --prefix-colors \"cyan,magenta\""
+    "dev:all": "concurrently \"npm run dev\" \"npm run server:dev\" --names \"VITE,API\" --prefix-colors \"cyan,magenta\"",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:diagrams": "npx playwright test tests/diagrams.spec.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.700.0",
@@ -25,11 +28,13 @@
     "katex": "^0.16.27",
     "monaco-editor": "^0.55.1",
     "multer": "^2.0.2",
+    "pdfjs-dist": "^5.4.530",
     "quill": "^2.0.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.22.3",
+    "tesseract.js": "^7.0.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

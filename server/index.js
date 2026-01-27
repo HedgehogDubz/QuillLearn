@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
 import sheetsRoutes from './routes/sheets.js';
 import notesRoutes from './routes/notes.js';
+import diagramsRoutes from './routes/diagrams.js';
 import storageRoutes from './routes/storage.js';
 import chatRoutes from './routes/chat.js';
 import notesToSheetsRoutes from './routes/notes-to-sheets.js';
@@ -18,6 +19,7 @@ import presenceRoutes from './routes/presence.js';
 import usersRoutes from './routes/users.js';
 import discoverRoutes from './routes/discover.js';
 import publishedRoutes from './routes/published.js';
+import ttsRoutes from './routes/tts.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -48,6 +50,9 @@ app.use('/api/sheets', sheetsRoutes);
 // Notes routes
 app.use('/api/notes', notesRoutes);
 
+// Diagrams routes
+app.use('/api/diagrams', diagramsRoutes);
+
 // Storage routes
 app.use('/api/storage', storageRoutes);
 
@@ -68,6 +73,9 @@ app.use('/api/discover', discoverRoutes);
 
 // Published content routes
 app.use('/api/published', publishedRoutes);
+
+// Text-to-Speech routes
+app.use('/api/tts', ttsRoutes);
 
 // 404 handler
 app.use((req, res) => {

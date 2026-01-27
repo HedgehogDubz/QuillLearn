@@ -38,6 +38,17 @@ export const NoteIcon: React.FC<IconProps> = ({ size = 16, className = '', color
     </svg>
 );
 
+// Diagram icon (image with labels/markers)
+export const DiagramIcon: React.FC<IconProps> = ({ size = 16, className = '', color }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`icon icon-diagram ${className}`}>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" fill={color || 'currentColor'} />
+        <path d="M21 15l-5-5L5 21" />
+        <circle cx="16" cy="10" r="2" />
+        <line x1="16" y1="12" x2="16" y2="16" />
+    </svg>
+);
+
 // Crown/Owner icon (replaces 👑)
 export const CrownIcon: React.FC<IconProps> = ({ size = 16, className = '', color }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color || 'currentColor'} className={`icon icon-crown ${className}`}>

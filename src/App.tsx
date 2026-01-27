@@ -4,6 +4,8 @@ import Home from './home/Home.tsx'
 import Sheets from './sheets/Sheets.tsx'
 import Learn from './learn/learn.tsx'
 import Notes from './notes/notes.tsx'
+import DiagramEditor from './diagrams/DiagramEditor.tsx'
+import DiagramLearn from './diagrams/DiagramLearn.tsx'
 import Login from './auth/Login.tsx'
 import Register from './auth/Register.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
@@ -34,6 +36,9 @@ function App() {
         <Route path="/learn/:sessionId" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
         <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
         <Route path="/notes/:sessionId" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
+        <Route path="/diagrams" element={<ProtectedRoute><DiagramEditor /></ProtectedRoute>} />
+        <Route path="/diagrams/:sessionId" element={<ProtectedRoute><DiagramEditor /></ProtectedRoute>} />
+        <Route path="/learn/diagram/:sessionId" element={<ProtectedRoute><DiagramLearn /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
         <Route

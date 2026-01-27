@@ -8,14 +8,14 @@ import React, { useState, useEffect } from 'react';
 import './PublishModal.css';
 import TagInput from './TagInput';
 import { useAuth } from '../auth/AuthContext';
-import { PublishIcon, CheckIcon, ViewIcon, HeartIcon, RefreshIcon, NoteIcon, RocketIcon, IncognitoIcon } from './Icons';
+import { PublishIcon, CheckIcon, ViewIcon, HeartIcon, RefreshIcon, NoteIcon, RocketIcon } from './Icons';
 import './Icons.css';
 
 interface PublishModalProps {
     isOpen: boolean;
     onClose: () => void;
     sessionId: string;
-    contentType: 'sheet' | 'note';
+    contentType: 'sheet' | 'note' | 'diagram';
     currentUserId: string;
     currentTitle: string;
     currentTags: string[];
@@ -50,7 +50,6 @@ export const PublishModal: React.FC<PublishModalProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [publishedInfo, setPublishedInfo] = useState<PublishedInfo | null>(null);
     const [checkingStatus, setCheckingStatus] = useState(true);
-    const [publishAnonymously, setPublishAnonymously] = useState(false);
 
     // Check if already published
     useEffect(() => {
@@ -69,8 +68,6 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                 setPublishedInfo(result.data);
                 setDescription(result.data.description || '');
                 setTags(result.data.tags || currentTags);
-                // Check if currently published anonymously
-                setPublishAnonymously(result.data.publisher_username === 'Anonymous');
             } else {
                 setPublishedInfo(null);
                 setDescription('');
@@ -88,7 +85,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
         setError(null);
 
         try {
-            const username = publishAnonymously ? 'Anonymous' : (user?.username || user?.email || 'Anonymous');
+            const username = user?.username || user?.email || 'Anonymous';
 
             const response = await fetch(`/api/published/${contentType}/${sessionId}`, {
                 method: 'POST',
@@ -104,8 +101,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({
             const result = await response.json();
 
             if (result.success) {
-                await checkPublishStatus();
                 onPublishSuccess?.(result.publishedId);
+                onClose(); // Close modal and trigger refresh
             } else {
                 setError(result.error || 'Failed to publish');
             }
@@ -203,13 +200,10 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                             <div className="publish-modal-actions">
                                 <button
                                     className="btn-update"
-                                    onClick={() => {
-                                        setPublishAnonymously(false);
-                                        handlePublish();
-                                    }}
+                                    onClick={handlePublish}
                                     disabled={loading}
                                 >
-                                    {loading && !publishAnonymously ? 'Updating...' : <><RefreshIcon size={14} /> Update as {user?.username || user?.email || 'Anonymous'}</>}
+                                    {loading ? 'Updating...' : <><RefreshIcon size={14} /> Update as {user?.username || user?.email || 'Anonymous'}</>}
                                 </button>
                                 <button
                                     className="btn-unpublish"
@@ -265,23 +259,10 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                             <div className="publish-modal-actions">
                                 <button
                                     className="btn-publish"
-                                    onClick={() => {
-                                        setPublishAnonymously(false);
-                                        handlePublish();
-                                    }}
+                                    onClick={handlePublish}
                                     disabled={loading}
                                 >
-                                    {loading && !publishAnonymously ? 'Publishing...' : <><RocketIcon size={14} /> Publish as {user?.username || user?.email || 'Anonymous'}</>}
-                                </button>
-                                <button
-                                    className="btn-publish-anonymous"
-                                    onClick={() => {
-                                        setPublishAnonymously(true);
-                                        handlePublish();
-                                    }}
-                                    disabled={loading}
-                                >
-                                    {loading && publishAnonymously ? 'Publishing...' : <><IncognitoIcon size={14} /> Publish Anonymously</>}
+                                    {loading ? 'Publishing...' : <><RocketIcon size={14} /> Publish as {user?.username || user?.email || 'Anonymous'}</>}
                                 </button>
                             </div>
 

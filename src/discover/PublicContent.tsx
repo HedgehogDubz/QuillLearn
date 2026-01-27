@@ -1,6 +1,6 @@
 /**
  * Public Content View
- * Unified read-only view of published content (sheets and notes)
+ * Unified read-only view of published content (sheets, notes, and diagrams)
  * with like and comment functionality
  *
  * Uses dedicated viewer components for clean read-only display
@@ -15,14 +15,15 @@ import Comments from './Comments.tsx'
 import PublicContentHeader from './PublicContentHeader.tsx'
 import NoteViewer from './NoteViewer.tsx'
 import SheetViewer from './SheetViewer.tsx'
+import DiagramViewer from './DiagramViewer.tsx'
 
 interface ContentData {
     id: string
     session_id: string
     title: string
     description: string
-    type: 'sheet' | 'note'
-    content: any  // JSON for sheets, HTML/object for notes
+    type: 'sheet' | 'note' | 'diagram'
+    content: any  // JSON for sheets, HTML/object for notes, cards array for diagrams
     tags: string[]
     user_id: string
     user: { name: string; avatar_url: string | null }
@@ -140,6 +141,7 @@ function PublicContent() {
             <div className="public-view-container">
                 {/* Shared header component with title, author, likes, views */}
                 <PublicContentHeader
+                    contentId={id!}
                     title={content.title}
                     description={content.description}
                     tags={content.tags}
@@ -160,6 +162,10 @@ function PublicContent() {
                             html={getNoteHtml()}
                             drawings={getNoteDrawings()}
                             attachments={getNoteAttachments()}
+                        />
+                    ) : content.type === 'diagram' ? (
+                        <DiagramViewer
+                            cards={content.content?.cards || []}
                         />
                     ) : (
                         <SheetViewer
