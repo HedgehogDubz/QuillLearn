@@ -68,15 +68,6 @@ const CONVERSION_OPTIONS: ConversionOption[] = [
     }
 ];
 
-const CUSTOM_PROMPT_PLACEHOLDER = `Example prompts:
-
-• "Create flashcards focusing on dates and events mentioned in the notes"
-• "Generate questions that test cause-and-effect relationships"
-• "Extract formulas and their applications from these math notes"
-• "Create vocabulary cards with example sentences"
-
-Your prompt will be combined with the notes content to generate the study sheet.`;
-
 export const ConvertToSheetModal: React.FC<ConvertToSheetModalProps> = ({
     isOpen,
     onClose,

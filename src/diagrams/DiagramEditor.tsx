@@ -49,8 +49,8 @@ function DiagramEditor() {
     const [selectedTool, setSelectedTool] = useState<EditorTool>('select')
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null)
     const [selectedElementType, setSelectedElementType] = useState<'image' | 'shape' | 'label' | null>(null)
-    const [zoom, setZoom] = useState(1)
-    const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
+    const [_zoom, _setZoom] = useState(1)
+    const [_panOffset, _setPanOffset] = useState({ x: 0, y: 0 })
 
     // Multi-selection state
     const [selectedElements, setSelectedElements] = useState<Array<{ id: string; type: 'image' | 'shape' | 'label' }>>([])
@@ -2047,9 +2047,6 @@ function DiagramEditor() {
                         {currentCard?.labels.map(label => {
                             const shapeType = label.shapeType || 'point'
                             const isSelected = selectedElementId === label.id
-                            // Calculate text position (centered on shape)
-                            const textX = label.x + (label.textOffsetX || 0)
-                            const textY = label.y + (label.textOffsetY || 0)
 
                             return (
                                 <g

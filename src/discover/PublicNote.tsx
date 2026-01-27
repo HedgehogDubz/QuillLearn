@@ -205,7 +205,7 @@ function PublicNote() {
                     <div ref={editorRef} className="note-content-viewer"></div>
                 </div>
 
-                <Comments contentType="note" contentId={sessionId!} contentOwnerId={note.user_id} />
+                <Comments contentId={sessionId!} contentOwnerId={note.user_id} />
             </div>
         </div>
     )

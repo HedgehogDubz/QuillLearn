@@ -17,7 +17,7 @@ interface PublicContent {
     session_id: string  // Original session_id for reference
     title: string
     description: string
-    type: 'sheet' | 'note'
+    type: 'sheet' | 'note' | 'diagram'
     user_id: string
     user: {
         name: string
@@ -28,7 +28,7 @@ interface PublicContent {
     like_count: number
     view_count: number
     tags: string[]
-    content?: any  // JSON content (rows for sheets, HTML for notes)
+    content?: any  // JSON content (rows for sheets, HTML for notes, cards for diagrams)
 }
 
 type SortOption = 'recent' | 'popular' | 'views' | 'oldest'

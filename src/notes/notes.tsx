@@ -261,7 +261,7 @@ function Notes() {
     const [codeLanguage, setCodeLanguage] = useState('javascript')
     const [editingCodeId, setEditingCodeId] = useState<string | null>(null)
     const [editingCodeIndex, setEditingCodeIndex] = useState<number | null>(null)
-    const [codeBlocks, setCodeBlocks] = useState<Map<string, { code: string; language: string }>>(new Map())
+    const [, setCodeBlocks] = useState<Map<string, { code: string; language: string }>>(new Map())
 
     // Refs
     const quillRef = useRef<Quill | null>(null)

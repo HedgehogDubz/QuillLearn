@@ -59,8 +59,8 @@ function Comments({ contentId, contentOwnerId }: CommentsProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
-                    userName: user.name || user.email?.split('@')[0] || 'Anonymous',
-                    userAvatar: user.avatar_url || null,
+                    userName: user.username || user.email?.split('@')[0] || 'Anonymous',
+                    userAvatar: user.avatar || null,
                     contentId,
                     text: newComment.trim()
                 })

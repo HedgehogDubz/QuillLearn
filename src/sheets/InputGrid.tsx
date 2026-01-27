@@ -291,7 +291,7 @@ function InputGrid({ sessionId }: InputGridProps) {
         { width: 400, height: 400 },
         { width: 600, height: 600 }
     ];
-    const [selectedCanvasSize, setSelectedCanvasSize] = useState<CanvasSize>(SQUARE_CANVAS_SIZES[1]); // Default to 400x400
+    const [selectedCanvasSize, _setSelectedCanvasSize] = useState<CanvasSize>(SQUARE_CANVAS_SIZES[1]); // Default to 400x400
 
     const rows = grid.length;
     const cols = grid[0]?.length ?? 0;
@@ -885,7 +885,7 @@ function InputGrid({ sessionId }: InputGridProps) {
         setDrawingModalOpen(true);
     }, []);
 
-    const handleDrawingSave = useCallback(async (blob: Blob, hasBorder: boolean, size: CanvasSize) => {
+    const handleDrawingSave = useCallback(async (blob: Blob, _hasBorder: boolean, _size: CanvasSize) => {
         if (!drawingTargetCell) return;
 
         try {

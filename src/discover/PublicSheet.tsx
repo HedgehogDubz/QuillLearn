@@ -117,8 +117,6 @@ function PublicSheet() {
         }
     }
 
-    const isOwner = user?.id === sheet?.user_id
-
     if (loading) {
         return (
             <div className="public-view-page">
@@ -201,7 +199,7 @@ function PublicSheet() {
                     )}
                 </div>
 
-                <Comments contentType="sheet" contentId={sessionId!} contentOwnerId={sheet.user_id} />
+                <Comments contentId={sessionId!} contentOwnerId={sheet.user_id} />
             </div>
         </div>
     )

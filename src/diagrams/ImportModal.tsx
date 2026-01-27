@@ -5,7 +5,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
-import { createWorker, Worker } from 'tesseract.js'
+import { createWorker, type Worker, PSM } from 'tesseract.js'
 import type { DiagramImage, DiagramLabel, DiagramShape } from './types'
 import './ImportModal.css'
 
@@ -207,7 +207,7 @@ export default function ImportModal({
         canvas.height = viewport.height
 
         const ctx = canvas.getContext('2d')!
-        await page.render({ canvasContext: ctx, viewport }).promise
+        await page.render({ canvasContext: ctx, viewport, canvas }).promise
 
         return {
             dataUrl: canvas.toDataURL('image/png'),
@@ -381,7 +381,7 @@ export default function ImportModal({
             // This is ideal for diagrams with scattered labels
             // PSM 12 = Sparse text with OSD
             await worker.setParameters({
-                tessedit_pageseg_mode: '11',
+                tessedit_pageseg_mode: PSM.SPARSE_TEXT,
             })
 
             console.log('Running OCR with PSM 11 (sparse text)...')
@@ -394,7 +394,7 @@ export default function ImportModal({
             if (!data.text || data.text.trim().length < 10) {
                 console.log('Sparse text found little, trying PSM 3 (automatic)...')
                 await worker.setParameters({
-                    tessedit_pageseg_mode: '3',
+                    tessedit_pageseg_mode: PSM.AUTO,
                 })
                 result = await worker.recognize(processedImage, {}, { tsv: true })
                 data = result.data

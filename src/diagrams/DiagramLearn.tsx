@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Header from '../header/header'
 import { useAuth } from '../auth/AuthContext'
-import type { DiagramData, DiagramCard, DiagramLabel, DiagramLearnMode, LabelDisplayMode, LabelShapeType } from './types'
+import type { DiagramData, DiagramCard, DiagramLabel, DiagramLearnMode, LabelDisplayMode } from './types'
 import './DiagramLearn.css'
 
 // Card item with difficulty for spaced repetition
@@ -56,7 +56,7 @@ function calculateMaxDifficulty(dataLength: number): number {
 function DiagramLearn() {
     const { sessionId } = useParams<{ sessionId?: string }>()
     const navigate = useNavigate()
-    const { user } = useAuth()
+    useAuth() // For authentication check
 
     // Core state
     const [diagram, setDiagram] = useState<DiagramData | null>(null)
@@ -1027,7 +1027,7 @@ function DiagramLearn() {
                                     {(() => {
                                         let textX = label.x + 16
                                         let textY = label.y + label.fontSize / 3
-                                        let textAnchor = 'start'
+                                        let textAnchor: 'start' | 'middle' | 'end' = 'start'
 
                                         if (shapeType === 'rectangle') {
                                             textX = label.x + (label.width || 100) / 2
