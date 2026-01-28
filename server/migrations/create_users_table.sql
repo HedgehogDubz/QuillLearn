@@ -1,7 +1,7 @@
 -- Create users table for QuillLearn authentication
 -- Run this in your Supabase SQL Editor
 
--- Create the users table
+-- Create the users table with UUID primary key
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,

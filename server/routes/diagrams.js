@@ -241,12 +241,35 @@ router.get('/:sessionId/permission/:userId', async (req, res) => {
 
 /**
  * DELETE /api/diagrams/:sessionId
- * Delete a diagram
+ * Delete a diagram (also unpublishes if published)
  */
 router.delete('/:sessionId', async (req, res) => {
     try {
         const { sessionId } = req.params;
 
+        // First, check if this diagram is published and delete the published version
+        const { data: published } = await supabase
+            .from('published_content')
+            .select('id')
+            .eq('original_session_id', sessionId)
+            .eq('content_type', 'diagram')
+            .single();
+
+        if (published) {
+            // Delete associated likes first
+            await supabase
+                .from('likes')
+                .delete()
+                .eq('content_id', published.id);
+
+            // Delete the published content
+            await supabase
+                .from('published_content')
+                .delete()
+                .eq('id', published.id);
+        }
+
+        // Now delete the diagram itself
         const { error } = await supabase
             .from('diagrams')
             .delete()
