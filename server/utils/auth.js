@@ -1,16 +1,21 @@
 /**
  * Authentication Utilities
- * 
+ *
  * Handles password hashing, JWT token generation, and validation
  */
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 // Secret key for JWT - In production, use environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
 const JWT_EXPIRES_IN = '7d'; // Token expires in 7 days
 const SALT_ROUNDS = 10; // bcrypt salt rounds
+
+// Token expiration times
+const VERIFICATION_TOKEN_EXPIRES = 24 * 60 * 60 * 1000; // 24 hours
+const RESET_TOKEN_EXPIRES = 60 * 60 * 1000; // 1 hour
 
 /**
  * Hash a password using bcrypt
@@ -138,10 +143,39 @@ export function validateUsername(username) {
             message: 'Username can only contain letters, numbers, and underscores'
         };
     }
-    
+
     return {
         valid: true,
         message: 'Username is valid'
     };
 }
 
+/**
+ * Generate a secure random token for email verification
+ * @returns {{token: string, expires: string}} Token and expiration date
+ */
+export function generateVerificationToken() {
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRES).toISOString();
+    return { token, expires };
+}
+
+/**
+ * Generate a secure random token for password reset
+ * @returns {{token: string, expires: string}} Token and expiration date
+ */
+export function generateResetToken() {
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + RESET_TOKEN_EXPIRES).toISOString();
+    return { token, expires };
+}
+
+/**
+ * Check if a token has expired
+ * @param {string} expiresAt - ISO date string
+ * @returns {boolean} True if expired
+ */
+export function isTokenExpired(expiresAt) {
+    if (!expiresAt) return true;
+    return new Date(expiresAt) < new Date();
+}

@@ -8,6 +8,9 @@ import DiagramEditor from './diagrams/DiagramEditor.tsx'
 import DiagramLearn from './diagrams/DiagramLearn.tsx'
 import Login from './auth/Login.tsx'
 import Register from './auth/Register.tsx'
+import ForgotPassword from './auth/ForgotPassword.tsx'
+import ResetPassword from './auth/ResetPassword.tsx'
+import VerifyEmail from './auth/VerifyEmail.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { ThemeProvider } from './theme/ThemeContext.tsx'
 import ProtectedRoute from './auth/ProtectedRoute.tsx'
@@ -23,6 +26,9 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         {/* Discover routes - public content browsing (requires login to interact) */}
         <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />

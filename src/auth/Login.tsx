@@ -111,8 +111,18 @@ const Login: React.FC = () => {
                         />
                     </div>
 
-                    <button 
-                        type="submit" 
+                    <div className="auth-forgot-password">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/forgot-password')}
+                            className="auth-link"
+                        >
+                            Forgot Password?
+                        </button>
+                    </div>
+
+                    <button
+                        type="submit"
                         className="auth-button"
                         disabled={loading}
                     >

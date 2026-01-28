@@ -1,20 +1,24 @@
 /**
  * Authentication Routes
- * 
- * Handles user registration, login, and logout
+ *
+ * Handles user registration, login, logout, email verification, and password reset
  */
 
 import express from 'express';
 import User from '../models/User.js';
-import { 
-    hashPassword, 
-    comparePassword, 
+import {
+    hashPassword,
+    comparePassword,
     generateToken,
     isValidEmail,
     validatePassword,
-    validateUsername
+    validateUsername,
+    generateVerificationToken,
+    generateResetToken,
+    isTokenExpired
 } from '../utils/auth.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js';
 
 const router = express.Router();
 
@@ -80,20 +84,31 @@ router.post('/register', async (req, res) => {
         
         // Hash password
         const hashedPassword = await hashPassword(password);
-        
+
+        // Generate verification token
+        const { token: verificationToken, expires: verificationExpires } = generateVerificationToken();
+
         // Create user
         const user = await User.create({
             email,
             username,
-            password: hashedPassword
+            password: hashedPassword,
+            verificationToken,
+            verificationTokenExpires: verificationExpires
         });
-        
+
+        // Send verification email
+        const emailResult = await sendVerificationEmail(email, verificationToken, username);
+        if (!emailResult.success) {
+            console.warn('Failed to send verification email:', emailResult.error);
+        }
+
         // Generate JWT token
         const token = generateToken(user);
-        
-        // Remove password from response
-        const { password: _, ...userWithoutPassword } = user;
-        
+
+        // Remove password and sensitive fields from response
+        const { password: _, verificationToken: __, resetToken: ___, ...userWithoutPassword } = user;
+
         // Set token in HTTP-only cookie
         res.cookie('token', token, {
             httpOnly: true,
@@ -101,12 +116,13 @@ router.post('/register', async (req, res) => {
             sameSite: 'strict',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
-        
+
         res.status(201).json({
             success: true,
-            message: 'Account created successfully',
+            message: 'Account created successfully. Please check your email to verify your account.',
             user: userWithoutPassword,
-            token
+            token,
+            emailSent: emailResult.success
         });
         
     } catch (error) {
@@ -288,5 +304,263 @@ router.post('/lookup-users', async (req, res) => {
     }
 });
 
-export default router;
+/**
+ * POST /api/auth/verify-email
+ * Verify user's email with token
+ */
+router.post('/verify-email', async (req, res) => {
+    try {
+        const { token } = req.body;
 
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                error: 'Verification token is required'
+            });
+        }
+
+        // Find user by verification token
+        const user = await User.findByVerificationToken(token);
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid verification token'
+            });
+        }
+
+        // Check if token has expired
+        if (isTokenExpired(user.verificationTokenExpires)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Verification token has expired. Please request a new one.'
+            });
+        }
+
+        // Update user as verified
+        await User.update(user.id, {
+            emailVerified: true,
+            verificationToken: null,
+            verificationTokenExpires: null
+        });
+
+        res.json({
+            success: true,
+            message: 'Email verified successfully'
+        });
+
+    } catch (error) {
+        console.error('Email verification error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error during email verification'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/resend-verification
+ * Resend verification email
+ */
+router.post('/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is required'
+            });
+        }
+
+        const user = await User.findByEmail(email);
+
+        if (!user) {
+            // Don't reveal if email exists
+            return res.json({
+                success: true,
+                message: 'If an account exists with this email, a verification link has been sent.'
+            });
+        }
+
+        if (user.emailVerified) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is already verified'
+            });
+        }
+
+        // Generate new verification token
+        const { token: verificationToken, expires: verificationExpires } = generateVerificationToken();
+
+        await User.update(user.id, {
+            verificationToken,
+            verificationTokenExpires: verificationExpires
+        });
+
+        // Send verification email
+        await sendVerificationEmail(email, verificationToken, user.username);
+
+        res.json({
+            success: true,
+            message: 'Verification email sent'
+        });
+
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/forgot-password
+ * Request password reset email
+ */
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is required'
+            });
+        }
+
+        const user = await User.findByEmail(email);
+
+        // Always return success to prevent email enumeration
+        if (!user) {
+            return res.json({
+                success: true,
+                message: 'If an account exists with this email, a password reset link has been sent.'
+            });
+        }
+
+        // Generate reset token
+        const { token: resetToken, expires: resetExpires } = generateResetToken();
+
+        await User.update(user.id, {
+            resetToken,
+            resetTokenExpires: resetExpires
+        });
+
+        // Send password reset email
+        await sendPasswordResetEmail(email, resetToken, user.username);
+
+        res.json({
+            success: true,
+            message: 'If an account exists with this email, a password reset link has been sent.'
+        });
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Reset password with token
+ */
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Token and new password are required'
+            });
+        }
+
+        // Validate password strength
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({
+                success: false,
+                error: passwordValidation.message
+            });
+        }
+
+        // Find user by reset token
+        const user = await User.findByResetToken(token);
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid or expired reset token'
+            });
+        }
+
+        // Check if token has expired
+        if (isTokenExpired(user.resetTokenExpires)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Reset token has expired. Please request a new one.'
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await hashPassword(password);
+
+        // Update user password and clear reset token
+        await User.update(user.id, {
+            password: hashedPassword,
+            resetToken: null,
+            resetTokenExpires: null
+        });
+
+        res.json({
+            success: true,
+            message: 'Password reset successfully. You can now login with your new password.'
+        });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error during password reset'
+        });
+    }
+});
+
+/**
+ * GET /api/auth/verify-reset-token/:token
+ * Verify if a reset token is valid (for frontend validation)
+ */
+router.get('/verify-reset-token/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+
+        const user = await User.findByResetToken(token);
+
+        if (!user || isTokenExpired(user.resetTokenExpires)) {
+            return res.json({
+                success: false,
+                valid: false,
+                error: 'Invalid or expired reset token'
+            });
+        }
+
+        res.json({
+            success: true,
+            valid: true
+        });
+
+    } catch (error) {
+        console.error('Verify reset token error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error'
+        });
+    }
+});
+
+export default router;
