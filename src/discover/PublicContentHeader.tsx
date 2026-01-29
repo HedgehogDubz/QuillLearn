@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import './PublicView.css'
 import { ViewIcon, HeartIcon, CopyIcon } from '../components/Icons'
 import '../components/Icons.css'
@@ -55,9 +56,8 @@ function PublicContentHeader({
 
         setCopying(true)
         try {
-            const response = await fetch(`/api/discover/copy/${contentId}`, {
+            const response = await authFetch(`/api/discover/copy/${contentId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
             })
 

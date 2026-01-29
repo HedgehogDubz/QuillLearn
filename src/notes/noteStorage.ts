@@ -4,6 +4,8 @@
  * Similar to sheetStorage.ts for consistency across the application
  */
 
+import { authFetch } from '../utils/api';
+
 /**
  * DrawingData - Structure for storing canvas drawings
  * @property url - URL to the drawing in Supabase Storage (or dataURL for backward compatibility)
@@ -69,7 +71,7 @@ export const AUTO_SAVE_DEBOUNCE_MS = 1000; // Debounce auto-save by 1000ms (1 se
  */
 export async function loadNoteData(sessionId: string): Promise<NoteData | null> {
     try {
-        const response = await fetch(`/api/notes/${sessionId}`);
+        const response = await authFetch(`/api/notes/${sessionId}`);
         const result = await response.json();
 
         if (result.success && result.data) {
@@ -141,11 +143,8 @@ export async function saveNoteData(
             }
         }
 
-        const response = await fetch('/api/notes', {
+        const response = await authFetch('/api/notes', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: serializedData
         });
 
@@ -170,7 +169,7 @@ export async function saveNoteData(
  */
 export async function deleteNoteData(sessionId: string): Promise<boolean> {
     try {
-        const response = await fetch(`/api/notes/${sessionId}`, {
+        const response = await authFetch(`/api/notes/${sessionId}`, {
             method: 'DELETE'
         });
         const result = await response.json();
@@ -188,7 +187,7 @@ export async function deleteNoteData(sessionId: string): Promise<boolean> {
  */
 export async function getAllNoteSessions(userId: string): Promise<Array<{session_id: string, title: string, last_time_saved: number}>> {
     try {
-        const response = await fetch(`/api/notes/user/${userId}`);
+        const response = await authFetch(`/api/notes/user/${userId}`);
         const result = await response.json();
         return result.success ? result.data : [];
     } catch (error) {

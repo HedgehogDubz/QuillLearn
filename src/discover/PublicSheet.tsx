@@ -8,6 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import './PublicView.css'
 import Header from '../header/header.tsx'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import Comments from './Comments.tsx'
 import PixelAvatar from '../components/PixelAvatar'
 import { ViewIcon, HeartIcon, CopyIcon } from '../components/Icons'
@@ -42,7 +43,7 @@ function PublicSheet() {
     useEffect(() => {
         const fetchSheet = async () => {
             try {
-                const response = await fetch(`/api/discover/sheet/${sessionId}?userId=${user?.id || ''}`)
+                const response = await authFetch(`/api/discover/sheet/${sessionId}?userId=${user?.id || ''}`)
                 const result = await response.json()
 
                 if (!result.success) {
@@ -68,9 +69,8 @@ function PublicSheet() {
 
         setLiking(true)
         try {
-            const response = await fetch('/api/discover/like', {
+            const response = await authFetch('/api/discover/like', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
                     contentType: 'sheet',
@@ -95,9 +95,8 @@ function PublicSheet() {
 
         setCopying(true)
         try {
-            const response = await fetch(`/api/discover/copy/${sessionId}`, {
+            const response = await authFetch(`/api/discover/copy/${sessionId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
             })
 

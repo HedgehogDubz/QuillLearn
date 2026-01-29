@@ -14,6 +14,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Header from '../header/header'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import TagInput from '../components/TagInput'
 import type {
     DiagramData,
@@ -147,7 +148,7 @@ function DiagramEditor() {
 
             setIsLoading(true)
             try {
-                const response = await fetch(`/api/diagrams/${sessionId}`)
+                const response = await authFetch(`/api/diagrams/${sessionId}`)
                 const result = await response.json()
 
                 if (result.success && result.data) {
@@ -179,7 +180,7 @@ function DiagramEditor() {
         const fetchUserTags = async () => {
             if (!user?.id) return
             try {
-                const response = await fetch(`/api/diagrams/tags/all/${user.id}`)
+                const response = await authFetch(`/api/diagrams/tags/all/${user.id}`)
                 const result = await response.json()
                 if (result.success) {
                     setAllUserTags(result.data || [])
@@ -200,7 +201,7 @@ function DiagramEditor() {
             }
 
             try {
-                const response = await fetch(`/api/diagrams/${sessionId}/permission/${user.id}`)
+                const response = await authFetch(`/api/diagrams/${sessionId}/permission/${user.id}`)
                 const result = await response.json()
 
                 if (result.success) {
@@ -221,9 +222,8 @@ function DiagramEditor() {
         if (!sessionId) return
 
         try {
-            await fetch(`/api/diagrams/${sessionId}/tags`, {
+            await authFetch(`/api/diagrams/${sessionId}/tags`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tags: newTags, userId: user?.id })
             })
         } catch (error) {
@@ -236,9 +236,8 @@ function DiagramEditor() {
         if (!diagram || !sessionId || isReadOnly) return
 
         try {
-            const response = await fetch('/api/diagrams', {
+            const response = await authFetch('/api/diagrams', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     sessionId,
                     userId: user?.id || null,

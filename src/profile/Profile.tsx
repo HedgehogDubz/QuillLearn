@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../utils/api';
 import type { PixelGrid } from '../utils/pixelArtAvatar';
 import {
   generateSeededAvatar,
@@ -137,16 +138,14 @@ const Profile: React.FC = () => {
 
   const handleSave = async () => {
     if (!user) return;
-    
+
     setSaving(true);
     setError('');
     setSuccess('');
 
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
+      const response = await authFetch(`/api/users/${user.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           username: username !== user.username ? username : undefined,
           avatar: serializeAvatar(avatar)

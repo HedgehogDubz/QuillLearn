@@ -8,6 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import './PublicView.css'
 import Header from '../header/header.tsx'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import Comments from './Comments.tsx'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
@@ -46,7 +47,7 @@ function PublicNote() {
     useEffect(() => {
         const fetchNote = async () => {
             try {
-                const response = await fetch(`/api/discover/note/${sessionId}?userId=${user?.id || ''}`)
+                const response = await authFetch(`/api/discover/note/${sessionId}?userId=${user?.id || ''}`)
                 const result = await response.json()
 
                 if (!result.success) {
@@ -94,9 +95,8 @@ function PublicNote() {
 
         setLiking(true)
         try {
-            const response = await fetch('/api/discover/like', {
+            const response = await authFetch('/api/discover/like', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
                     contentType: 'note',
@@ -121,9 +121,8 @@ function PublicNote() {
 
         setCopying(true)
         try {
-            const response = await fetch(`/api/discover/copy/${sessionId}`, {
+            const response = await authFetch(`/api/discover/copy/${sessionId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
             })
 

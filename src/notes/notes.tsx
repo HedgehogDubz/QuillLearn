@@ -36,6 +36,7 @@ import {
     type FileAttachment
 } from './noteStorage'
 import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../utils/api';
 import DocumentHeader from '../components/DocumentHeader';
 import { ConvertToSheetModal } from './ConvertToSheetModal';
 import TagInput from '../components/TagInput';
@@ -293,7 +294,7 @@ function Notes() {
             }
 
             try {
-                const response = await fetch(`/api/notes/${sessionId}/permission/${user.id}`)
+                const response = await authFetch(`/api/notes/${sessionId}/permission/${user.id}`)
                 const result = await response.json()
 
                 if (result.success) {
@@ -675,7 +676,7 @@ function Notes() {
                                     formData.append('userId', user?.id || 'anonymous')
                                     formData.append('sessionId', sessionId || '')
 
-                                    const response = await fetch('/api/storage/upload-image', {
+                                    const response = await authFetch('/api/storage/upload-image', {
                                         method: 'POST',
                                         body: formData
                                     })
@@ -1039,7 +1040,7 @@ function Notes() {
                     formData.append('userId', user?.id || 'anonymous')
                     formData.append('sessionId', sessionId || '')
 
-                    const response = await fetch('/api/storage/upload-image', {
+                    const response = await authFetch('/api/storage/upload-image', {
                         method: 'POST',
                         body: formData
                     })
@@ -1089,7 +1090,7 @@ function Notes() {
                     formData.append('userId', user?.id || 'anonymous')
                     formData.append('sessionId', sessionId || '')
 
-                    const response = await fetch('/api/storage/upload-image', {
+                    const response = await authFetch('/api/storage/upload-image', {
                         method: 'POST',
                         body: formData
                     })
@@ -1148,7 +1149,7 @@ function Notes() {
                             formData.append('userId', user?.id || 'anonymous')
                             formData.append('sessionId', sessionId || '')
 
-                            const uploadResponse = await fetch('/api/storage/upload-image', {
+                            const uploadResponse = await authFetch('/api/storage/upload-image', {
                                 method: 'POST',
                                 body: formData
                             })
@@ -1407,7 +1408,7 @@ function Notes() {
         const fetchUserTags = async () => {
             if (!user?.id) return
             try {
-                const response = await fetch(`/api/notes/tags/all/${user.id}`)
+                const response = await authFetch(`/api/notes/tags/all/${user.id}`)
                 const result = await response.json()
                 if (result.success) {
                     setAllUserTags(result.data || [])
@@ -1425,9 +1426,8 @@ function Notes() {
         if (!sessionId) return
 
         try {
-            await fetch(`/api/notes/${sessionId}/tags`, {
+            await authFetch(`/api/notes/${sessionId}/tags`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tags: newTags, userId: user?.id })
             })
         } catch (error) {
@@ -1787,7 +1787,7 @@ function Notes() {
             formData.append('userId', user?.id || 'anonymous')
             formData.append('sessionId', sessionId || '')
 
-            const response = await fetch('/api/storage/upload-attachment', {
+            const response = await authFetch('/api/storage/upload-attachment', {
                 method: 'POST',
                 body: formData
             })
@@ -2072,7 +2072,7 @@ function Notes() {
                 formData.append('userId', user?.id || 'anonymous')
                 formData.append('sessionId', sessionId || '')
 
-                const response = await fetch('/api/storage/upload-drawing', {
+                const response = await authFetch('/api/storage/upload-drawing', {
                     method: 'POST',
                     body: formData
                 })

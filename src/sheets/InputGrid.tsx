@@ -4,6 +4,7 @@ import { loadSheetData, saveSheetData, AUTO_SAVE_DEBOUNCE_MS } from './sheetStor
 import { ImageUploadModal } from './ImageUploadModal'
 import { DrawingModal, type CanvasSize } from '../components/DrawingModal'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import DocumentHeader from '../components/DocumentHeader'
 import TagInput from '../components/TagInput'
 import PublishModal from '../components/PublishModal'
@@ -325,7 +326,7 @@ function InputGrid({ sessionId }: InputGridProps) {
             }
 
             try {
-                const response = await fetch(`/api/sheets/${sessionId}/permission/${user.id}`);
+                const response = await authFetch(`/api/sheets/${sessionId}/permission/${user.id}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -347,7 +348,7 @@ function InputGrid({ sessionId }: InputGridProps) {
         const fetchUserTags = async () => {
             if (!user?.id) return;
             try {
-                const response = await fetch(`/api/sheets/tags/all/${user.id}`);
+                const response = await authFetch(`/api/sheets/tags/all/${user.id}`);
                 const result = await response.json();
                 if (result.success) {
                     setAllUserTags(result.data || []);
@@ -363,9 +364,8 @@ function InputGrid({ sessionId }: InputGridProps) {
     const handleTagsChange = async (newTags: string[]) => {
         setTags(newTags);
         try {
-            await fetch(`/api/sheets/${sessionId}/tags`, {
+            await authFetch(`/api/sheets/${sessionId}/tags`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tags: newTags, userId: user?.id })
             });
         } catch (error) {
@@ -901,7 +901,7 @@ function InputGrid({ sessionId }: InputGridProps) {
             formData.append('userId', user?.id || 'anonymous');
             formData.append('sessionId', sessionId);
 
-            const response = await fetch('/api/storage/upload-drawing', {
+            const response = await authFetch('/api/storage/upload-drawing', {
                 method: 'POST',
                 body: formData
             });

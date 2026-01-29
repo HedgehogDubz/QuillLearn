@@ -26,7 +26,16 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5179', 'http://localhost:5180'],
+    origin: [
+        'http://localhost:5174',
+        'http://localhost:5175',
+        'http://localhost:5176',
+        'http://localhost:5177',
+        'http://localhost:5178',
+        'http://localhost:5179',
+        'http://localhost:5180',
+        'https://quilllearn.vercel.app'
+    ],
     credentials: true // Allow cookies to be sent
 }));
 app.use(express.json({ limit: '50mb' })); // Parse JSON request bodies (increased limit for large notes with images)

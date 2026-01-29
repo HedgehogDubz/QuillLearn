@@ -11,6 +11,7 @@ import Header from '../header/header.tsx'
 import { SheetIcon, NoteIcon, DiagramIcon, HeartIcon, ViewIcon } from '../components/Icons'
 import '../components/Icons.css'
 import PixelAvatar from '../components/PixelAvatar'
+import { authFetch } from '../utils/api'
 
 interface PublicContent {
     id: string  // UUID from published_content table
@@ -52,7 +53,7 @@ function Discover() {
     useEffect(() => {
         const fetchTags = async () => {
             try {
-                const response = await fetch('/api/discover/tags')
+                const response = await authFetch('/api/discover/tags')
                 const result = await response.json()
                 if (result.success) {
                     setAvailableTags(result.data)
@@ -79,7 +80,7 @@ function Discover() {
                 params.set('tags', selectedTags.join(','))
             }
 
-            const response = await fetch(`/api/discover?${params}`)
+            const response = await authFetch(`/api/discover?${params}`)
             const result = await response.json()
 
             if (result.success) {

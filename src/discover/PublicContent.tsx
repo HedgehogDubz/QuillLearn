@@ -11,6 +11,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import './PublicView.css'
 import Header from '../header/header.tsx'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import Comments from './Comments.tsx'
 import PublicContentHeader from './PublicContentHeader.tsx'
 import NoteViewer from './NoteViewer.tsx'
@@ -47,7 +48,7 @@ function PublicContent() {
     useEffect(() => {
         const fetchContent = async () => {
             try {
-                const response = await fetch(`/api/discover/content/${id}?userId=${user?.id || ''}`)
+                const response = await authFetch(`/api/discover/content/${id}?userId=${user?.id || ''}`)
                 const result = await response.json()
 
                 if (!result.success) {
@@ -93,9 +94,8 @@ function PublicContent() {
 
         setLiking(true)
         try {
-            const response = await fetch('/api/discover/like', {
+            const response = await authFetch('/api/discover/like', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
                     contentId: id

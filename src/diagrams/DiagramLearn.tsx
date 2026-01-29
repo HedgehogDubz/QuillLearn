@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Header from '../header/header'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import type { DiagramData, DiagramCard, DiagramLabel, DiagramLearnMode, LabelDisplayMode } from './types'
 import './DiagramLearn.css'
 
@@ -113,7 +114,7 @@ function DiagramLearn() {
 
             setIsLoading(true)
             try {
-                const response = await fetch(`/api/diagrams/${sessionId}`)
+                const response = await authFetch(`/api/diagrams/${sessionId}`)
                 const result = await response.json()
 
                 if (result.success && result.data) {

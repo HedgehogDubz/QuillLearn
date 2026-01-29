@@ -3,6 +3,8 @@
  * Tracks who is currently viewing/editing a document
  */
 
+import { authFetch } from '../utils/api';
+
 export interface UserPresence {
   userId: string;
   userName?: string;
@@ -91,10 +93,9 @@ export class PresenceService {
 
     // Remove our presence
     try {
-      await fetch(`/api/presence/${this.sessionId}`, {
+      await authFetch(`/api/presence/${this.sessionId}`, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           'x-user-id': this.currentUserId
         },
         body: JSON.stringify({
@@ -119,10 +120,9 @@ export class PresenceService {
    */
   private async updatePresence(cursorPosition?: any) {
     try {
-      await fetch(`/api/presence/${this.sessionId}`, {
+      await authFetch(`/api/presence/${this.sessionId}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'x-user-id': this.currentUserId
         },
         body: JSON.stringify({
@@ -143,7 +143,7 @@ export class PresenceService {
    */
   private async fetchPresence() {
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/presence/${this.sessionId}?documentType=${this.documentType}`
       );
       const result = await response.json();

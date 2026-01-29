@@ -1,3 +1,5 @@
+import { authFetch } from '../utils/api';
+
 type Grid = string[][]
 
 // New row-based data structure for better extensibility
@@ -34,7 +36,7 @@ export async function loadSheetData(
     defaultColumnWidths: number[]
 ): Promise<{ title: string; grid: Grid; columnWidths: number[]; tags: string[] }> {
     try {
-        const response = await fetch(`/api/sheets/${sessionId}`);
+        const response = await authFetch(`/api/sheets/${sessionId}`);
         const result = await response.json();
 
         if (result.success && result.data) {
@@ -85,11 +87,8 @@ export async function saveSheetData(
             return { success: true, serializedData: lastSavedData };
         }
 
-        const response = await fetch('/api/sheets', {
+        const response = await authFetch('/api/sheets', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: serializedData
         });
 

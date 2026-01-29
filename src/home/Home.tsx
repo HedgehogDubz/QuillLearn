@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthContext'
 import PublishModal from '../components/PublishModal'
 import { SheetIcon, NoteIcon, DiagramIcon, PublishIcon, TagIcon, CheckIcon, HeartIcon, ViewIcon, SearchIcon } from '../components/Icons'
 import '../components/Icons.css'
+import { authFetch } from '../utils/api'
 
 // Extended SessionInfo to include type and created_at
 type SessionWithType = SessionInfo & {
@@ -59,10 +60,10 @@ function Home() {
     try {
       // Fetch sheets, notes, diagrams, and published content in parallel
       const [sheetsResponse, notesResponse, diagramsResponse, publishedResponse] = await Promise.all([
-        fetch(`/api/sheets/user/${user.id}`),
-        fetch(`/api/notes/user/${user.id}`),
-        fetch(`/api/diagrams/user/${user.id}`),
-        fetch(`/api/discover/user/${user.id}`)
+        authFetch(`/api/sheets/user/${user.id}`),
+        authFetch(`/api/notes/user/${user.id}`),
+        authFetch(`/api/diagrams/user/${user.id}`),
+        authFetch(`/api/discover/user/${user.id}`)
       ])
 
       const [sheetsResult, notesResult, diagramsResult, publishedResult] = await Promise.all([
@@ -197,7 +198,7 @@ function Home() {
       if (publishedContent.length === 0 && !loading) {
         setLoadingPublished(true)
         try {
-          const response = await fetch(`/api/discover/user/${user.id}`)
+          const response = await authFetch(`/api/discover/user/${user.id}`)
           const result = await response.json()
           if (result.success && result.data) {
             setPublishedContent(result.data)
@@ -307,7 +308,7 @@ function Home() {
         endpoint = `/api/diagrams/${session.sessionId}`
       }
 
-      const response = await fetch(endpoint, {
+      const response = await authFetch(endpoint, {
         method: 'DELETE'
       })
 

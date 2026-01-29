@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import './PublishModal.css';
 import TagInput from './TagInput';
 import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../utils/api';
 import { PublishIcon, CheckIcon, ViewIcon, HeartIcon, RefreshIcon, NoteIcon, RocketIcon } from './Icons';
 import './Icons.css';
 
@@ -61,7 +62,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
     const checkPublishStatus = async () => {
         setCheckingStatus(true);
         try {
-            const response = await fetch(`/api/published/status/${contentType}/${sessionId}`);
+            const response = await authFetch(`/api/published/status/${contentType}/${sessionId}`);
             const result = await response.json();
 
             if (result.success && result.data) {
@@ -87,9 +88,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({
         try {
             const username = user?.username || user?.email || 'Anonymous';
 
-            const response = await fetch(`/api/published/${contentType}/${sessionId}`, {
+            const response = await authFetch(`/api/published/${contentType}/${sessionId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: currentUserId,
                     username,
@@ -124,7 +124,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
         setError(null);
 
         try {
-            const response = await fetch(`/api/published/${publishedInfo.id}?userId=${currentUserId}`, {
+            const response = await authFetch(`/api/published/${publishedInfo.id}?userId=${currentUserId}`, {
                 method: 'DELETE'
             });
 

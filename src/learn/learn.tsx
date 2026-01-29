@@ -5,6 +5,7 @@ import Header from '../header/header.tsx'
 import type { SessionInfo } from '../gaurdian.ts';
 import { updateLastAccessed } from '../sheets/sheetStorage.ts'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import { SheetIcon, DiagramIcon } from '../components/Icons'
 import '../components/Icons.css'
 // ============ Types ============
@@ -92,8 +93,8 @@ async function getSessionsFromAPI(userId: string): Promise<LearnSessionInfo[]> {
         // Fetch sheets and diagrams in parallel
         // Note: For diagrams, we need cards data to count labels
         const [sheetsResponse, diagramsResponse] = await Promise.all([
-            fetch(`/api/sheets/user/${userId}`),
-            fetch(`/api/diagrams/user/${userId}?includeCards=true`)
+            authFetch(`/api/sheets/user/${userId}`),
+            authFetch(`/api/diagrams/user/${userId}?includeCards=true`)
         ])
 
         const [sheetsResult, diagramsResult] = await Promise.all([
@@ -150,7 +151,7 @@ async function getSessionsFromAPI(userId: string): Promise<LearnSessionInfo[]> {
 // Load session data from API - first row is headers, rest are cards
 async function loadSessionData(sessionId: string): Promise<SessionData | null> {
     try {
-        const response = await fetch(`/api/sheets/${sessionId}`)
+        const response = await authFetch(`/api/sheets/${sessionId}`)
         const result = await response.json()
 
         if (result.success && result.data) {
@@ -256,7 +257,7 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
 
     // Load available languages for TTS
     useEffect(() => {
-        fetch('/api/tts/languages')
+        authFetch('/api/tts/languages')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.languages) {

@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../utils/api'
 import './Comments.css'
 import PixelAvatar from '../components/PixelAvatar'
 
@@ -36,7 +37,7 @@ function Comments({ contentId, contentOwnerId }: CommentsProps) {
 
     const fetchComments = async () => {
         try {
-            const response = await fetch(`/api/discover/comments/${contentId}`)
+            const response = await authFetch(`/api/discover/comments/${contentId}`)
             const result = await response.json()
             if (result.success) {
                 setComments(result.data)
@@ -54,9 +55,8 @@ function Comments({ contentId, contentOwnerId }: CommentsProps) {
 
         setSubmitting(true)
         try {
-            const response = await fetch('/api/discover/comments', {
+            const response = await authFetch('/api/discover/comments', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
                     userName: user.username || user.email?.split('@')[0] || 'Anonymous',
@@ -82,9 +82,8 @@ function Comments({ contentId, contentOwnerId }: CommentsProps) {
         if (!user) return
 
         try {
-            const response = await fetch(`/api/discover/comments/${commentId}`, {
+            const response = await authFetch(`/api/discover/comments/${commentId}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
                     contentOwnerId

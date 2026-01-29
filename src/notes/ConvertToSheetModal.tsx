@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../utils/api';
 import './ConvertToSheetModal.css';
 
 export type ConversionType = 'direct' | 'vocabulary' | 'study' | 'theme' | 'custom';
@@ -141,11 +142,8 @@ export const ConvertToSheetModal: React.FC<ConvertToSheetModalProps> = ({
         setError(null);
 
         try {
-            const response = await fetch('/api/notes-to-sheets', {
+            const response = await authFetch('/api/notes-to-sheets', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify({
                     noteContent,
                     noteTitle,
