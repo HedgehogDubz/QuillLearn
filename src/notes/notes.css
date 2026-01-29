@@ -788,39 +788,254 @@
   color: var(--text-primary);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
   .notes_container {
     padding: var(--space-3);
+    padding-top: var(--space-2);
+  }
+
+  .notes_sticky_header {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
   }
 
   .notes_title_bar {
     padding: var(--space-3) var(--space-4);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
   }
 
   .notes_title_bar .document_header_title {
-    font-size: var(--text-2xl);
+    font-size: var(--text-xl);
   }
 
+  /* Toolbar - scroll horizontally on mobile */
+  .notes_sticky_header .ql-toolbar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding: var(--space-2);
+    gap: var(--space-1);
+  }
+
+  .notes_sticky_header .ql-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Make toolbar buttons touch-friendly */
+  .notes_sticky_header .ql-toolbar button,
+  .notes_editor_wrapper .ql-toolbar button {
+    min-width: 40px;
+    min-height: 40px;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+
+  /* Format groups - no border on mobile */
+  .notes_sticky_header .ql-toolbar .ql-formats,
+  .notes_editor_wrapper .ql-toolbar .ql-formats {
+    margin-right: var(--space-1);
+    padding-right: var(--space-1);
+    border-right: none;
+    flex-shrink: 0;
+    height: 44px;
+    gap: var(--space-1);
+  }
+
+  /* Picker dropdowns - touch friendly */
+  .notes_sticky_header .ql-toolbar .ql-picker,
+  .notes_editor_wrapper .ql-toolbar .ql-picker {
+    height: 40px;
+    min-width: 60px;
+    flex-shrink: 0;
+  }
+
+  .notes_sticky_header .ql-toolbar .ql-picker-label,
+  .notes_editor_wrapper .ql-toolbar .ql-picker-label {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    padding: var(--space-2);
+  }
+
+  /* Editor content area */
   .notes_editor_wrapper .ql-editor {
-    padding: var(--space-10) var(--space-6);
+    padding: var(--space-4);
+    min-height: 400px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
   }
 
   .notes_editor_wrapper .ql-editor.ql-blank::before {
-    left: var(--space-6);
+    left: var(--space-4);
   }
 
+  .notes_editor_wrapper .ql-container {
+    min-height: 400px;
+  }
+
+  /* Drawing modal - full screen on mobile */
   .notes_drawing_container {
-    padding: var(--space-4);
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 95vh;
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
   }
 
   .notes_canvas {
     max-width: 100%;
     height: auto;
+    touch-action: none; /* Better drawing on mobile */
   }
 
-  .notes_shortcuts_grid {
-    grid-template-columns: 1fr;
+  .notes_drawing_header {
+    margin-bottom: var(--space-3);
+  }
+
+  .notes_drawing_header h3 {
+    font-size: var(--text-lg);
+  }
+
+  .notes_drawing_toolbar {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .notes_drawing_tools {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .notes_drawing_tools button {
+    flex-shrink: 0;
+  }
+
+  .notes_drawing_options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .notes_drawing_controls {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .notes_drawing_controls button {
+    flex: 1;
+    min-width: 120px;
+    min-height: 44px;
+  }
+
+  /* LaTeX modal - full screen on mobile */
+  .latex_modal {
+    width: 95vw;
+    max-height: 95vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .latex_modal_header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .latex_modal_body {
+    padding: var(--space-4);
+  }
+
+  .latex_input {
+    font-size: 16px; /* Prevents iOS zoom */
+    min-height: 120px;
+  }
+
+  .latex_mode_toggle {
+    flex-wrap: wrap;
+  }
+
+  .latex_mode_btn {
+    min-height: 44px;
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .latex_modal_footer {
+    padding: var(--space-3) var(--space-4);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .latex_btn_cancel,
+  .latex_btn_insert,
+  .latex_btn_delete {
+    min-height: 44px;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .latex_shortcut_hint {
+    display: none; /* Hide keyboard shortcuts on mobile */
+  }
+
+  /* Action buttons */
+  .notes_toolbar_actions {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .notes_action_btn {
+    min-height: 44px;
+  }
+
+  /* Hide keyboard shortcuts section on mobile */
+  .notes_shortcuts_hint {
+    display: none;
+  }
+
+  /* Convert to Sheet button */
+  .ql-convertToSheet,
+  .ql-publishToDiscover {
+    font-size: var(--text-xs) !important;
+    padding: var(--space-2) var(--space-3) !important;
+  }
+
+  /* File attachments */
+  .file-attachment-link {
+    padding: var(--space-3);
+    width: 100%;
+  }
+
+  .file-attachment-link .file-name {
+    max-width: 200px;
+  }
+
+  /* Code blocks */
+  .monaco-placeholder-code {
+    padding: var(--space-3);
+    font-size: var(--text-xs);
+  }
+}
+
+/* Very small mobile screens */
+@media (max-width: 374px) {
+  .notes_container {
+    padding: var(--space-2);
+  }
+
+  .notes_title_bar .document_header_title {
+    font-size: var(--text-lg);
+  }
+
+  .notes_editor_wrapper .ql-editor {
+    padding: var(--space-3);
+  }
+
+  .notes_sticky_header .ql-toolbar button,
+  .notes_editor_wrapper .ql-toolbar button {
+    min-width: 36px;
+    min-height: 36px;
+    width: 36px;
+    height: 36px;
   }
 }
 

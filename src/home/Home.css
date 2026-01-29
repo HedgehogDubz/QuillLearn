@@ -679,3 +679,125 @@
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  .home_container {
+    padding: var(--space-4);
+  }
+
+  .home_header {
+    margin-bottom: var(--space-4);
+  }
+
+  .home_header h1 {
+    font-size: var(--text-2xl);
+  }
+
+  /* Stack action buttons on mobile */
+  .home_actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .home_actions button {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  /* Filter controls - stack on mobile */
+  .home_filter_buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .home_filter_buttons > span:first-child {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home_filter_buttons > span:nth-child(2),
+  .home_filter_buttons > span:nth-child(3) {
+    width: 100%;
+  }
+
+  .home_filter_buttons .search-sessions-input {
+    width: 100%;
+    min-width: auto;
+  }
+
+  /* Tag filter adjustments */
+  .home_tag_filter {
+    padding: var(--space-3);
+  }
+
+  .tag_filter_header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .tag_search_input {
+    width: 100%;
+  }
+
+  /* Sheet item cards - stack on mobile */
+  .home_sheet_item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .home_sheet_main {
+    width: 100%;
+  }
+
+  .home_sheet_title_row {
+    flex-wrap: wrap;
+  }
+
+  .tags_and_stats {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .home_sheet_actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .publish-button,
+  .edit-original-btn {
+    min-height: 40px;
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .home_delete_btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Empty state */
+  .home_empty,
+  .published_empty {
+    padding: var(--space-8) var(--space-4);
+  }
+}
+
+/* Smaller mobile screens */
+@media (max-width: 374px) {
+  .home_actions button {
+    font-size: var(--text-sm);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .home_filter_buttons button {
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+  }
+}

@@ -171,3 +171,51 @@
   font-size: var(--text-base);
   white-space: pre-wrap;
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  .comments-section {
+    padding: var(--space-4);
+  }
+  
+  .comments-section h3 {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-4);
+  }
+  
+  /* Comment form */
+  .comment-input-wrapper {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .comment-input-wrapper textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+    min-height: 80px;
+  }
+  
+  .comment-form button {
+    min-height: 44px;
+    width: 100%;
+  }
+  
+  /* Comment items */
+  .comment {
+    padding: var(--space-3);
+  }
+  
+  .comment-header {
+    gap: var(--space-2);
+  }
+  
+  .delete-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+  
+  .comment-text {
+    font-size: var(--text-sm);
+  }
+}

@@ -152,3 +152,30 @@
 .user-menu-item span {
   font-size: var(--text-lg);
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  .user-profile-button {
+    padding: var(--space-1) var(--space-2);
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .user-name {
+    display: none; /* Hide name on mobile, show only avatar */
+  }
+  
+  .user-menu {
+    min-width: 280px;
+    right: calc(-1 * var(--space-2));
+    max-width: calc(100vw - var(--space-4));
+  }
+  
+  .user-menu-item {
+    min-height: 44px;
+    padding: var(--space-3) var(--space-4);
+  }
+}

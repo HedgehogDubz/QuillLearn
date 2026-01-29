@@ -412,3 +412,130 @@
     background: transparent;
     box-shadow: none;
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  /* Header */
+  .diagram_learn_header {
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    align-items: stretch;
+  }
+  
+  .diagram_learn_title {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+  
+  .diagram_learn_edit_btn {
+    min-height: 44px;
+  }
+  
+  /* Controls */
+  .diagram_learn_controls {
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    align-items: stretch;
+  }
+  
+  .diagram_learn_mode_group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+  
+  .diagram_learn_segmented {
+    width: 100%;
+  }
+  
+  .diagram_learn_segmented button {
+    flex: 1;
+    min-height: 44px;
+    font-size: 0.75rem;
+    padding: var(--space-2);
+  }
+  
+  .diagram_learn_score {
+    justify-content: center;
+  }
+  
+  .diagram_learn_restart_btn {
+    margin-left: 0;
+    width: 100%;
+    min-height: 44px;
+  }
+  
+  /* Workspace */
+  .diagram_learn_workspace {
+    padding: var(--space-2);
+    gap: var(--space-3);
+  }
+  
+  /* Prompt */
+  .diagram_learn_prompt {
+    font-size: 1rem;
+    min-height: 40px;
+    padding: 0 var(--space-2);
+  }
+  
+  /* Input area */
+  .diagram_learn_input_area input {
+    min-width: auto;
+    width: 100%;
+    max-width: 300px;
+    font-size: 16px;
+    min-height: 44px;
+  }
+  
+  .diagram_learn_input_area button {
+    min-height: 44px;
+  }
+  
+  /* Canvas container */
+  .diagram_learn_canvas_container {
+    max-width: 100%;
+  }
+  
+  /* Progress */
+  .diagram_learn_progress {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .progress_text {
+    text-align: center;
+    min-width: auto;
+  }
+  
+  /* Card navigation */
+  .diagram_learn_card_nav {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+  
+  .diagram_learn_card_nav button {
+    min-height: 44px;
+    flex: 1;
+    min-width: 80px;
+  }
+  
+  /* Label input overlay */
+  .diagram_learn_label_input {
+    flex-direction: column;
+    padding: var(--space-3);
+  }
+  
+  .diagram_learn_label_input input {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  
+  .diagram_learn_label_input button {
+    min-height: 44px;
+    width: 100%;
+  }
+}

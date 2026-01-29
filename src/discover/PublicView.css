@@ -385,3 +385,79 @@
 .note-viewer-attachments a:hover {
   text-decoration: underline;
 }
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  /* Container */
+  .public-view-container {
+    padding: var(--space-3);
+  }
+  
+  /* Header */
+  .public-view-header {
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  
+  .back-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: var(--space-2);
+  }
+  
+  .public-view-title-section h1 {
+    font-size: var(--text-xl);
+  }
+  
+  /* Meta section */
+  .public-view-meta {
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+  
+  .stats {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  .like-btn,
+  .copy-btn {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-4);
+  }
+  
+  /* Sheet preview */
+  .sheet-preview {
+    padding: var(--space-2);
+  }
+  
+  .sheet-table td {
+    padding: var(--space-1);
+    font-size: var(--text-xs);
+  }
+  
+  .cell-image {
+    max-width: 100px;
+    max-height: 100px;
+  }
+  
+  /* Note preview */
+  .note-preview {
+    padding: var(--space-4);
+  }
+  
+  /* Content wrapper */
+  .public-content-wrapper {
+    padding: var(--space-4);
+  }
+  
+  /* Note viewer */
+  .note-viewer-drawing img {
+    max-height: 250px;
+  }
+  
+  .note-viewer-content .ql-editor {
+    font-size: 16px;
+  }
+}

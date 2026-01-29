@@ -21,7 +21,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
                     <div className="loading-server-note">
                         <p className="loading-note-title">⏳ May take a minute or two</p>
                         <p className="loading-note-text">
-                            Since QuillLearn is in development, the free server tier (Render)
+                            Since QuillLearn is in development, the free server tier
                             automatically turns off after minutes of inactivity. If it has turned off,
                             it may take a minute or two to start back up.
                         </p>

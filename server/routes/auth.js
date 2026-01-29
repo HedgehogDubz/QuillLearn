@@ -25,7 +25,7 @@ const router = express.Router();
 
 /**
  * POST /api/auth/register
- * Start registration - sends verification email, account created only after verification
+ * Register a new user account (no email verification required)
  */
 router.post('/register', async (req, res) => {
     try {
@@ -65,7 +65,7 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        // Check if email already exists (in users table)
+        // Check if email already exists
         const existingEmail = await User.findByEmail(email);
         if (existingEmail) {
             return res.status(409).json({
@@ -74,7 +74,7 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        // Check if username already exists (in users table)
+        // Check if username already exists
         const existingUsername = await User.findByUsername(username);
         if (existingUsername) {
             return res.status(409).json({
@@ -86,52 +86,34 @@ router.post('/register', async (req, res) => {
         // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Generate verification token (24 hour expiry)
-        const { token: verificationToken, expires: verificationExpires } = generateVerificationToken();
+        // Create user account directly (no email verification)
+        const user = await User.create({
+            email,
+            username,
+            password: hashedPassword,
+            avatar: '[]',
+            emailVerified: true // Skip email verification
+        });
 
-        // Delete any existing pending registration for this email or username
-        await supabase
-            .from('pending_registrations')
-            .delete()
-            .or(`email.ilike.${email},username.ilike.${username}`);
+        // Generate JWT token
+        const token = generateToken(user);
 
-        // Create pending registration (NOT a real user yet)
-        const { error: insertError } = await supabase
-            .from('pending_registrations')
-            .insert({
-                email,
-                username,
-                password: hashedPassword,
-                verification_token: verificationToken,
-                expires_at: verificationExpires
-            });
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
 
-        if (insertError) {
-            console.error('Error creating pending registration:', insertError);
-            throw insertError;
-        }
+        // Set token in HTTP-only cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
 
-        // Send verification email
-        const emailResult = await sendVerificationEmail(email, verificationToken, username);
-        if (!emailResult.success) {
-            console.warn('Failed to send verification email:', emailResult.error);
-            // Delete the pending registration if email failed
-            await supabase
-                .from('pending_registrations')
-                .delete()
-                .eq('email', email);
-
-            return res.status(500).json({
-                success: false,
-                error: 'Failed to send verification email. Please try again.'
-            });
-        }
-
-        res.status(200).json({
+        res.status(201).json({
             success: true,
-            message: 'Verification email sent! Please check your inbox and click the link to complete your registration.',
-            needsVerification: true,
-            email: email
+            message: 'Account created successfully!',
+            user: userWithoutPassword,
+            token
         });
 
     } catch (error) {
@@ -178,16 +160,6 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid credentials'
-            });
-        }
-
-        // Check if email is verified
-        if (!user.emailVerified) {
-            return res.status(403).json({
-                success: false,
-                error: 'Please verify your email before logging in. Check your inbox for the verification link.',
-                needsVerification: true,
-                email: user.email
             });
         }
 

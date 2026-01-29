@@ -799,3 +799,132 @@
     border-radius: var(--radius-sm);
     display: inline-block;
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  /* Header */
+  .diagram_header {
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+  
+  .diagram_title_row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+  
+  .diagram_title_input {
+    font-size: 1.2rem;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .diagram_header .tag-input-container {
+    max-width: 100%;
+  }
+  
+  .diagram_header_actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .diagram_learn_btn {
+    min-height: 44px;
+  }
+  
+  /* Toolbar */
+  .diagram_toolbar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+  
+  .diagram_toolbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .diagram_tool_group {
+    flex-shrink: 0;
+  }
+  
+  .diagram_tool_btn {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+  
+  .diagram_label_tool_btn {
+    min-height: 44px;
+    padding: var(--space-2);
+    font-size: 0.75rem;
+  }
+  
+  /* Canvas container */
+  .diagram_canvas_container {
+    min-height: 300px;
+  }
+  
+  /* Card navigation */
+  .diagram_card_nav {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+  
+  .diagram_card_nav button {
+    min-height: 44px;
+    flex: 1;
+    min-width: 80px;
+  }
+  
+  /* Label edit panel - bottom sheet on mobile */
+  .diagram_label_edit_panel {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 50vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    overflow-y: auto;
+  }
+  
+  .diagram_edit_shape_buttons button {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Label input overlay */
+  .diagram_label_input_overlay {
+    flex-direction: column;
+    width: calc(100% - var(--space-4));
+    left: var(--space-2) !important;
+    right: var(--space-2) !important;
+  }
+  
+  .diagram_label_input_overlay input {
+    min-width: auto;
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  
+  .diagram_label_input_overlay button {
+    min-height: 44px;
+    width: 100%;
+  }
+  
+  /* Workspace */
+  .diagram_workspace {
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+}

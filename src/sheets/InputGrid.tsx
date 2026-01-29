@@ -95,6 +95,8 @@ interface CellProps {
     onBlur: () => void;
     onMouseDown: (e: React.MouseEvent) => void;
     onMouseUp: () => void;
+    onTouchStart: (e: React.TouchEvent) => void;
+    onTouchEnd: () => void;
     autoResizeTextarea: (el: HTMLTextAreaElement) => void;
     onAddImage?: (row: number, col: number) => void;
     onAddDrawing?: (row: number, col: number) => void;
@@ -116,6 +118,8 @@ const Cell = React.memo(({
     onBlur,
     onMouseDown,
     onMouseUp,
+    onTouchStart,
+    onTouchEnd,
     autoResizeTextarea,
     onAddImage,
     onAddDrawing,
@@ -177,6 +181,8 @@ const Cell = React.memo(({
                 className="sheet_selection_layer"
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
+                onTouchStart={onTouchStart}
+                onTouchEnd={onTouchEnd}
             />
 
             {/* Add image button - only for non-header rows and if less than 2 images and not read-only */}
@@ -959,6 +965,46 @@ function InputGrid({ sessionId }: InputGridProps) {
         // Don't set selection yet - wait for drag beyond threshold
     }, []);
 
+    // Touch event handlers for mobile support
+    const touchStartCell = useRef<{ row: number; col: number } | null>(null);
+    const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+    const touchHasDragged = useRef<boolean>(false);
+
+    const handleTouchStart = useCallback((e: React.TouchEvent, row: number, col: number) => {
+        // Close context menus if open
+        setContextMenu(null);
+        setColumnContextMenu(null);
+
+        const touch = e.touches[0];
+        touchStartCell.current = { row, col };
+        touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+        touchHasDragged.current = false;
+        setIsSelecting(true);
+        selectionStart.current = { row, col };
+        dragStartPos.current = { x: touch.clientX, y: touch.clientY };
+        hasDragged.current = false;
+    }, []);
+
+    const handleTouchEnd = useCallback((row: number, col: number) => {
+        // If we didn't drag (simple tap), focus the cell for editing
+        if (!touchHasDragged.current && touchStartCell.current) {
+            setSelection(null);
+            focusCell(row, col);
+        } else if (touchHasDragged.current) {
+            // Keep the selection that was set during touch move
+            justCompletedDrag.current = true;
+        }
+
+        // Reset touch state
+        touchStartCell.current = null;
+        touchStartPos.current = null;
+        touchHasDragged.current = false;
+        setIsSelecting(false);
+        selectionStart.current = null;
+        dragStartPos.current = null;
+        hasDragged.current = false;
+    }, [focusCell]);
+
     const handleMouseUp = useCallback((row: number, col: number) => {
         // Don't rely on isSelecting state - use selectionStart ref instead
         // because the state might be stale in the callback closure
@@ -1006,7 +1052,7 @@ function InputGrid({ sessionId }: InputGridProps) {
         }
     }, [isSelecting]);
 
-    // Global mousemove handler for drag selection
+    // Global mousemove and touchmove handler for drag selection
     React.useEffect(() => {
         if (!isSelecting) return;
 
@@ -1056,9 +1102,57 @@ function InputGrid({ sessionId }: InputGridProps) {
             });
         };
 
+        const handleGlobalTouchMove = (e: TouchEvent) => {
+            if (!selectionStart.current || !dragStartPos.current) return;
+
+            const touch = e.touches[0];
+            // Calculate distance from drag start position
+            const dx = touch.clientX - dragStartPos.current.x;
+            const dy = touch.clientY - dragStartPos.current.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Only start selection if we've moved beyond the threshold
+            if (distance < DRAG_THRESHOLD) return;
+
+            // Mark that we've dragged beyond threshold
+            touchHasDragged.current = true;
+            hasDragged.current = true;
+
+            // Find which element is under the touch point
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (!element) return;
+
+            // Check if it's a selection layer or inside a cell
+            const cell = element.closest('.sheet_cell') as HTMLElement;
+            if (!cell) return;
+
+            // Get the cell's row and column from data attributes
+            const rowStr = cell.getAttribute('data-row');
+            const colStr = cell.getAttribute('data-col');
+            if (rowStr === null || colStr === null) return;
+
+            const row = parseInt(rowStr, 10);
+            const col = parseInt(colStr, 10);
+
+            // If this is the first time we're dragging, blur any focused cell to stop editing
+            if (document.activeElement instanceof HTMLTextAreaElement) {
+                document.activeElement.blur();
+            }
+
+            // Update selection
+            setSelection({
+                startRow: selectionStart.current.row,
+                startCol: selectionStart.current.col,
+                endRow: row,
+                endCol: col
+            });
+        };
+
         document.addEventListener('mousemove', handleGlobalMouseMove);
+        document.addEventListener('touchmove', handleGlobalTouchMove, { passive: true });
         return () => {
             document.removeEventListener('mousemove', handleGlobalMouseMove);
+            document.removeEventListener('touchmove', handleGlobalTouchMove);
         };
     }, [isSelecting, DRAG_THRESHOLD]);
 
@@ -1534,6 +1628,8 @@ function InputGrid({ sessionId }: InputGridProps) {
                                                 onBlur={() => handleCellBlur(r, c)}
                                                 onMouseDown={(e) => handleMouseDown(e, r, c)}
                                                 onMouseUp={() => handleMouseUp(r, c)}
+                                                onTouchStart={(e) => handleTouchStart(e, r, c)}
+                                                onTouchEnd={() => handleTouchEnd(r, c)}
                                                 autoResizeTextarea={autoResizeTextarea}
                                                 onAddImage={handleAddImage}
                                                 onAddDrawing={handleAddDrawing}

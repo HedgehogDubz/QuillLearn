@@ -1562,3 +1562,126 @@
     height: 80px;
   }
 }
+
+
+/* === COMPREHENSIVE MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  /* Learn page container */
+  .learn_page_container {
+    padding: var(--space-3);
+  }
+
+  .learn_page_header h1 {
+    font-size: var(--text-2xl);
+  }
+
+  /* Search input - prevent iOS zoom */
+  .learn_search_input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .learn_search_clear {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Filter buttons - scroll horizontally */
+  .learn_filter_buttons {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding-bottom: var(--space-2);
+  }
+
+  .learn_filter_buttons button {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+
+  /* Session cards */
+  .learn_session_card {
+    padding: var(--space-3);
+    min-height: 60px;
+  }
+
+  .learn_session_icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Controls row - stack vertically */
+  .learn_controls_row {
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+
+  /* Segmented control */
+  .learn_segment {
+    min-height: 44px;
+  }
+
+  /* Column controls */
+  .learn_column_grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .learn_col_btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Flashcard */
+  .learn_flashcard_card {
+    min-width: unset;
+  }
+
+  .learn_card_face {
+    padding: var(--space-4);
+  }
+
+  /* Response buttons */
+  .learn_btn {
+    min-height: 48px;
+    padding: var(--space-3);
+  }
+
+  /* Hide keyboard shortcut hints on mobile */
+  .learn_shortcut_hint,
+  .learn_shortcuts_legend {
+    display: none;
+  }
+
+  /* Voice controls */
+  .learn_voice_controls {
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .learn_voice_selector select {
+    max-width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  /* Modal */
+  .learn_modal {
+    width: 95%;
+    max-height: 85vh;
+    padding: var(--space-4);
+  }
+
+  /* Mode buttons */
+  .learn_mode_btn {
+    min-height: 44px;
+  }
+
+  .learn_display_btn {
+    min-height: 44px;
+  }
+}

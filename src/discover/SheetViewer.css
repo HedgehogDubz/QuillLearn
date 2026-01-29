@@ -87,3 +87,15 @@
   background: var(--bg-secondary);
   border-radius: var(--radius-sm);
 }
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  .sheet-viewer-cell {
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+  }
+  
+  .sheet-viewer-cell-image {
+    max-width: 100px;
+    max-height: 100px;
+  }
+}

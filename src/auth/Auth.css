@@ -209,3 +209,65 @@
   margin-top: calc(-1 * var(--space-2));
   margin-bottom: var(--space-4);
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  .auth-container {
+    padding: var(--space-3);
+  }
+  
+  .auth-card {
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+  }
+  
+  .auth-logo img {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .auth-title {
+    font-size: var(--text-2xl);
+  }
+  
+  .auth-subtitle {
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-6);
+  }
+  
+  .auth-form {
+    gap: var(--space-4);
+  }
+  
+  .auth-form-group input {
+    font-size: 16px; /* Prevents iOS zoom */
+    min-height: 48px;
+  }
+  
+  .auth-button {
+    min-height: 48px;
+    font-size: var(--text-base);
+    width: 100%;
+  }
+  
+  .auth-footer {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+  }
+  
+  .auth-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 374px) {
+  .auth-card {
+    padding: var(--space-4);
+  }
+  
+  .auth-title {
+    font-size: var(--text-xl);
+  }
+}

@@ -448,3 +448,138 @@
   cursor: context-menu;
   user-select: none;
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media (max-width: 767px) {
+  .sheet_container {
+    padding: var(--space-3);
+    padding-top: var(--space-2);
+  }
+
+  .sheet_sticky_header {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .sheet_title_bar {
+    padding: var(--space-3) var(--space-4);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+  }
+
+  /* Toolbar - scroll horizontally on mobile */
+  .sheet_toolbar {
+    padding: var(--space-2) var(--space-3);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    gap: var(--space-1);
+  }
+
+  .sheet_toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Make toolbar buttons touch-friendly */
+  .sheet_btn {
+    min-height: 40px;
+    min-width: 40px;
+    padding: var(--space-2);
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+  }
+
+  .sheet_btn_publish {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .sheet_hint {
+    display: none; /* Hide hints on mobile */
+  }
+
+  /* Table wrapper - ensure horizontal scroll */
+  .sheet_wrap {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Smaller cells on mobile */
+  .sheet_cell {
+    min-width: 120px;
+  }
+
+  .sheet_input {
+    padding: var(--space-2);
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  /* Make column headers and row headers smaller */
+  .sheet_colHeader,
+  .sheet_rowHeader {
+    font-size: 10px;
+    padding: var(--space-1);
+  }
+
+  .sheet_corner,
+  .sheet_rowHeader {
+    width: 36px;
+    min-width: 36px;
+  }
+
+  /* Image and drawing buttons - always visible on mobile */
+  .sheet_add_image_btn,
+  .sheet_add_drawing_btn {
+    opacity: 1;
+    width: 36px;
+    height: 36px;
+  }
+
+  .sheet_add_drawing_btn {
+    right: 44px; /* Adjust position for larger buttons */
+  }
+
+  /* Cell images - smaller on mobile */
+  .sheet_cell_image {
+    width: 80px;
+    height: 80px;
+  }
+
+  /* Context menus - full width on small screens */
+  .sheet_context_menu {
+    min-width: auto;
+    width: calc(100vw - var(--space-8));
+    max-width: 280px;
+  }
+
+  .sheet_context_menu_item {
+    padding: var(--space-3) var(--space-4);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Resize handles - larger touch target on mobile */
+  .sheet_resize_handle {
+    width: 32px;
+  }
+
+  /* Debug info - hide on mobile */
+  .sheet_debug {
+    display: none;
+  }
+}
+
+/* Very small mobile screens */
+@media (max-width: 374px) {
+  .sheet_container {
+    padding: var(--space-2);
+  }
+
+  .sheet_cell {
+    min-width: 100px;
+  }
+
+  .sheet_toolbar {
+    padding: var(--space-1) var(--space-2);
+  }
+}
