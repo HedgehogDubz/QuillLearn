@@ -73,6 +73,28 @@
   animation: shake 0.3s ease-in-out;
 }
 
+.auth-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: var(--border-width) solid var(--color-success-500, #22c55e);
+  color: var(--color-success-500, #22c55e);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-5);
+  font-size: var(--text-sm);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.auth-success p {
+  margin: var(--space-2) 0;
+}
+
+.auth-email-display {
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-10px); }

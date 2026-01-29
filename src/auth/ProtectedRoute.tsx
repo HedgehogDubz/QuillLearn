@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -10,18 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                fontSize: '18px',
-                color: '#667eea'
-            }}>
-                Loading...
-            </div>
-        );
+        return <LoadingScreen message="Connecting to server..." showServerNote={true} />;
     }
 
     if (!isAuthenticated) {

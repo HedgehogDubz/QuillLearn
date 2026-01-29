@@ -6,6 +6,7 @@
 
 import express from 'express';
 import User from '../models/User.js';
+import { supabase } from '../config/supabase.js';
 import {
     hashPassword,
     comparePassword,
@@ -24,12 +25,12 @@ const router = express.Router();
 
 /**
  * POST /api/auth/register
- * Register a new user account
+ * Start registration - sends verification email, account created only after verification
  */
 router.post('/register', async (req, res) => {
     try {
         const { email, username, password } = req.body;
-        
+
         // Validate required fields
         if (!email || !username || !password) {
             return res.status(400).json({
@@ -37,7 +38,7 @@ router.post('/register', async (req, res) => {
                 error: 'Email, username, and password are required'
             });
         }
-        
+
         // Validate email format
         if (!isValidEmail(email)) {
             return res.status(400).json({
@@ -45,7 +46,7 @@ router.post('/register', async (req, res) => {
                 error: 'Invalid email format'
             });
         }
-        
+
         // Validate username
         const usernameValidation = validateUsername(username);
         if (!usernameValidation.valid) {
@@ -54,7 +55,7 @@ router.post('/register', async (req, res) => {
                 error: usernameValidation.message
             });
         }
-        
+
         // Validate password strength
         const passwordValidation = validatePassword(password);
         if (!passwordValidation.valid) {
@@ -63,8 +64,8 @@ router.post('/register', async (req, res) => {
                 error: passwordValidation.message
             });
         }
-        
-        // Check if email already exists
+
+        // Check if email already exists (in users table)
         const existingEmail = await User.findByEmail(email);
         if (existingEmail) {
             return res.status(409).json({
@@ -72,8 +73,8 @@ router.post('/register', async (req, res) => {
                 error: 'Email already registered'
             });
         }
-        
-        // Check if username already exists
+
+        // Check if username already exists (in users table)
         const existingUsername = await User.findByUsername(username);
         if (existingUsername) {
             return res.status(409).json({
@@ -81,50 +82,58 @@ router.post('/register', async (req, res) => {
                 error: 'Username already taken'
             });
         }
-        
+
         // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Generate verification token
+        // Generate verification token (24 hour expiry)
         const { token: verificationToken, expires: verificationExpires } = generateVerificationToken();
 
-        // Create user
-        const user = await User.create({
-            email,
-            username,
-            password: hashedPassword,
-            verificationToken,
-            verificationTokenExpires: verificationExpires
-        });
+        // Delete any existing pending registration for this email or username
+        await supabase
+            .from('pending_registrations')
+            .delete()
+            .or(`email.ilike.${email},username.ilike.${username}`);
+
+        // Create pending registration (NOT a real user yet)
+        const { error: insertError } = await supabase
+            .from('pending_registrations')
+            .insert({
+                email,
+                username,
+                password: hashedPassword,
+                verification_token: verificationToken,
+                expires_at: verificationExpires
+            });
+
+        if (insertError) {
+            console.error('Error creating pending registration:', insertError);
+            throw insertError;
+        }
 
         // Send verification email
         const emailResult = await sendVerificationEmail(email, verificationToken, username);
         if (!emailResult.success) {
             console.warn('Failed to send verification email:', emailResult.error);
+            // Delete the pending registration if email failed
+            await supabase
+                .from('pending_registrations')
+                .delete()
+                .eq('email', email);
+
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to send verification email. Please try again.'
+            });
         }
 
-        // Generate JWT token
-        const token = generateToken(user);
-
-        // Remove password and sensitive fields from response
-        const { password: _, verificationToken: __, resetToken: ___, ...userWithoutPassword } = user;
-
-        // Set token in HTTP-only cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
-
-        res.status(201).json({
+        res.status(200).json({
             success: true,
-            message: 'Account created successfully. Please check your email to verify your account.',
-            user: userWithoutPassword,
-            token,
-            emailSent: emailResult.success
+            message: 'Verification email sent! Please check your inbox and click the link to complete your registration.',
+            needsVerification: true,
+            email: email
         });
-        
+
     } catch (error) {
         console.error('Registration error:', error);
         res.status(500).json({
@@ -141,7 +150,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { emailOrUsername, password } = req.body;
-        
+
         // Validate required fields
         if (!emailOrUsername || !password) {
             return res.status(400).json({
@@ -149,26 +158,36 @@ router.post('/login', async (req, res) => {
                 error: 'Email/username and password are required'
             });
         }
-        
+
         // Find user by email or username
         let user = await User.findByEmail(emailOrUsername);
         if (!user) {
             user = await User.findByUsername(emailOrUsername);
         }
-        
+
         if (!user) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid credentials'
             });
         }
-        
+
         // Verify password
         const isValidPassword = await comparePassword(password, user.password);
         if (!isValidPassword) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid credentials'
+            });
+        }
+
+        // Check if email is verified
+        if (!user.emailVerified) {
+            return res.status(403).json({
+                success: false,
+                error: 'Please verify your email before logging in. Check your inbox for the verification link.',
+                needsVerification: true,
+                email: user.email
             });
         }
 
@@ -306,7 +325,7 @@ router.post('/lookup-users', async (req, res) => {
 
 /**
  * POST /api/auth/verify-email
- * Verify user's email with token
+ * Verify email and create the user account
  */
 router.post('/verify-email', async (req, res) => {
     try {
@@ -319,34 +338,77 @@ router.post('/verify-email', async (req, res) => {
             });
         }
 
-        // Find user by verification token
-        const user = await User.findByVerificationToken(token);
+        // Find pending registration by verification token
+        const { data: pending, error: findError } = await supabase
+            .from('pending_registrations')
+            .select('*')
+            .eq('verification_token', token)
+            .single();
 
-        if (!user) {
+        if (findError || !pending) {
             return res.status(400).json({
                 success: false,
-                error: 'Invalid verification token'
+                error: 'Invalid verification token. Please register again.'
             });
         }
 
         // Check if token has expired
-        if (isTokenExpired(user.verificationTokenExpires)) {
+        if (new Date(pending.expires_at) < new Date()) {
+            // Delete expired pending registration
+            await supabase
+                .from('pending_registrations')
+                .delete()
+                .eq('id', pending.id);
+
             return res.status(400).json({
                 success: false,
-                error: 'Verification token has expired. Please request a new one.'
+                error: 'Verification token has expired. Please register again.'
             });
         }
 
-        // Update user as verified
-        await User.update(user.id, {
-            emailVerified: true,
-            verificationToken: null,
-            verificationTokenExpires: null
+        // Check again if email or username was taken while pending
+        const existingEmail = await User.findByEmail(pending.email);
+        if (existingEmail) {
+            await supabase
+                .from('pending_registrations')
+                .delete()
+                .eq('id', pending.id);
+            return res.status(409).json({
+                success: false,
+                error: 'Email was already registered by another user. Please register with a different email.'
+            });
+        }
+
+        const existingUsername = await User.findByUsername(pending.username);
+        if (existingUsername) {
+            await supabase
+                .from('pending_registrations')
+                .delete()
+                .eq('id', pending.id);
+            return res.status(409).json({
+                success: false,
+                error: 'Username was already taken by another user. Please register with a different username.'
+            });
+        }
+
+        // Create the actual user account (email already verified!)
+        const user = await User.create({
+            email: pending.email,
+            username: pending.username,
+            password: pending.password, // Already hashed
+            avatar: pending.avatar || '[]',
+            emailVerified: true // Account is verified since they clicked the link
         });
+
+        // Delete the pending registration
+        await supabase
+            .from('pending_registrations')
+            .delete()
+            .eq('id', pending.id);
 
         res.json({
             success: true,
-            message: 'Email verified successfully'
+            message: 'Email verified successfully! You can now log in.'
         });
 
     } catch (error) {
@@ -360,7 +422,7 @@ router.post('/verify-email', async (req, res) => {
 
 /**
  * POST /api/auth/resend-verification
- * Resend verification email
+ * Resend verification email (checks pending_registrations first, then users table)
  */
 router.post('/resend-verification', async (req, res) => {
     try {
@@ -373,6 +435,36 @@ router.post('/resend-verification', async (req, res) => {
             });
         }
 
+        // First check if there's a pending registration
+        const { data: pending } = await supabase
+            .from('pending_registrations')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (pending) {
+            // Generate new verification token
+            const { token: verificationToken, expires: verificationExpires } = generateVerificationToken();
+
+            // Update pending registration with new token
+            await supabase
+                .from('pending_registrations')
+                .update({
+                    verification_token: verificationToken,
+                    expires_at: verificationExpires
+                })
+                .eq('id', pending.id);
+
+            // Send verification email
+            await sendVerificationEmail(email, verificationToken, pending.username);
+
+            return res.json({
+                success: true,
+                message: 'Verification email sent'
+            });
+        }
+
+        // Check if user exists in users table (legacy flow - shouldn't happen anymore)
         const user = await User.findByEmail(email);
 
         if (!user) {
@@ -386,11 +478,11 @@ router.post('/resend-verification', async (req, res) => {
         if (user.emailVerified) {
             return res.status(400).json({
                 success: false,
-                error: 'Email is already verified'
+                error: 'Email is already verified. You can log in.'
             });
         }
 
-        // Generate new verification token
+        // Legacy: user exists but not verified (shouldn't happen with new flow)
         const { token: verificationToken, expires: verificationExpires } = generateVerificationToken();
 
         await User.update(user.id, {
@@ -398,7 +490,6 @@ router.post('/resend-verification', async (req, res) => {
             verificationTokenExpires: verificationExpires
         });
 
-        // Send verification email
         await sendVerificationEmail(email, verificationToken, user.username);
 
         res.json({

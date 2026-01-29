@@ -148,7 +148,7 @@ class User {
             username: userData.username,
             password: userData.password,
             avatar: userData.avatar || '[]',
-            email_verified: false,
+            email_verified: userData.emailVerified || false,
             verification_token: userData.verificationToken || null,
             verification_token_expires: userData.verificationTokenExpires || null,
             reset_token: null,

@@ -17,6 +17,9 @@ const Login: React.FC = () => {
     });
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
+    const [needsVerification, setNeedsVerification] = useState<boolean>(false);
+    const [verificationEmail, setVerificationEmail] = useState<string>('');
+    const [resendSuccess, setResendSuccess] = useState<boolean>(false);
 
     // Redirect to home if already authenticated
     useEffect(() => {
@@ -31,11 +34,37 @@ const Login: React.FC = () => {
             [e.target.name]: e.target.value
         });
         setError(''); // Clear error when user types
+        setNeedsVerification(false);
+        setResendSuccess(false);
+    };
+
+    const handleResendVerification = async () => {
+        setLoading(true);
+        setResendSuccess(false);
+        try {
+            const response = await fetch('/api/auth/resend-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: verificationEmail })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setResendSuccess(true);
+                setError('');
+            } else {
+                setError(data.error || 'Failed to resend verification email');
+            }
+        } catch {
+            setError('Failed to resend verification email');
+        }
+        setLoading(false);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setNeedsVerification(false);
+        setResendSuccess(false);
         setLoading(true);
 
         try {
@@ -56,6 +85,11 @@ const Login: React.FC = () => {
 
                 // Redirect to home or dashboard
                 navigate('/');
+            } else if (data.needsVerification) {
+                // User needs to verify their email
+                setNeedsVerification(true);
+                setVerificationEmail(data.email || formData.emailOrUsername);
+                setError(data.error || 'Please verify your email before logging in.');
             } else {
                 setError(data.error || 'Login failed');
             }
@@ -76,9 +110,28 @@ const Login: React.FC = () => {
                 <h1 className="auth-title">Welcome Back</h1>
                 <p className="auth-subtitle">Sign in to your QuillLearn account</p>
 
+                {resendSuccess && (
+                    <div className="auth-success">
+                        Verification email sent! Check your inbox.
+                    </div>
+                )}
+
                 {error && (
                     <div className="auth-error">
                         {error}
+                        {needsVerification && (
+                            <div style={{ marginTop: '12px' }}>
+                                <button
+                                    type="button"
+                                    onClick={handleResendVerification}
+                                    className="auth-link"
+                                    disabled={loading}
+                                    style={{ color: 'inherit', textDecoration: 'underline' }}
+                                >
+                                    {loading ? 'Sending...' : 'Resend Verification Email'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 

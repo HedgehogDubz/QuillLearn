@@ -1320,7 +1320,7 @@ function Notes() {
                 editorRef.current.removeEventListener('click', handleDrawingClick)
             }
         }
-    })
+    }, []) // Empty dependency array - only run once on mount
 
     // Load note data from API/Supabase (only once per session)
     useEffect(() => {
@@ -2153,14 +2153,14 @@ function Notes() {
 
     // Show loading state while redirecting to new session
     if (!sessionId) {
-        return <LoadingScreen type="note" message="Creating new note..." />
+        return <LoadingScreen message="Creating new note..." showServerNote={false} />
     }
 
     return (
         <>
             <Header />
             {/* Show loading overlay while data is loading - editor must still render for Quill to initialize */}
-            {isLoading && <LoadingScreen type="note" message="Loading note..." />}
+            {isLoading && <LoadingScreen message="Loading note..." showServerNote={false} />}
             <div className="notes_container">
                 {/* Sticky Header - Title Bar + Toolbar together */}
                 <div className="notes_sticky_header">

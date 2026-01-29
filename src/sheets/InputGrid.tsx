@@ -1405,7 +1405,7 @@ function InputGrid({ sessionId }: InputGridProps) {
 
     // Show loading screen while data is loading
     if (isLoading) {
-        return <LoadingScreen type="sheet" message="Loading sheet..." />;
+        return <LoadingScreen message="Loading sheet..." showServerNote={false} />;
     }
 
     return (
