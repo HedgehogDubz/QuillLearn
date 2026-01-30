@@ -1018,6 +1018,24 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                 </button>
             </div>
 
+            {/* Mobile Navigation Arrows - shown below card on mobile */}
+            <div className="learn_mobile_nav">
+                <button
+                    className={`learn_nav_arrow ${!canGoBack ? 'disabled' : ''} ${activeKey === '←' ? 'active' : ''}`}
+                    onClick={handlePrevCard}
+                    disabled={!canGoBack}
+                >
+                    ←
+                </button>
+                <span className="learn_mobile_nav_hint">Swipe or tap arrows</span>
+                <button
+                    className={`learn_nav_arrow ${activeKey === '→' ? 'active' : ''}`}
+                    onClick={handleNextCard}
+                >
+                    →
+                </button>
+            </div>
+
             {/* Response Buttons */}
             <div className="learn_response_buttons">
                 {showAnswer ? (

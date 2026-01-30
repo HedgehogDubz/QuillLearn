@@ -389,11 +389,23 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   box-sizing: border-box;
+  /* Ensure touch events work on mobile */
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: manipulation;
 }
 
 .sheet_input:focus {
   outline: none;
   border: var(--border-width-2) solid var(--color-accent-500);
+}
+
+/* On touch devices, ensure textarea is easily tappable */
+@media (pointer: coarse) {
+  .sheet_input {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    min-height: 44px; /* Minimum touch target size */
+  }
 }
 
 /* Debug Info */

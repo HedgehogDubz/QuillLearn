@@ -154,6 +154,8 @@ const Cell = React.memo(({
                 className="sheet_input"
                 value={text}
                 readOnly={readOnly}
+                inputMode="text"
+                enterKeyHint="next"
                 ref={(el) => {
                     inputRef(el);
                     if (el) {
@@ -173,6 +175,10 @@ const Cell = React.memo(({
                 onPaste={onPaste}
                 onFocus={onFocus}
                 onBlur={onBlur}
+                onClick={(e) => {
+                    // Ensure focus on click/tap for mobile keyboard
+                    e.currentTarget.focus();
+                }}
                 rows={1}
                 placeholder={hasImages ? '' : undefined}
             />
