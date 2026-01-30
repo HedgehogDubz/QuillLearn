@@ -1681,10 +1681,16 @@
     width: 100%;
     max-width: 100%;
     aspect-ratio: 4 / 3;
+    overflow: hidden;
   }
 
+  /* Card face - constrain to parent bounds on mobile */
   .learn_card_face {
     padding: var(--space-4);
+    width: 100%;
+    max-width: 100%;
+    left: 0;
+    right: 0;
   }
 
   /* Show mobile navigation below the card */
