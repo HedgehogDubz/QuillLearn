@@ -1584,12 +1584,16 @@
   /* Learn page container */
   .learn_page_container {
     padding: var(--space-3);
+    overflow-x: hidden;
   }
 
   /* Learn study container - reduced padding for more space */
   .learn_container {
     padding: 0 var(--space-3);
     max-width: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
 
   .learn_page_header h1 {
@@ -1659,10 +1663,12 @@
   /* Flashcard Navigation Container - completely restructure for mobile */
   .learn_flashcard_nav_container {
     display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    width: calc(100vw - var(--space-6)) !important;
+    max-width: calc(100vw - var(--space-6)) !important;
     padding: 0 !important;
     margin: 0 auto var(--space-4) auto !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   /* Hide the desktop navigation arrows completely */
@@ -1675,9 +1681,10 @@
     width: 100% !important;
     max-width: 100% !important;
     flex: none !important;
-    display: flex !important;
-    justify-content: center !important;
+    display: block !important;
     margin: 0 auto !important;
+    box-sizing: border-box !important;
+    perspective: 1000px !important;
   }
 
   /* Flashcard */
@@ -1687,6 +1694,7 @@
     max-width: 100% !important;
     aspect-ratio: 4 / 3; /* Taller aspect ratio for mobile */
     margin: 0 auto !important;
+    box-sizing: border-box !important;
   }
 
   .learn_card_face {
