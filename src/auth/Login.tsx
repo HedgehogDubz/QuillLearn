@@ -77,6 +77,12 @@ const Login: React.FC = () => {
                 body: JSON.stringify(formData)
             });
 
+            // Check if response is ok before parsing JSON
+            if (!response.ok && response.status >= 500) {
+                setError(`Server error (${response.status}). Please try again later.`);
+                return;
+            }
+
             const data = await response.json();
 
             if (data.success) {
@@ -94,8 +100,12 @@ const Login: React.FC = () => {
                 setError(data.error || 'Login failed');
             }
         } catch (err) {
-            setError('Network error. Please try again.');
             console.error('Login error:', err);
+            if (err instanceof TypeError && err.message.includes('fetch')) {
+                setError('Cannot connect to server. Please check your internet connection.');
+            } else {
+                setError('Network error. Please try again.');
+            }
         } finally {
             setLoading(false);
         }

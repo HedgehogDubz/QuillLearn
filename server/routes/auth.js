@@ -102,10 +102,12 @@ router.post('/register', async (req, res) => {
         const { password: _, ...userWithoutPassword } = user;
 
         // Set token in HTTP-only cookie
+        // Use 'none' for cross-origin (Vercel -> Railway), 'lax' for same-origin
+        const isProduction = process.env.NODE_ENV === 'production';
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: isProduction, // Must be true when sameSite is 'none'
+            sameSite: isProduction ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -170,10 +172,12 @@ router.post('/login', async (req, res) => {
         const { password: _, ...userWithoutPassword } = user;
 
         // Set token in HTTP-only cookie
+        // Use 'none' for cross-origin (Vercel -> Railway), 'lax' for same-origin
+        const isProduction = process.env.NODE_ENV === 'production';
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: isProduction, // Must be true when sameSite is 'none'
+            sameSite: isProduction ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 

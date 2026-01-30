@@ -36,7 +36,9 @@ app.use(cors({
         'http://localhost:5180',
         'https://quilllearn.vercel.app'
     ],
-    credentials: true // Allow cookies to be sent
+    credentials: true, // Allow cookies to be sent
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
+    exposedHeaders: ['set-cookie']
 }));
 app.use(express.json({ limit: '50mb' })); // Parse JSON request bodies (increased limit for large notes with images)
 app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Parse URL-encoded bodies
