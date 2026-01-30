@@ -1584,16 +1584,12 @@
   /* Learn page container */
   .learn_page_container {
     padding: var(--space-3);
-    overflow-x: hidden;
   }
 
   /* Learn study container - reduced padding for more space */
   .learn_container {
     padding: 0 var(--space-3);
     max-width: 100%;
-    width: 100%;
-    overflow-x: hidden;
-    box-sizing: border-box;
   }
 
   .learn_page_header h1 {
@@ -1660,41 +1656,31 @@
     min-height: 40px;
   }
 
-  /* Flashcard Navigation Container - completely restructure for mobile */
+  /* Flashcard Navigation Container - hide arrows, keep simple */
   .learn_flashcard_nav_container {
-    display: block !important;
-    width: calc(100vw - var(--space-6)) !important;
-    max-width: calc(100vw - var(--space-6)) !important;
-    padding: 0 !important;
-    margin: 0 auto var(--space-4) auto !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
   }
 
-  /* Hide the desktop navigation arrows completely */
+  /* Hide the desktop navigation arrows on mobile */
   .learn_flashcard_nav_container > .learn_nav_arrow {
-    display: none !important;
+    display: none;
   }
 
-  /* Flashcard wrapper - full width centered on mobile */
+  /* Flashcard wrapper */
   .learn_flashcard_wrapper {
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: none !important;
-    display: block !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-    perspective: 1000px !important;
+    width: 100%;
+    max-width: 100%;
   }
 
-  /* Flashcard */
+  /* Flashcard card */
   .learn_flashcard_card {
-    min-width: unset !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    aspect-ratio: 4 / 3; /* Taller aspect ratio for mobile */
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 4 / 3;
   }
 
   .learn_card_face {
@@ -1703,31 +1689,7 @@
 
   /* Show mobile navigation below the card */
   .learn_mobile_nav {
-    display: flex !important;
-    justify-content: center !important;
-    margin-top: var(--space-3) !important;
-  }
-
-  /* Override the 90% max-width constraint on individual cards inside flashcard */
-  .learn_flashcard_card .learn_individual_card {
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-
-  .learn_flashcard_card .learn_cards_grid {
-    width: 100% !important;
-    padding: 0 !important;
-    place-items: stretch !important;
-  }
-
-  /* Ensure single card inside flashcard is full width and centered */
-  .learn_flashcard_card .learn_cards_grid:has(.learn_individual_card:only-child) {
-    place-items: center !important;
-  }
-
-  .learn_flashcard_card .learn_cards_grid:has(.learn_individual_card:only-child) .learn_individual_card {
-    max-width: 100% !important;
-    width: 100% !important;
+    display: flex;
   }
 
   /* Response buttons */
