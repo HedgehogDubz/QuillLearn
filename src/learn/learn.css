@@ -1700,6 +1700,28 @@
     margin-top: var(--space-3) !important;
   }
 
+  /* Override the 90% max-width constraint on individual cards inside flashcard */
+  .learn_flashcard_card .learn_individual_card {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .learn_flashcard_card .learn_cards_grid {
+    width: 100% !important;
+    padding: 0 !important;
+    place-items: stretch !important;
+  }
+
+  /* Ensure single card inside flashcard is full width and centered */
+  .learn_flashcard_card .learn_cards_grid:has(.learn_individual_card:only-child) {
+    place-items: center !important;
+  }
+
+  .learn_flashcard_card .learn_cards_grid:has(.learn_individual_card:only-child) .learn_individual_card {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
   /* Response buttons */
   .learn_btn {
     min-height: 48px;
