@@ -326,12 +326,9 @@ function Home() {
   }
 
   const handleSessionClick = (session: SessionWithType) => {
-    // Navigate to editor based on session type
-    // (Published sessions can be viewed via the "Live" badge link)
-    if (session.type === 'sheet') {
+    // Show modal for sheets and notes, navigate directly for diagrams
+    if (session.type === 'sheet' || session.type === 'note') {
       setSelectedSheet(session)
-    } else if (session.type === 'note') {
-      window.location.href = `/notes/${session.sessionId}`
     } else {
       window.location.href = `/diagrams/${session.sessionId}`
     }
@@ -590,6 +587,7 @@ function Home() {
         <ModeModal
           sessionId={selectedSheet.sessionId}
           title={selectedSheet.title}
+          type={selectedSheet.type === 'sheet' ? 'sheet' : 'note'}
           onClose={handleCloseModal}
         />
       )}

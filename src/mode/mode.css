@@ -137,6 +137,16 @@
   border-color: var(--color-success-500);
 }
 
+/* Quiz Button Hover */
+.mode_btn_quiz:hover:not(:disabled) {
+  border-color: var(--color-warning-500);
+}
+
+/* Writing Button Hover */
+.mode_btn_writing:hover:not(:disabled) {
+  border-color: var(--color-info-500);
+}
+
 /* Disabled Buttons */
 .mode_btn_disabled {
   opacity: 0.6;
@@ -147,4 +157,11 @@
 .mode_btn_disabled .mode_btn_desc {
   color: var(--text-tertiary);
   font-style: italic;
+}
+
+/* Notes grid - 2 items centered */
+.mode_grid_notes {
+  grid-template-columns: 1fr 1fr;
+  max-width: 400px;
+  margin: 0 auto;
 }

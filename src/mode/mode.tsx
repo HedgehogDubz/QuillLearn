@@ -6,9 +6,10 @@ interface ModeModalProps {
     sessionId: string;
     title: string;
     onClose: () => void;
+    type: 'sheet' | 'note';
 }
 
-function ModeModal({ sessionId, title, onClose }: ModeModalProps) {
+function ModeModal({ sessionId, title, onClose, type }: ModeModalProps) {
     const navigate = useNavigate();
 
     // Close on Escape key
@@ -30,13 +31,62 @@ function ModeModal({ sessionId, title, onClose }: ModeModalProps) {
     };
 
     const handleEdit = () => {
-        navigate(`/sheets/${sessionId}`);
+        if (type === 'sheet') {
+            navigate(`/sheets/${sessionId}`);
+        } else {
+            navigate(`/notes/${sessionId}`);
+        }
     };
 
     const handleLearn = () => {
         navigate(`/learn/${sessionId}`);
     };
 
+    const handleQuiz = () => {
+        navigate(`/quiz/${sessionId}`);
+    };
+
+    const handleWriting = () => {
+        navigate(`/writing/${sessionId}`);
+    };
+
+    // Render sheet mode options
+    if (type === 'sheet') {
+        return (
+            <div className="mode_overlay" onClick={handleOverlayClick}>
+                <div className="mode_modal">
+                    <div className="mode_header">
+                        <h2 className="mode_title">{title}</h2>
+                        <button className="mode_close_btn" onClick={onClose}>×</button>
+                    </div>
+                    <div className="mode_grid">
+                        <button className="mode_btn mode_btn_edit" onClick={handleEdit}>
+                            <span className="mode_btn_icon">✏️</span>
+                            <span className="mode_btn_label">Edit</span>
+                            <span className="mode_btn_desc">Modify your flashcard data</span>
+                        </button>
+                        <button className="mode_btn mode_btn_learn" onClick={handleLearn}>
+                            <span className="mode_btn_icon">📚</span>
+                            <span className="mode_btn_label">Learn</span>
+                            <span className="mode_btn_desc">Study with spaced repetition</span>
+                        </button>
+                        <button className="mode_btn mode_btn_quiz" onClick={handleQuiz}>
+                            <span className="mode_btn_icon">📊</span>
+                            <span className="mode_btn_label">Quiz</span>
+                            <span className="mode_btn_desc">Test your knowledge</span>
+                        </button>
+                        <button className="mode_btn mode_btn_disabled" disabled>
+                            <span className="mode_btn_icon">🎯</span>
+                            <span className="mode_btn_label">Match</span>
+                            <span className="mode_btn_desc">Coming Soon</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Render note mode options
     return (
         <div className="mode_overlay" onClick={handleOverlayClick}>
             <div className="mode_modal">
@@ -44,26 +94,16 @@ function ModeModal({ sessionId, title, onClose }: ModeModalProps) {
                     <h2 className="mode_title">{title}</h2>
                     <button className="mode_close_btn" onClick={onClose}>×</button>
                 </div>
-                <div className="mode_grid">
+                <div className="mode_grid mode_grid_notes">
                     <button className="mode_btn mode_btn_edit" onClick={handleEdit}>
                         <span className="mode_btn_icon">✏️</span>
                         <span className="mode_btn_label">Edit</span>
-                        <span className="mode_btn_desc">Modify your flashcard data</span>
+                        <span className="mode_btn_desc">Modify your note</span>
                     </button>
-                    <button className="mode_btn mode_btn_learn" onClick={handleLearn}>
-                        <span className="mode_btn_icon">📚</span>
-                        <span className="mode_btn_label">Learn</span>
-                        <span className="mode_btn_desc">Study with spaced repetition</span>
-                    </button>
-                    <button className="mode_btn mode_btn_disabled" disabled>
-                        <span className="mode_btn_icon">📊</span>
-                        <span className="mode_btn_label">Quiz</span>
-                        <span className="mode_btn_desc">Coming Soon</span>
-                    </button>
-                    <button className="mode_btn mode_btn_disabled" disabled>
-                        <span className="mode_btn_icon">🎯</span>
-                        <span className="mode_btn_label">Match</span>
-                        <span className="mode_btn_desc">Coming Soon</span>
+                    <button className="mode_btn mode_btn_writing" onClick={handleWriting}>
+                        <span className="mode_btn_icon">✍️</span>
+                        <span className="mode_btn_label">Writing</span>
+                        <span className="mode_btn_desc">Practice recall by writing</span>
                     </button>
                 </div>
             </div>

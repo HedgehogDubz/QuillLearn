@@ -6,6 +6,8 @@ import Learn from './learn/learn.tsx'
 import Notes from './notes/notes.tsx'
 import DiagramEditor from './diagrams/DiagramEditor.tsx'
 import DiagramLearn from './diagrams/DiagramLearn.tsx'
+import Quiz from './quiz/Quiz.tsx'
+import Writing from './writing/Writing.tsx'
 import Login from './auth/Login.tsx'
 import Register from './auth/Register.tsx'
 import ForgotPassword from './auth/ForgotPassword.tsx'
@@ -45,6 +47,8 @@ function App() {
         <Route path="/diagrams" element={<ProtectedRoute><DiagramEditor /></ProtectedRoute>} />
         <Route path="/diagrams/:sessionId" element={<ProtectedRoute><DiagramEditor /></ProtectedRoute>} />
         <Route path="/learn/diagram/:sessionId" element={<ProtectedRoute><DiagramLearn /></ProtectedRoute>} />
+        <Route path="/quiz/:sessionId" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+        <Route path="/writing/:sessionId" element={<ProtectedRoute><Writing /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
         <Route
