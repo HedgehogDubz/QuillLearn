@@ -326,12 +326,8 @@ function Home() {
   }
 
   const handleSessionClick = (session: SessionWithType) => {
-    // Show modal for sheets and notes, navigate directly for diagrams
-    if (session.type === 'sheet' || session.type === 'note') {
-      setSelectedSheet(session)
-    } else {
-      window.location.href = `/diagrams/${session.sessionId}`
-    }
+    // Show modal for all session types (sheets, notes, diagrams)
+    setSelectedSheet(session)
   }
 
   const handleCloseModal = () => {
@@ -587,7 +583,7 @@ function Home() {
         <ModeModal
           sessionId={selectedSheet.sessionId}
           title={selectedSheet.title}
-          type={selectedSheet.type === 'sheet' ? 'sheet' : 'note'}
+          type={selectedSheet.type}
           onClose={handleCloseModal}
         />
       )}
