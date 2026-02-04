@@ -247,9 +247,16 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
 
         if (isCorrect) {
             // Correct - record and auto-advance
-            const newResults = [...results, { word: currentWord, userInput, isCorrect: true, position: currentIndex }];
-            setResults(newResults);
-            moveToNext(newResults, userInput);
+            // If retrying, don't add another result (already recorded the wrong attempt)
+            if (isRetrying) {
+                // Just move on without recording again
+                setIsRetrying(false);
+                moveToNext(results, userInput);
+            } else {
+                const newResults = [...results, { word: currentWord, userInput, isCorrect: true, position: currentIndex }];
+                setResults(newResults);
+                moveToNext(newResults, userInput);
+            }
         } else {
             // Wrong
             if (options.wrongAnswerBehavior === 'showAtEnd') {
@@ -257,6 +264,11 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
                 setResults(newResults);
                 moveToNext(newResults, currentWord);
             } else if (options.wrongAnswerBehavior === 'retype') {
+                // Record the wrong answer only on first attempt
+                if (!isRetrying) {
+                    const newResults = [...results, { word: currentWord, userInput, isCorrect: false, position: currentIndex }];
+                    setResults(newResults);
+                }
                 // Show feedback briefly, then clear for retry
                 setIsRetrying(true);
                 setTimeout(() => {
@@ -291,7 +303,8 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
                 if (showFeedback && !lastCorrect && options.wrongAnswerBehavior === 'tellRightAway') {
                     // Wrong answer shown, advance to next
                     moveToNext(results, currentWord);
-                } else if (!showFeedback && !isRetrying) {
+                } else if (!showFeedback) {
+                    // Submit the word (works for both normal and retry attempts)
                     handleWordSubmit();
                 }
             }

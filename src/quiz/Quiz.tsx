@@ -286,20 +286,31 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
 
     const currentQuestion = questions[currentIndex];
 
+    // Move to next question or finish - accepts the updated answers array
+    const moveToNext = useCallback((updatedAnswers: QuizAnswer[]) => {
+        if (currentIndex >= questions.length - 1) {
+            onFinish(updatedAnswers, elapsedTime);
+        } else {
+            setCurrentIndex(prev => prev + 1);
+        }
+    }, [currentIndex, questions.length, elapsedTime, onFinish]);
+
     const handleAnswer = (answer: string) => {
         const isCorrect = answer.trim().toLowerCase() === currentQuestion.correctAnswer.trim().toLowerCase();
         setLastAnswerCorrect(isCorrect);
         setShowFeedback(true);
 
+        const newAnswer: QuizAnswer = {
+            question: currentQuestion,
+            userAnswer: answer,
+            isCorrect
+        };
+
         if (options.wrongAnswerBehavior === 'showAtEnd') {
             // Just record and move on without showing feedback
-            const newAnswer: QuizAnswer = {
-                question: currentQuestion,
-                userAnswer: answer,
-                isCorrect
-            };
-            setAnswers([...answers, newAnswer]);
-            setTimeout(() => moveToNext(), 300);
+            const newAnswers = [...answers, newAnswer];
+            setAnswers(newAnswers);
+            setTimeout(() => moveToNext(newAnswers), 300);
         } else if (options.wrongAnswerBehavior === 'retry' && !isCorrect) {
             // Let user retry - don't record or move on
             setTimeout(() => {
@@ -309,22 +320,10 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
             }, 1000);
         } else {
             // moveOn or correct answer
-            const newAnswer: QuizAnswer = {
-                question: currentQuestion,
-                userAnswer: answer,
-                isCorrect
-            };
-            setAnswers([...answers, newAnswer]);
+            const newAnswers = [...answers, newAnswer];
+            setAnswers(newAnswers);
         }
     };
-
-    const moveToNext = useCallback(() => {
-        if (currentIndex >= questions.length - 1) {
-            onFinish(answers, elapsedTime);
-        } else {
-            setCurrentIndex(prev => prev + 1);
-        }
-    }, [currentIndex, questions.length, answers, elapsedTime, onFinish]);
 
     const handleMcqSelect = (optionIndex: number) => {
         if (showFeedback) return;
@@ -416,7 +415,7 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
 
             {/* Next Button (for moveOn behavior) */}
             {showFeedback && options.wrongAnswerBehavior === 'moveOn' && (
-                <button className="quiz_next_btn" onClick={moveToNext}>
+                <button className="quiz_next_btn" onClick={() => moveToNext(answers)}>
                     {currentIndex >= questions.length - 1 ? 'See Results' : 'Next Question'}
                 </button>
             )}
