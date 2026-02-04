@@ -159,6 +159,52 @@
   margin-left: var(--space-2);
 }
 
+/* Character Progress Display */
+.writing_char_progress {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border: var(--border-width) solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xl);
+  letter-spacing: 0.1em;
+  flex-wrap: wrap;
+}
+
+.writing_char {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2.5rem;
+  border-bottom: 2px solid var(--border-primary);
+  color: var(--text-tertiary);
+}
+
+.writing_char.correct {
+  color: var(--color-success-600);
+  border-bottom-color: var(--color-success-500);
+}
+
+.writing_char.incorrect {
+  color: var(--color-error-600);
+  border-bottom-color: var(--color-error-500);
+  background: var(--color-error-50);
+}
+
+.writing_char.current {
+  border-bottom-color: var(--color-accent-500);
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { border-bottom-color: var(--color-accent-500); }
+  51%, 100% { border-bottom-color: transparent; }
+}
+
 /* Input Area */
 .writing_input_area {
   display: flex;

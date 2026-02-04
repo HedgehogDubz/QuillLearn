@@ -136,9 +136,16 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
     const [showFeedback, setShowFeedback] = useState(false);
     const [lastCorrect, setLastCorrect] = useState(false);
     const [completedWords, setCompletedWords] = useState<string[]>([]);
+    const [isRetrying, setIsRetrying] = useState(false); // Track if user is retrying after wrong answer
     const inputRef = useRef<HTMLInputElement>(null);
+    const resultsRef = useRef<WordResult[]>([]); // Use ref to track results for onFinish
 
     const currentWord = words[currentIndex];
+
+    // Keep resultsRef in sync
+    useEffect(() => {
+        resultsRef.current = results;
+    }, [results]);
 
     // Timer
     useEffect(() => {
@@ -151,58 +158,148 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
     // Focus input on mount and when moving to next word
     useEffect(() => {
         inputRef.current?.focus();
-    }, [currentIndex]);
+    }, [currentIndex, showFeedback]);
 
-    const checkMatch = (input: string, target: string): boolean => {
-        if (options.matchingLevel === 'word') {
-            return input.trim().toLowerCase() === target.toLowerCase();
-        } else {
-            // Character-level: must match exactly (case-insensitive)
-            return input.toLowerCase() === target.toLowerCase();
-        }
-    };
+    // Move to next word/finish
+    const moveToNext = useCallback((newResults: WordResult[], completedWord: string) => {
+        const newCompletedWords = [...completedWords, completedWord];
+        setCompletedWords(newCompletedWords);
 
-    const handleSubmit = () => {
-        if (!userInput.trim()) return;
-
-        const isCorrect = checkMatch(userInput, currentWord);
-        setLastCorrect(isCorrect);
-        setShowFeedback(true);
-
-        if (options.wrongAnswerBehavior === 'showAtEnd') {
-            // Record and move on without feedback
-            setResults([...results, { word: currentWord, userInput, isCorrect, position: currentIndex }]);
-            setCompletedWords([...completedWords, userInput]);
-            moveToNext();
-        } else if (options.wrongAnswerBehavior === 'retype' && !isCorrect) {
-            // Clear input and let user retry
-            setTimeout(() => {
-                setUserInput('');
-                setShowFeedback(false);
-            }, 800);
-        } else {
-            // tellRightAway or correct
-            setResults([...results, { word: currentWord, userInput, isCorrect, position: currentIndex }]);
-            setCompletedWords([...completedWords, isCorrect ? userInput : currentWord]);
-        }
-    };
-
-    const moveToNext = useCallback(() => {
         if (currentIndex >= words.length - 1) {
-            onFinish(results, elapsedTime);
+            // Finish the game
+            onFinish(newResults, elapsedTime);
         } else {
             setCurrentIndex(prev => prev + 1);
             setUserInput('');
             setShowFeedback(false);
+            setIsRetrying(false);
         }
-    }, [currentIndex, words.length, results, elapsedTime, onFinish]);
+    }, [currentIndex, words.length, completedWords, elapsedTime, onFinish]);
 
+    // Handle character mode - check on every keystroke
+    const handleCharacterInput = (newValue: string) => {
+        setUserInput(newValue);
+
+        // Check if the current input matches the target so far
+        const targetSoFar = currentWord.slice(0, newValue.length);
+        const isMatchingSoFar = newValue.toLowerCase() === targetSoFar.toLowerCase();
+
+        if (newValue.length === currentWord.length) {
+            // Completed the word
+            const isCorrect = newValue.toLowerCase() === currentWord.toLowerCase();
+            setLastCorrect(isCorrect);
+
+            if (isCorrect) {
+                // Correct - record and auto-advance
+                const newResults = [...results, { word: currentWord, userInput: newValue, isCorrect: true, position: currentIndex }];
+                setResults(newResults);
+                moveToNext(newResults, newValue);
+            } else {
+                // Wrong
+                setShowFeedback(true);
+                if (options.wrongAnswerBehavior === 'showAtEnd') {
+                    const newResults = [...results, { word: currentWord, userInput: newValue, isCorrect: false, position: currentIndex }];
+                    setResults(newResults);
+                    moveToNext(newResults, currentWord);
+                } else if (options.wrongAnswerBehavior === 'retype') {
+                    // Clear and retry
+                    setIsRetrying(true);
+                    setTimeout(() => {
+                        setUserInput('');
+                        setShowFeedback(false);
+                    }, 600);
+                } else {
+                    // tellRightAway - show feedback, wait for user to press next
+                    const newResults = [...results, { word: currentWord, userInput: newValue, isCorrect: false, position: currentIndex }];
+                    setResults(newResults);
+                }
+            }
+        } else if (!isMatchingSoFar && newValue.length > 0) {
+            // Wrong character typed
+            setLastCorrect(false);
+            setShowFeedback(true);
+
+            if (options.wrongAnswerBehavior === 'showAtEnd') {
+                // Just continue, will record at end of word
+            } else if (options.wrongAnswerBehavior === 'retype') {
+                // Clear the wrong character
+                setIsRetrying(true);
+                setTimeout(() => {
+                    setUserInput(newValue.slice(0, -1)); // Remove wrong character
+                    setShowFeedback(false);
+                }, 300);
+            } else {
+                // tellRightAway - flash feedback but let them continue
+                setTimeout(() => {
+                    setShowFeedback(false);
+                }, 300);
+            }
+        }
+    };
+
+    // Handle word mode submit
+    const handleWordSubmit = () => {
+        if (!userInput.trim()) return;
+
+        const isCorrect = userInput.trim().toLowerCase() === currentWord.toLowerCase();
+        setLastCorrect(isCorrect);
+        setShowFeedback(true);
+
+        if (isCorrect) {
+            // Correct - record and auto-advance
+            const newResults = [...results, { word: currentWord, userInput, isCorrect: true, position: currentIndex }];
+            setResults(newResults);
+            moveToNext(newResults, userInput);
+        } else {
+            // Wrong
+            if (options.wrongAnswerBehavior === 'showAtEnd') {
+                const newResults = [...results, { word: currentWord, userInput, isCorrect: false, position: currentIndex }];
+                setResults(newResults);
+                moveToNext(newResults, currentWord);
+            } else if (options.wrongAnswerBehavior === 'retype') {
+                // Show feedback briefly, then clear for retry
+                setIsRetrying(true);
+                setTimeout(() => {
+                    setUserInput('');
+                    setShowFeedback(false);
+                }, 800);
+            } else {
+                // tellRightAway - show feedback, wait for user to click next
+                const newResults = [...results, { word: currentWord, userInput, isCorrect: false, position: currentIndex }];
+                setResults(newResults);
+            }
+        }
+    };
+
+    // Handle input change
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+
+        if (options.matchingLevel === 'character') {
+            handleCharacterInput(newValue);
+        } else {
+            setUserInput(newValue);
+        }
+    };
+
+    // Handle key presses
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            if (showFeedback && options.wrongAnswerBehavior === 'tellRightAway') {
-                moveToNext();
-            } else if (!showFeedback) {
-                handleSubmit();
+        if (options.matchingLevel === 'word') {
+            // Word mode: Space or Enter submits
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                if (showFeedback && !lastCorrect && options.wrongAnswerBehavior === 'tellRightAway') {
+                    // Wrong answer shown, advance to next
+                    moveToNext(results, currentWord);
+                } else if (!showFeedback && !isRetrying) {
+                    handleWordSubmit();
+                }
+            }
+        } else {
+            // Character mode: Enter or Space advances after wrong answer feedback
+            if ((e.key === 'Enter' || e.key === ' ') && showFeedback && !lastCorrect && options.wrongAnswerBehavior === 'tellRightAway') {
+                e.preventDefault();
+                moveToNext(results, currentWord);
             }
         }
     };
@@ -215,6 +312,30 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
             contextWords.push(completedWords[i] || words[i]);
         }
         return contextWords.join(' ');
+    };
+
+    // For character mode, show which characters are typed
+    const renderCharacterProgress = () => {
+        if (options.matchingLevel !== 'character') return null;
+
+        return (
+            <div className="writing_char_progress">
+                {currentWord.split('').map((char, idx) => {
+                    const userChar = userInput[idx];
+                    let className = 'writing_char';
+                    if (userChar !== undefined) {
+                        className += userChar.toLowerCase() === char.toLowerCase() ? ' correct' : ' incorrect';
+                    } else if (idx === userInput.length) {
+                        className += ' current';
+                    }
+                    return (
+                        <span key={idx} className={className}>
+                            {userChar !== undefined ? userChar : '_'}
+                        </span>
+                    );
+                })}
+            </div>
+        );
     };
 
     return (
@@ -231,33 +352,38 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
                 <span className="writing_current_placeholder">_____</span>
             </div>
 
+            {renderCharacterProgress()}
+
             <div className="writing_input_area">
                 <input
                     ref={inputRef}
                     type="text"
                     className={`writing_input ${showFeedback ? (lastCorrect ? 'correct' : 'incorrect') : ''}`}
                     value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type the next word..."
-                    disabled={showFeedback && options.wrongAnswerBehavior !== 'retype'}
+                    placeholder={options.matchingLevel === 'character' ? "Type each character..." : "Type the word, then press Space or Enter..."}
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                 />
-                {!showFeedback && (
-                    <button className="writing_submit_btn" onClick={handleSubmit}>
-                        Submit
-                    </button>
-                )}
             </div>
 
-            {showFeedback && options.wrongAnswerBehavior !== 'showAtEnd' && (
-                <div className={`writing_feedback ${lastCorrect ? 'correct' : 'incorrect'}`}>
-                    {lastCorrect ? '✓ Correct!' : `✗ The word was: "${currentWord}"`}
+            {showFeedback && !lastCorrect && options.wrongAnswerBehavior === 'tellRightAway' && (
+                <div className="writing_feedback incorrect">
+                    ✗ The word was: "{currentWord}"
                 </div>
             )}
 
-            {showFeedback && options.wrongAnswerBehavior === 'tellRightAway' && (
-                <button className="writing_next_btn" onClick={moveToNext}>
-                    {currentIndex >= words.length - 1 ? 'See Results' : 'Next Word'}
+            {showFeedback && !lastCorrect && options.wrongAnswerBehavior === 'retype' && (
+                <div className="writing_feedback incorrect">
+                    ✗ Try again!
+                </div>
+            )}
+
+            {showFeedback && !lastCorrect && options.wrongAnswerBehavior === 'tellRightAway' && (
+                <button className="writing_next_btn" onClick={() => moveToNext(results, currentWord)}>
+                    {currentIndex >= words.length - 1 ? 'See Results' : 'Next Word (Space/Enter)'}
                 </button>
             )}
         </div>
