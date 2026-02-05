@@ -9,6 +9,7 @@ import { authFetch } from '../utils/api'
 interface WritingOptions {
     matchingLevel: 'word' | 'character'
     wrongAnswerBehavior: 'tellRightAway' | 'retype' | 'showAtEnd'
+    displayMode: 'hidden' | 'paragraph'
 }
 
 interface WordResult {
@@ -72,9 +73,10 @@ interface WritingOptionsScreenProps {
 function WritingOptionsScreen({ noteTitle, wordCount, onStart }: WritingOptionsScreenProps) {
     const [matchingLevel, setMatchingLevel] = useState<'word' | 'character'>('word');
     const [wrongAnswerBehavior, setWrongAnswerBehavior] = useState<'tellRightAway' | 'retype' | 'showAtEnd'>('tellRightAway');
+    const [displayMode, setDisplayMode] = useState<'hidden' | 'paragraph'>('hidden');
 
     const handleStart = () => {
-        onStart({ matchingLevel, wrongAnswerBehavior });
+        onStart({ matchingLevel, wrongAnswerBehavior, displayMode });
     };
 
     return (
@@ -82,6 +84,21 @@ function WritingOptionsScreen({ noteTitle, wordCount, onStart }: WritingOptionsS
             <h1 className="writing_options_title">Writing Practice</h1>
             <p className="writing_options_subtitle">{noteTitle}</p>
             <p className="writing_options_info">{wordCount} words to practice</p>
+
+            <div className="writing_options_group">
+                <h3 className="writing_options_group_title">Display Mode</h3>
+                <div className="writing_option_row">
+                    <span className="writing_option_label">Show words</span>
+                    <select
+                        className="writing_option_select"
+                        value={displayMode}
+                        onChange={(e) => setDisplayMode(e.target.value as 'hidden' | 'paragraph')}
+                    >
+                        <option value="hidden">Hidden (recall from memory)</option>
+                        <option value="paragraph">Paragraph (see all words)</option>
+                    </select>
+                </div>
+            </div>
 
             <div className="writing_options_group">
                 <h3 className="writing_options_group_title">Matching Level</h3>
@@ -317,14 +334,45 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
         }
     };
 
-    // Context preview - show surrounding words
+    // Context preview - show surrounding words (for hidden mode)
     const getContextPreview = () => {
-        const start = Math.max(0, currentIndex - 3);
+        // Show more context - up to 10 words before
+        const start = Math.max(0, currentIndex - 10);
         const contextWords = [];
         for (let i = start; i < currentIndex; i++) {
             contextWords.push(completedWords[i] || words[i]);
         }
         return contextWords.join(' ');
+    };
+
+    // Render paragraph view - shows all words with current highlighted
+    const renderParagraphView = () => {
+        return (
+            <div className="writing_paragraph">
+                {words.map((word, idx) => {
+                    let className = 'writing_paragraph_word';
+                    if (idx < currentIndex) {
+                        // Completed word - check if it was correct
+                        const result = results.find(r => r.position === idx);
+                        if (result) {
+                            className += result.isCorrect ? ' completed correct' : ' completed incorrect';
+                        } else {
+                            className += ' completed';
+                        }
+                    } else if (idx === currentIndex) {
+                        className += ' current';
+                    } else {
+                        className += ' upcoming';
+                    }
+                    return (
+                        <span key={idx} className={className}>
+                            {idx < currentIndex ? (completedWords[idx] || word) : word}
+                            {idx < words.length - 1 ? ' ' : ''}
+                        </span>
+                    );
+                })}
+            </div>
+        );
     };
 
     // For character mode, show which characters are typed
@@ -360,10 +408,16 @@ function WritingGame({ words, options, onFinish }: WritingGameProps) {
                 <span className="writing_timer">{formatTime(elapsedTime)}</span>
             </div>
 
-            <div className="writing_context">
-                <span className="writing_context_text">{getContextPreview()}</span>
-                <span className="writing_current_placeholder">_____</span>
-            </div>
+            {/* Paragraph mode - show all words */}
+            {options.displayMode === 'paragraph' && renderParagraphView()}
+
+            {/* Hidden mode - show context preview */}
+            {options.displayMode === 'hidden' && (
+                <div className="writing_context">
+                    <span className="writing_context_text">{getContextPreview()}</span>
+                    <span className="writing_current_placeholder">_____</span>
+                </div>
+            )}
 
             {renderCharacterProgress()}
 

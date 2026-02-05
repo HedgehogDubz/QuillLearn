@@ -159,6 +159,49 @@
   margin-left: var(--space-2);
 }
 
+/* Paragraph Display Mode */
+.writing_paragraph {
+  background: var(--bg-secondary);
+  border: var(--border-width) solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  font-size: var(--text-lg);
+  line-height: 1.8;
+  max-height: 300px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.writing_paragraph_word {
+  transition: all var(--transition-fast);
+}
+
+.writing_paragraph_word.completed {
+  color: var(--text-secondary);
+}
+
+.writing_paragraph_word.completed.correct {
+  color: var(--color-success-600);
+}
+
+.writing_paragraph_word.completed.incorrect {
+  color: var(--color-error-600);
+  text-decoration: line-through;
+}
+
+.writing_paragraph_word.current {
+  background: var(--color-accent-100);
+  color: var(--color-accent-700);
+  font-weight: var(--font-bold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 2px var(--color-accent-500);
+}
+
+.writing_paragraph_word.upcoming {
+  color: var(--text-primary);
+}
+
 /* Character Progress Display */
 .writing_char_progress {
   display: flex;

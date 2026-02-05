@@ -24,6 +24,7 @@ interface QuizOptions {
     questionType: 'mcq' | 'type'
     mcqOptionCount: number
     wrongAnswerBehavior: 'retry' | 'moveOn' | 'showAtEnd'
+    matchingCriteria: 'exact' | 'containsWord' | 'reviewBeforeWrong'
     questionCount: number
     questionColumn: number
     answerColumn: number
@@ -102,6 +103,7 @@ function QuizOptionsScreen({ headers, cardCount, onStart }: QuizOptionsScreenPro
     const [questionType, setQuestionType] = useState<'mcq' | 'type'>('mcq');
     const [mcqOptionCount, setMcqOptionCount] = useState(4);
     const [wrongAnswerBehavior, setWrongAnswerBehavior] = useState<'retry' | 'moveOn' | 'showAtEnd'>('moveOn');
+    const [matchingCriteria, setMatchingCriteria] = useState<'exact' | 'containsWord' | 'reviewBeforeWrong'>('exact');
     const [questionCount, setQuestionCount] = useState(Math.min(10, cardCount));
     const [questionColumn, setQuestionColumn] = useState(0);
     const [answerColumn, setAnswerColumn] = useState(headers.length > 1 ? 1 : 0);
@@ -111,6 +113,7 @@ function QuizOptionsScreen({ headers, cardCount, onStart }: QuizOptionsScreenPro
             questionType,
             mcqOptionCount,
             wrongAnswerBehavior,
+            matchingCriteria: questionType === 'mcq' ? 'exact' : matchingCriteria,
             questionCount,
             questionColumn,
             answerColumn
@@ -180,6 +183,27 @@ function QuizOptionsScreen({ headers, cardCount, onStart }: QuizOptionsScreenPro
                 )}
             </div>
 
+            {/* What is Considered Wrong - Only for Type mode */}
+            <div className={`quiz_options_group ${questionType === 'mcq' ? 'disabled' : ''}`}>
+                <h3 className="quiz_options_group_title">What is Considered Wrong</h3>
+                <div className="quiz_option_row">
+                    <span className="quiz_option_label">Matching Criteria</span>
+                    <select
+                        className="quiz_option_select"
+                        value={matchingCriteria}
+                        onChange={(e) => setMatchingCriteria(e.target.value as 'exact' | 'containsWord' | 'reviewBeforeWrong')}
+                        disabled={questionType === 'mcq'}
+                    >
+                        <option value="exact">Exact Match</option>
+                        <option value="containsWord">Contains One Word from Answer</option>
+                        <option value="reviewBeforeWrong">Always Review Before Wrong</option>
+                    </select>
+                </div>
+                {questionType === 'mcq' && (
+                    <p className="quiz_option_hint">Only available for Type Answer mode</p>
+                )}
+            </div>
+
             {/* Quiz Settings */}
             <div className="quiz_options_group">
                 <h3 className="quiz_options_group_title">Settings</h3>
@@ -241,6 +265,7 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
     const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [mcqOptions, setMcqOptions] = useState<string[]>([]);
+    const [pendingReview, setPendingReview] = useState<{ answer: string; isCorrect: boolean } | null>(null);
 
     // Generate questions from cards
     const questions = useMemo(() => {
@@ -282,6 +307,7 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
         setSelectedOption(null);
         setUserInput('');
         setShowFeedback(false);
+        setPendingReview(null);
     }, [currentIndex, questions, sessionData, options]);
 
     const currentQuestion = questions[currentIndex];
@@ -295,8 +321,37 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
         }
     }, [currentIndex, questions.length, elapsedTime, onFinish]);
 
+    // Check if the answer is correct based on matching criteria
+    const checkAnswer = (answer: string, correctAnswer: string): boolean => {
+        const userAnswer = answer.trim().toLowerCase();
+        const correct = correctAnswer.trim().toLowerCase();
+
+        if (options.questionType === 'mcq' || options.matchingCriteria === 'exact') {
+            // Exact match
+            return userAnswer === correct;
+        } else if (options.matchingCriteria === 'containsWord') {
+            // Check if user's answer contains any word from the correct answer
+            const correctWords = correct.split(/\s+/).filter(w => w.length > 0);
+            const userWords = userAnswer.split(/\s+/).filter(w => w.length > 0);
+            return correctWords.some(cWord =>
+                userWords.some(uWord => uWord === cWord)
+            );
+        } else {
+            // reviewBeforeWrong - do exact match for initial check
+            return userAnswer === correct;
+        }
+    };
+
     const handleAnswer = (answer: string) => {
-        const isCorrect = answer.trim().toLowerCase() === currentQuestion.correctAnswer.trim().toLowerCase();
+        const isCorrect = checkAnswer(answer, currentQuestion.correctAnswer);
+
+        // For reviewBeforeWrong: if not correct, show review first
+        if (options.matchingCriteria === 'reviewBeforeWrong' && !isCorrect && options.questionType === 'type') {
+            setPendingReview({ answer, isCorrect: false });
+            setShowFeedback(true);
+            return;
+        }
+
         setLastAnswerCorrect(isCorrect);
         setShowFeedback(true);
 
@@ -322,6 +377,33 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
             // moveOn or correct answer
             const newAnswers = [...answers, newAnswer];
             setAnswers(newAnswers);
+        }
+    };
+
+    // Handle review confirmation - user decides if their answer was actually correct
+    const handleReviewConfirm = (markAsCorrect: boolean) => {
+        if (!pendingReview) return;
+
+        setLastAnswerCorrect(markAsCorrect);
+
+        const newAnswer: QuizAnswer = {
+            question: currentQuestion,
+            userAnswer: pendingReview.answer,
+            isCorrect: markAsCorrect
+        };
+
+        const newAnswers = [...answers, newAnswer];
+        setAnswers(newAnswers);
+        setPendingReview(null);
+
+        if (options.wrongAnswerBehavior === 'showAtEnd') {
+            setTimeout(() => moveToNext(newAnswers), 300);
+        } else if (options.wrongAnswerBehavior === 'retry' && !markAsCorrect) {
+            setTimeout(() => {
+                setShowFeedback(false);
+                setSelectedOption(null);
+                setUserInput('');
+            }, 1000);
         }
     };
 
@@ -388,33 +470,59 @@ function QuizGame({ sessionData, options, onFinish }: QuizGameProps) {
                 <div className="quiz_type_input_wrapper">
                     <input
                         type="text"
-                        className={`quiz_type_input ${showFeedback ? (lastAnswerCorrect ? 'correct' : 'incorrect') : ''}`}
+                        className={`quiz_type_input ${showFeedback ? (pendingReview ? '' : (lastAnswerCorrect ? 'correct' : 'incorrect')) : ''}`}
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleTypeSubmit()}
                         placeholder="Type your answer..."
-                        disabled={showFeedback}
+                        disabled={showFeedback || pendingReview !== null}
                         autoFocus
                     />
                     <button
                         className="quiz_submit_btn"
                         onClick={handleTypeSubmit}
-                        disabled={showFeedback || !userInput.trim()}
+                        disabled={showFeedback || !userInput.trim() || pendingReview !== null}
                     >
                         Submit
                     </button>
                 </div>
             )}
 
+            {/* Review Mode - Ask user if answer is correct */}
+            {pendingReview && (
+                <div className="quiz_review_panel">
+                    <div className="quiz_review_header">Review Your Answer</div>
+                    <div className="quiz_review_comparison">
+                        <div className="quiz_review_item">
+                            <span className="quiz_review_label">Your answer:</span>
+                            <span className="quiz_review_value">{pendingReview.answer}</span>
+                        </div>
+                        <div className="quiz_review_item">
+                            <span className="quiz_review_label">Correct answer:</span>
+                            <span className="quiz_review_value correct">{currentQuestion.correctAnswer}</span>
+                        </div>
+                    </div>
+                    <div className="quiz_review_question">Was your answer correct?</div>
+                    <div className="quiz_review_buttons">
+                        <button className="quiz_review_btn correct" onClick={() => handleReviewConfirm(true)}>
+                            ✓ Yes, mark as correct
+                        </button>
+                        <button className="quiz_review_btn incorrect" onClick={() => handleReviewConfirm(false)}>
+                            ✗ No, mark as wrong
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Feedback */}
-            {showFeedback && options.wrongAnswerBehavior !== 'showAtEnd' && (
+            {showFeedback && !pendingReview && options.wrongAnswerBehavior !== 'showAtEnd' && (
                 <div className={`quiz_feedback ${lastAnswerCorrect ? 'correct' : 'incorrect'}`}>
                     {lastAnswerCorrect ? '✓ Correct!' : `✗ Incorrect! The answer is: ${currentQuestion.correctAnswer}`}
                 </div>
             )}
 
             {/* Next Button (for moveOn behavior) */}
-            {showFeedback && options.wrongAnswerBehavior === 'moveOn' && (
+            {showFeedback && !pendingReview && options.wrongAnswerBehavior === 'moveOn' && (
                 <button className="quiz_next_btn" onClick={() => moveToNext(answers)}>
                     {currentIndex >= questions.length - 1 ? 'See Results' : 'Next Question'}
                 </button>
