@@ -227,6 +227,9 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
     // State for showing/hiding the answer
     const [showAnswer, setShowAnswer] = useState(false)
 
+    // State for card transition (to prevent seeing back of card when moving to next)
+    const [isTransitioning, setIsTransitioning] = useState(false)
+
     // State for keyboard shortcut visual feedback
     const [activeKey, setActiveKey] = useState<string | null>(null)
 
@@ -430,6 +433,10 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
     const handleCorrect = useCallback(() => {
         if (!currentCard || deck.length === 0) return
 
+        // Start transition - instantly flip back and hide content
+        setIsTransitioning(true)
+        setShowAnswer(false)
+
         // Save to history before modifying
         setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
         setHistoryIndex(prev => prev + 1)
@@ -475,12 +482,17 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
             setDeck(newDeck)
         }
 
-        setShowAnswer(false)
+        // End transition after a brief moment
+        setTimeout(() => setIsTransitioning(false), 50)
     }, [currentCard, deck, maxDifficulty, historyIndex, learningMode])
 
     // Handle "Incorrect" button click
     const handleIncorrect = useCallback(() => {
         if (!currentCard || deck.length === 0) return
+
+        // Start transition - instantly flip back and hide content
+        setIsTransitioning(true)
+        setShowAnswer(false)
 
         // Save to history before modifying
         setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
@@ -513,12 +525,17 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
             setDeck(newDeck)
         }
 
-        setShowAnswer(false)
+        // End transition after a brief moment
+        setTimeout(() => setIsTransitioning(false), 50)
     }, [currentCard, deck, maxDifficulty, historyIndex, learningMode])
 
     // Handle "Unsure" button click - sets difficulty to maxDifficulty - 2
     const handleUnsure = useCallback(() => {
         if (!currentCard || deck.length === 0) return
+
+        // Start transition - instantly flip back and hide content
+        setIsTransitioning(true)
+        setShowAnswer(false)
 
         // Save to history before modifying
         setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
@@ -556,12 +573,17 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
             setDeck(newDeck)
         }
 
-        setShowAnswer(false)
+        // End transition after a brief moment
+        setTimeout(() => setIsTransitioning(false), 50)
     }, [currentCard, deck, maxDifficulty, historyIndex, learningMode])
 
     // Handle "Ban" button click - sets difficulty to -1
     const handleBan = useCallback(() => {
         if (!currentCard || deck.length === 0) return
+
+        // Start transition - instantly flip back and hide content
+        setIsTransitioning(true)
+        setShowAnswer(false)
 
         // Save to history before modifying
         setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
@@ -577,7 +599,9 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
         newDeck.push(item)
 
         setDeck(newDeck)
-        setShowAnswer(false)
+
+        // End transition after a brief moment
+        setTimeout(() => setIsTransitioning(false), 50)
     }, [currentCard, deck, historyIndex])
 
     // Unban a card by index
@@ -617,18 +641,29 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
     const handlePrevCard = useCallback(() => {
         if (historyIndex < 0 || cardHistory.length === 0) return
 
+        // Start transition - instantly flip back and hide content
+        setIsTransitioning(true)
+        setShowAnswer(false)
+
         if (historyIndex >= 0) {
             // Restore previous deck state
             setDeck(cardHistory[historyIndex])
             setHistoryIndex(prev => prev - 1)
-            setShowAnswer(false)
         }
+
+        // End transition after a brief moment
+        setTimeout(() => setIsTransitioning(false), 50)
     }, [historyIndex, cardHistory])
 
     // Navigate to next card (without modifying difficulty)
     const handleNextCard = useCallback(() => {
         if (!currentCard || deck.length <= 1) return
         if (currentCard.difficulty === -1) return // Skip banned cards
+
+        // Start transition - instantly flip back and hide content
+        setIsTransitioning(true)
+        setShowAnswer(false)
+
         // Save current state to history
         setCardHistory(prev => [...prev.slice(0, historyIndex + 1), deck])
         setHistoryIndex(prev => prev + 1)
@@ -636,7 +671,9 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
         // Rotate deck: move first card to end
         const newDeck = [...deck.slice(1), deck[0]]
         setDeck(newDeck)
-        setShowAnswer(false)
+
+        // End transition after a brief moment
+        setTimeout(() => setIsTransitioning(false), 50)
     }, [currentCard, deck, historyIndex])
 
     // Check if we can go back
@@ -953,7 +990,7 @@ function FlashcardStudy({ initialData, sessionId }: FlashcardStudyProps) {
                 {/* Centered Flashcard - Click anywhere to flip */}
                 <div className="learn_flashcard_wrapper">
                     <div
-                        className={`learn_flashcard_card ${showAnswer ? 'flipped' : ''}`}
+                        className={`learn_flashcard_card ${showAnswer ? 'flipped' : ''} ${isTransitioning ? 'transitioning' : ''}`}
                         onClick={handleToggleAnswer}
                     >
                         {/* Front - Question */}

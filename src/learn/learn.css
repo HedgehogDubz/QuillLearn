@@ -583,6 +583,11 @@
   transform: rotateY(180deg);
 }
 
+/* Transitioning state - instant flip with no animation to prevent seeing back of card */
+.learn_flashcard_card.transitioning {
+  transition: none;
+}
+
 /* Card Faces */
 .learn_card_face {
   position: absolute;

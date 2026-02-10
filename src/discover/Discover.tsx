@@ -155,7 +155,6 @@ function Discover() {
             <div className="discover-container">
                 <div className="discover-header">
                     <h1>Discover</h1>
-                    <p>Explore public sheets, notes, and diagrams from the community</p>
                 </div>
 
                 <div className="discover-controls">
