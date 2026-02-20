@@ -39,6 +39,7 @@ import { useAuth } from '../auth/AuthContext';
 import { authFetch } from '../utils/api';
 import DocumentHeader from '../components/DocumentHeader';
 import { ConvertToSheetModal } from './ConvertToSheetModal';
+import { EnhanceNoteModal } from './EnhanceNoteModal';
 import TagInput from '../components/TagInput';
 import PublishModal from '../components/PublishModal';
 import { MonacoCodeBlock, SUPPORTED_LANGUAGES } from '../components/MonacoCodeBlock';
@@ -245,6 +246,7 @@ function Notes() {
     const [isReadOnly, setIsReadOnly] = useState(false)
     const [userPermission, setUserPermission] = useState<string | null>(null)
     const [showConvertModal, setShowConvertModal] = useState(false)
+    const [showEnhanceModal, setShowEnhanceModal] = useState(false)
     const [showPublishModal, setShowPublishModal] = useState(false)
     const [tags, setTags] = useState<string[]>([])
     const [allUserTags, setAllUserTags] = useState<string[]>([])
@@ -575,7 +577,7 @@ function Notes() {
                         ['link', 'image', 'video', 'formula'],
                         ['drawing', 'embedFile', 'monacoCode'], // Custom buttons - Monaco replaces code-block
                         ['clean'],
-                        ['convertToSheet', 'publishToDiscover'] // AI conversion and publish buttons
+                        ['enhanceNote', 'convertToSheet', 'publishToDiscover'] // AI enhance, conversion and publish buttons
                     ],
                     handlers: {
                         drawing: () => {
@@ -586,6 +588,9 @@ function Notes() {
                             if (fileInputRef.current) {
                                 fileInputRef.current.click()
                             }
+                        },
+                        enhanceNote: () => {
+                            setShowEnhanceModal(true)
                         },
                         convertToSheet: () => {
                             setShowConvertModal(true)
@@ -824,6 +829,7 @@ function Notes() {
                 '.ql-drawing': `Insert Drawing (${cmdKey}Shift+D)`,
                 '.ql-monacoCode': `Code Block (${cmdKey}Shift+E)`,
                 '.ql-embedFile': `Attach File (${cmdKey}Shift+A)`,
+                '.ql-enhanceNote': `Enhance with AI (${cmdKey}Shift+H)`,
                 '.ql-convertToSheet': `Convert to Sheet (${cmdKey}Shift+S)`,
                 '.ql-publishToDiscover': 'Publish to Discover',
 
@@ -921,6 +927,11 @@ function Notes() {
                 codeBlockButton.setAttribute('title', 'Code Block (Ctrl+Shift+E)')
             }
 
+            const enhanceButton = toolbar.querySelector('.ql-enhanceNote')
+            if (enhanceButton) {
+                enhanceButton.innerHTML = '🪄 Enhance'
+            }
+
             const convertButton = toolbar.querySelector('.ql-convertToSheet')
             if (convertButton) {
                 convertButton.innerHTML = '📊 Convert'
@@ -974,6 +985,10 @@ function Notes() {
                 case 'S': // Convert to Sheet
                     e.preventDefault()
                     setShowConvertModal(true)
+                    break
+                case 'H': // Enhance with AI
+                    e.preventDefault()
+                    setShowEnhanceModal(true)
                     break
             }
         }
@@ -2342,6 +2357,29 @@ function Notes() {
                         onClose={() => setShowConvertModal(false)}
                         noteContent={content}
                         noteTitle={title}
+                    />
+                )}
+
+                {/* Enhance Note Modal */}
+                {showEnhanceModal && (
+                    <EnhanceNoteModal
+                        isOpen={showEnhanceModal}
+                        onClose={() => setShowEnhanceModal(false)}
+                        noteContent={content}
+                        noteTitle={title}
+                        onEnhanced={(enhancedContent) => {
+                            // Update the Quill editor with the enhanced content
+                            if (quillRef.current) {
+                                quillRef.current.clipboard.dangerouslyPasteHTML(0, enhancedContent)
+                                // Set cursor to end of content
+                                const newLength = quillRef.current.getLength()
+                                if (newLength > 1) {
+                                    quillRef.current.setSelection(newLength - 1, 0)
+                                }
+                                // Trigger save
+                                setContent(enhancedContent)
+                            }
+                        }}
                     />
                 )}
 

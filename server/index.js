@@ -15,6 +15,7 @@ import diagramsRoutes from './routes/diagrams.js';
 import storageRoutes from './routes/storage.js';
 import chatRoutes from './routes/chat.js';
 import notesToSheetsRoutes from './routes/notes-to-sheets.js';
+import enhanceNoteRoutes from './routes/enhance-note.js';
 import presenceRoutes from './routes/presence.js';
 import usersRoutes from './routes/users.js';
 import discoverRoutes from './routes/discover.js';
@@ -70,6 +71,7 @@ app.use('/api/storage', storageRoutes);
 // Chat routes (AI)
 //app.use('/api/chat', chatRoutes);
 app.use('/api/notes-to-sheets', notesToSheetsRoutes);
+app.use('/api/enhance-note', enhanceNoteRoutes);
 
 // Presence routes (real-time collaboration)
 app.use('/api/presence', presenceRoutes);
