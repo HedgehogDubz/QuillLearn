@@ -15,7 +15,6 @@ interface EnhanceNoteModalProps {
 
 interface EnhancementOption {
     type: EnhancementType;
-    emoji: string;
     label: string;
     description: string;
 }
@@ -23,37 +22,31 @@ interface EnhancementOption {
 const ENHANCEMENT_OPTIONS: EnhancementOption[] = [
     {
         type: 'improve',
-        emoji: '✨',
         label: 'Improve Writing',
         description: 'Fix grammar, improve clarity, and enhance overall writing quality'
     },
     {
         type: 'summarize',
-        emoji: '📋',
         label: 'Summarize',
         description: 'Create a concise summary of the key points'
     },
     {
         type: 'expand',
-        emoji: '📝',
         label: 'Expand & Elaborate',
         description: 'Add more detail, examples, and explanations to your notes'
     },
     {
         type: 'simplify',
-        emoji: '🎯',
         label: 'Simplify',
         description: 'Make the content easier to understand with simpler language'
     },
     {
         type: 'formalize',
-        emoji: '📄',
         label: 'Make Formal',
         description: 'Convert to professional, academic-style writing'
     },
     {
         type: 'custom',
-        emoji: '🎨',
         label: 'Custom Prompt',
         description: 'Write your own instructions for how to enhance the notes'
     }
@@ -159,7 +152,6 @@ export const EnhanceNoteModal: React.FC<EnhanceNoteModalProps> = ({
                                         checked={enhancementType === option.type}
                                         onChange={() => setEnhancementType(option.type)}
                                     />
-                                    <span className="convert_type_emoji">{option.emoji}</span>
                                     <span className="convert_type_label">{option.label}</span>
                                     <span className="convert_type_desc">{option.description}</span>
                                 </label>
@@ -171,7 +163,6 @@ export const EnhanceNoteModal: React.FC<EnhanceNoteModalProps> = ({
                     {enhancementType === 'custom' && (
                         <div className="convert_section convert_custom_section">
                             <label className="convert_section_label">
-                                <span className="convert_section_icon">✍️</span>
                                 Your Custom Instructions
                             </label>
                             <div className="convert_custom_prompt_container">
@@ -184,7 +175,7 @@ export const EnhanceNoteModal: React.FC<EnhanceNoteModalProps> = ({
                                 />
                                 <div className="convert_custom_guidelines">
                                     <div className="convert_guidelines_header">
-                                        <span>💡</span> Tips for effective prompts
+                                        Tips for effective prompts
                                     </div>
                                     <ul className="convert_guidelines_list">
                                         <li>Be specific about what you want changed</li>
@@ -205,7 +196,7 @@ export const EnhanceNoteModal: React.FC<EnhanceNoteModalProps> = ({
                     {/* Error Message */}
                     {error && (
                         <div className="convert_error">
-                            ⚠️ {error}
+                            {error}
                         </div>
                     )}
                 </div>

@@ -929,17 +929,17 @@ function Notes() {
 
             const enhanceButton = toolbar.querySelector('.ql-enhanceNote')
             if (enhanceButton) {
-                enhanceButton.innerHTML = '🪄 Enhance'
+                enhanceButton.innerHTML = 'Enhance'
             }
 
             const convertButton = toolbar.querySelector('.ql-convertToSheet')
             if (convertButton) {
-                convertButton.innerHTML = '📊 Convert'
+                convertButton.innerHTML = 'Convert'
             }
 
             const publishButton = toolbar.querySelector('.ql-publishToDiscover')
             if (publishButton) {
-                publishButton.innerHTML = '📢 Publish'
+                publishButton.innerHTML = 'Publish'
             }
         }, 50)
 

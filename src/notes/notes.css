@@ -992,7 +992,8 @@
     display: none;
   }
 
-  /* Convert to Sheet button */
+  /* Toolbar action buttons */
+  .ql-enhanceNote,
   .ql-convertToSheet,
   .ql-publishToDiscover {
     font-size: var(--text-xs) !important;
@@ -1151,6 +1152,40 @@
 }
 
 .ql-toolbar .ql-formats:has(.ql-publishToDiscover) {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Enhance Note Button - Purple/Violet */
+.ql-enhanceNote {
+  width: auto !important;
+  padding: var(--space-2) var(--space-4) !important;
+  background: var(--color-primary-500) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--radius-md) !important;
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-medium) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--space-2) !important;
+  white-space: nowrap !important;
+  margin-left: var(--space-2) !important;
+}
+
+.ql-enhanceNote:hover {
+  background: var(--color-primary-400) !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5) !important;
+}
+
+.ql-enhanceNote:active {
+  transform: translateY(0) !important;
+}
+
+.ql-toolbar .ql-formats:has(.ql-enhanceNote) {
   display: flex !important;
   align-items: center !important;
 }
