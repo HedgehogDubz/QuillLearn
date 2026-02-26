@@ -562,7 +562,7 @@ function Home() {
 
                       {session.isPublished ?
                         (<><PublishIcon size={12} color='var(--color-success-500)'/> Manage</>):
-                        (<><PublishIcon size={12} color={session.type === 'note' ? 'var(--color-warning-500)' : session.type === 'diagram' ? '#a855f7' : 'var(--color-accent-500)'}/> Publish</>)
+                        (<><PublishIcon size={12} /> Publish</>)
                       }
                     </button>
                     <button

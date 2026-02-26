@@ -26,15 +26,24 @@ interface NoteData {
 
 // ============ Helper Functions ============
 
-// Strip HTML tags and get plain text
+// Strip HTML tags and get plain text, converting block elements to spaces
 function stripHtml(html: string): string {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    // Replace block-level elements with spaces to preserve word boundaries
+    let processed = html
+        .replace(/<br\s*\/?>/gi, ' ')  // <br> tags
+        .replace(/<\/p>/gi, ' ')        // closing </p> tags
+        .replace(/<\/div>/gi, ' ')      // closing </div> tags
+        .replace(/<\/li>/gi, ' ')       // closing </li> tags
+        .replace(/<\/h[1-6]>/gi, ' ')   // closing heading tags
+        .replace(/<\/blockquote>/gi, ' '); // closing blockquote tags
+
+    const doc = new DOMParser().parseFromString(processed, 'text/html');
     return doc.body.textContent || '';
 }
 
 // Split text into words (keeping punctuation attached)
 function splitIntoWords(text: string): string[] {
-    // Split on whitespace but keep words with punctuation
+    // Split on any whitespace (spaces, tabs, newlines) and filter empty strings
     return text.split(/\s+/).filter(word => word.length > 0);
 }
 
