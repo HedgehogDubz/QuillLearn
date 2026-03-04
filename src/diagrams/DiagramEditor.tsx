@@ -1141,6 +1141,13 @@ function DiagramEditor() {
         }
     }, [selectedTool, isReadOnly, getSvgCoords, currentCard])
 
+    // Touch wrapper for element drag
+    const handleElementTouchStart = useCallback((e: React.TouchEvent, elementId: string, elementType: 'image' | 'shape' | 'label') => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleElementDragStart(e as any, elementId, elementType)
+    }, [handleElementDragStart])
+
     // Handle resize start
     const handleResizeStart = useCallback((e: React.MouseEvent, elementId: string, handle: string, elementType: 'image' | 'label' | 'shape') => {
         if (selectedTool !== 'select' || isReadOnly) return
@@ -1192,6 +1199,13 @@ function DiagramEditor() {
         }
     }, [selectedTool, isReadOnly, getSvgCoords, currentCard])
 
+    // Touch wrapper for resize
+    const handleResizeTouchStart = useCallback((e: React.TouchEvent, elementId: string, handle: string, elementType: 'image' | 'label' | 'shape') => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleResizeStart(e as any, elementId, handle, elementType)
+    }, [handleResizeStart])
+
     // Handle text drag start (for moving label text independently)
     const handleTextDragStart = useCallback((e: React.MouseEvent, labelId: string) => {
         if (selectedTool !== 'select' || isReadOnly) return
@@ -1213,6 +1227,29 @@ function DiagramEditor() {
             textOffsetY: label.textOffsetY || 0
         })
     }, [selectedTool, isReadOnly, getSvgCoords, currentCard])
+
+    // Touch wrapper for text drag
+    const handleTextTouchStart = useCallback((e: React.TouchEvent, labelId: string) => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleTextDragStart(e as any, labelId)
+    }, [handleTextDragStart])
+
+    // Touch event wrappers for canvas that prevent default behavior
+    const handleCanvasTouchStart = useCallback((e: React.TouchEvent) => {
+        e.preventDefault()
+        handleCanvasMouseDown(e as any)
+    }, [handleCanvasMouseDown])
+
+    const handleCanvasTouchMove = useCallback((e: React.TouchEvent) => {
+        e.preventDefault()
+        handleCanvasMouseMove(e as any)
+    }, [handleCanvasMouseMove])
+
+    const handleCanvasTouchEnd = useCallback((e: React.TouchEvent) => {
+        e.preventDefault()
+        handleCanvasMouseUp(e as any)
+    }, [handleCanvasMouseUp])
 
     // Reset label text position to center
     const resetLabelTextPosition = useCallback(() => {
@@ -1735,9 +1772,9 @@ function DiagramEditor() {
                         onMouseMove={handleCanvasMouseMove}
                         onMouseUp={handleCanvasMouseUp}
                         onMouseLeave={handleCanvasMouseUp}
-                        onTouchStart={handleCanvasMouseDown as any}
-                        onTouchMove={handleCanvasMouseMove as any}
-                        onTouchEnd={handleCanvasMouseUp as any}
+                        onTouchStart={handleCanvasTouchStart}
+                        onTouchMove={handleCanvasTouchMove}
+                        onTouchEnd={handleCanvasTouchEnd}
                         onDoubleClick={handleCanvasDoubleClick}
                         onDragStart={(e) => e.preventDefault()}
                     >
@@ -1759,29 +1796,29 @@ function DiagramEditor() {
                                         className={selectedElementId === img.id ? 'selected' : ''}
                                         style={{ cursor: selectedTool === 'select' ? 'move' : 'default' }}
                                         onMouseDown={(e) => handleElementDragStart(e, img.id, 'image')}
-                                        onTouchStart={(e) => handleElementDragStart(e as any, img.id, 'image')}
+                                        onTouchStart={(e) => handleElementTouchStart(e, img.id, 'image')}
                                     />
                                     {/* Resize handles for selected images */}
                                     {selectedElementId === img.id && selectedTool === 'select' && !isReadOnly && (
                                         <>
                                             {/* Corner handles */}
                                             <rect x={img.x - 5} y={img.y - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 'nw-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'nw', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 'nw', 'image')} />
+                                                  style={{ cursor: 'nw-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'nw', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 'nw', 'image')} />
                                             <rect x={img.x + img.width - 5} y={img.y - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 'ne-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'ne', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 'ne', 'image')} />
+                                                  style={{ cursor: 'ne-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'ne', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 'ne', 'image')} />
                                             <rect x={img.x - 5} y={img.y + img.height - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 'sw-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'sw', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 'sw', 'image')} />
+                                                  style={{ cursor: 'sw-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'sw', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 'sw', 'image')} />
                                             <rect x={img.x + img.width - 5} y={img.y + img.height - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 'se-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'se', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 'se', 'image')} />
+                                                  style={{ cursor: 'se-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'se', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 'se', 'image')} />
                                             {/* Edge handles */}
                                             <rect x={img.x + img.width / 2 - 5} y={img.y - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 'n-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'n', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 'n', 'image')} />
+                                                  style={{ cursor: 'n-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'n', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 'n', 'image')} />
                                             <rect x={img.x + img.width / 2 - 5} y={img.y + img.height - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 's-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 's', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 's', 'image')} />
+                                                  style={{ cursor: 's-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 's', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 's', 'image')} />
                                             <rect x={img.x - 5} y={img.y + img.height / 2 - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 'w-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'w', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 'w', 'image')} />
+                                                  style={{ cursor: 'w-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'w', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 'w', 'image')} />
                                             <rect x={img.x + img.width - 5} y={img.y + img.height / 2 - 5} width={10} height={10} fill="#00d4ff"
-                                                  style={{ cursor: 'e-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'e', 'image')} onTouchStart={(e) => handleResizeStart(e as any, img.id, 'e', 'image')} />
+                                                  style={{ cursor: 'e-resize' }} onMouseDown={(e) => handleResizeStart(e, img.id, 'e', 'image')} onTouchStart={(e) => handleResizeTouchStart(e, img.id, 'e', 'image')} />
                                         </>
                                     )}
                                 </g>
@@ -1811,19 +1848,19 @@ function DiagramEditor() {
                                             className={isSelected ? 'selected' : ''}
                                             style={shapeStyle}
                                             onMouseDown={(e) => handleElementDragStart(e, shape.id, 'shape')}
-                                            onTouchStart={(e) => handleElementDragStart(e as any, shape.id, 'shape')}
+                                            onTouchStart={(e) => handleElementTouchStart(e, shape.id, 'shape')}
                                         />
                                         {/* Resize handles for selected rectangle */}
                                         {isSelected && selectedTool === 'select' && !isReadOnly && (
                                             <>
                                                 <rect x={minX - 4} y={minY - 4} width={8} height={8} fill="#00d4ff"
-                                                      style={{ cursor: 'nwse-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'nw', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'nw', 'shape')} />
+                                                      style={{ cursor: 'nwse-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'nw', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'nw', 'shape')} />
                                                 <rect x={minX + width - 4} y={minY - 4} width={8} height={8} fill="#00d4ff"
-                                                      style={{ cursor: 'nesw-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'ne', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'ne', 'shape')} />
+                                                      style={{ cursor: 'nesw-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'ne', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'ne', 'shape')} />
                                                 <rect x={minX - 4} y={minY + height - 4} width={8} height={8} fill="#00d4ff"
-                                                      style={{ cursor: 'nesw-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'sw', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'sw', 'shape')} />
+                                                      style={{ cursor: 'nesw-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'sw', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'sw', 'shape')} />
                                                 <rect x={minX + width - 4} y={minY + height - 4} width={8} height={8} fill="#00d4ff"
-                                                      style={{ cursor: 'nwse-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'se', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'se', 'shape')} />
+                                                      style={{ cursor: 'nwse-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'se', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'se', 'shape')} />
                                             </>
                                         )}
                                     </g>
@@ -1845,12 +1882,12 @@ function DiagramEditor() {
                                             className={isSelected ? 'selected' : ''}
                                             style={shapeStyle}
                                             onMouseDown={(e) => handleElementDragStart(e, shape.id, 'shape')}
-                                            onTouchStart={(e) => handleElementDragStart(e as any, shape.id, 'shape')}
+                                            onTouchStart={(e) => handleElementTouchStart(e, shape.id, 'shape')}
                                         />
                                         {/* Resize handle for selected circle (right edge) */}
                                         {isSelected && selectedTool === 'select' && !isReadOnly && (
                                             <rect x={cx + r - 4} y={cy - 4} width={8} height={8} fill="#00d4ff"
-                                                  style={{ cursor: 'ew-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'e', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'e', 'shape')} />
+                                                  style={{ cursor: 'ew-resize' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'e', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'e', 'shape')} />
                                         )}
                                     </g>
                                 )
@@ -1868,7 +1905,7 @@ function DiagramEditor() {
                                             strokeWidth={Math.max(shape.strokeWidth, 10)}
                                             style={shapeStyle}
                                             onMouseDown={(e) => handleElementDragStart(e, shape.id, 'shape')}
-                                            onTouchStart={(e) => handleElementDragStart(e as any, shape.id, 'shape')}
+                                            onTouchStart={(e) => handleElementTouchStart(e, shape.id, 'shape')}
                                         />
                                         <line
                                             x1={x1}
@@ -1884,9 +1921,9 @@ function DiagramEditor() {
                                         {isSelected && selectedTool === 'select' && !isReadOnly && (
                                             <>
                                                 <circle cx={x1} cy={y1} r={5} fill="#00d4ff"
-                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'start', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'start', 'shape')} />
+                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'start', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'start', 'shape')} />
                                                 <circle cx={x2} cy={y2} r={5} fill="#00d4ff"
-                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'end', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'end', 'shape')} />
+                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'end', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'end', 'shape')} />
                                             </>
                                         )}
                                     </g>
@@ -1907,7 +1944,7 @@ function DiagramEditor() {
                                             strokeWidth={Math.max(shape.strokeWidth, 10)}
                                             style={shapeStyle}
                                             onMouseDown={(e) => handleElementDragStart(e, shape.id, 'shape')}
-                                            onTouchStart={(e) => handleElementDragStart(e as any, shape.id, 'shape')}
+                                            onTouchStart={(e) => handleElementTouchStart(e, shape.id, 'shape')}
                                         />
                                         <line
                                             x1={x1}
@@ -1931,9 +1968,9 @@ function DiagramEditor() {
                                         {isSelected && selectedTool === 'select' && !isReadOnly && (
                                             <>
                                                 <circle cx={x1} cy={y1} r={5} fill="#00d4ff"
-                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'start', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'start', 'shape')} />
+                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'start', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'start', 'shape')} />
                                                 <circle cx={x2} cy={y2} r={5} fill="#00d4ff"
-                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'end', 'shape')} onTouchStart={(e) => handleResizeStart(e as any, shape.id, 'end', 'shape')} />
+                                                        style={{ cursor: 'move' }} onMouseDown={(e) => handleResizeStart(e, shape.id, 'end', 'shape')} onTouchStart={(e) => handleResizeTouchStart(e, shape.id, 'end', 'shape')} />
                                             </>
                                         )}
                                     </g>
@@ -2075,7 +2112,7 @@ function DiagramEditor() {
                                     className={isSelected ? 'selected' : ''}
                                     style={{ cursor: selectedTool === 'select' ? 'move' : 'default' }}
                                     onMouseDown={(e) => handleElementDragStart(e, label.id, 'label')}
-                                    onTouchStart={(e) => handleElementDragStart(e as any, label.id, 'label')}
+                                    onTouchStart={(e) => handleElementTouchStart(e, label.id, 'label')}
                                 >
                                     {/* Shape rendering based on shapeType */}
                                     {shapeType === 'point' && (
@@ -2167,7 +2204,7 @@ function DiagramEditor() {
                                                     textAnchor={shapeType === 'point' ? 'start' : 'middle'}
                                                     style={{ cursor: isSelected && selectedTool === 'select' ? 'move' : 'default' }}
                                                     onMouseDown={(e) => handleTextDragStart(e, label.id)}
-                                                    onTouchStart={(e) => handleTextDragStart(e as any, label.id)}
+                                                    onTouchStart={(e) => handleTextTouchStart(e, label.id)}
                                                 >
                                                     {label.text}
                                                 </text>
@@ -2182,7 +2219,7 @@ function DiagramEditor() {
                                                         strokeWidth="1"
                                                         style={{ cursor: 'move' }}
                                                         onMouseDown={(e) => handleTextDragStart(e, label.id)}
-                                                        onTouchStart={(e) => handleTextDragStart(e as any, label.id)}
+                                                        onTouchStart={(e) => handleTextTouchStart(e, label.id)}
                                                     />
                                                 )}
                                             </g>
@@ -2196,13 +2233,13 @@ function DiagramEditor() {
                                             {shapeType === 'rectangle' && (
                                                 <>
                                                     <rect x={label.x - 4} y={label.y - 4} width={8} height={8} fill="#00d4ff" style={{ cursor: 'nwse-resize' }}
-                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'nw', 'label')} onTouchStart={(e) => handleResizeStart(e as any, label.id, 'nw', 'label')} />
+                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'nw', 'label')} onTouchStart={(e) => handleResizeTouchStart(e, label.id, 'nw', 'label')} />
                                                     <rect x={label.x + (label.width || 100) - 4} y={label.y - 4} width={8} height={8} fill="#00d4ff" style={{ cursor: 'nesw-resize' }}
-                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'ne', 'label')} onTouchStart={(e) => handleResizeStart(e as any, label.id, 'ne', 'label')} />
+                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'ne', 'label')} onTouchStart={(e) => handleResizeTouchStart(e, label.id, 'ne', 'label')} />
                                                     <rect x={label.x - 4} y={label.y + (label.height || 60) - 4} width={8} height={8} fill="#00d4ff" style={{ cursor: 'nesw-resize' }}
-                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'sw', 'label')} onTouchStart={(e) => handleResizeStart(e as any, label.id, 'sw', 'label')} />
+                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'sw', 'label')} onTouchStart={(e) => handleResizeTouchStart(e, label.id, 'sw', 'label')} />
                                                     <rect x={label.x + (label.width || 100) - 4} y={label.y + (label.height || 60) - 4} width={8} height={8} fill="#00d4ff" style={{ cursor: 'nwse-resize' }}
-                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'se', 'label')} onTouchStart={(e) => handleResizeStart(e as any, label.id, 'se', 'label')} />
+                                                          onMouseDown={(e) => handleResizeStart(e, label.id, 'se', 'label')} onTouchStart={(e) => handleResizeTouchStart(e, label.id, 'se', 'label')} />
                                                 </>
                                             )}
                                             {/* Single handle for circle (right edge to resize radius) */}
@@ -2215,7 +2252,7 @@ function DiagramEditor() {
                                                     fill="#00d4ff"
                                                     style={{ cursor: 'ew-resize' }}
                                                     onMouseDown={(e) => handleResizeStart(e, label.id, 'e', 'label')}
-                                                    onTouchStart={(e) => handleResizeStart(e as any, label.id, 'e', 'label')}
+                                                    onTouchStart={(e) => handleResizeTouchStart(e, label.id, 'e', 'label')}
                                                 />
                                             )}
                                             {/* Vertex handles for polygon */}
