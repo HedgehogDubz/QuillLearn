@@ -25,7 +25,7 @@ interface PublicContent {
         avatar: string | null
     }
     published_at: string
-    updated_at: string
+    updated_at: string 
     like_count: number
     view_count: number
     tags: string[]
