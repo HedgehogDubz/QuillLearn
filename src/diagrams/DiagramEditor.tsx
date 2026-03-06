@@ -1144,9 +1144,12 @@ function DiagramEditor() {
     // Touch wrapper for element drag
     const handleElementTouchStart = useCallback((e: React.TouchEvent, elementId: string, elementType: 'image' | 'shape' | 'label') => {
         e.preventDefault()
-        e.stopPropagation()
-        handleElementDragStart(e as any, elementId, elementType)
-    }, [handleElementDragStart])
+        // Only stop propagation if we're in select mode - otherwise let it bubble to canvas for label/shape creation
+        if (selectedTool === 'select') {
+            e.stopPropagation()
+            handleElementDragStart(e as any, elementId, elementType)
+        }
+    }, [handleElementDragStart, selectedTool])
 
     // Handle resize start
     const handleResizeStart = useCallback((e: React.MouseEvent, elementId: string, handle: string, elementType: 'image' | 'label' | 'shape') => {
@@ -1202,9 +1205,12 @@ function DiagramEditor() {
     // Touch wrapper for resize
     const handleResizeTouchStart = useCallback((e: React.TouchEvent, elementId: string, handle: string, elementType: 'image' | 'label' | 'shape') => {
         e.preventDefault()
-        e.stopPropagation()
-        handleResizeStart(e as any, elementId, handle, elementType)
-    }, [handleResizeStart])
+        // Only stop propagation if we're in select mode - otherwise let it bubble to canvas for label/shape creation
+        if (selectedTool === 'select') {
+            e.stopPropagation()
+            handleResizeStart(e as any, elementId, handle, elementType)
+        }
+    }, [handleResizeStart, selectedTool])
 
     // Handle text drag start (for moving label text independently)
     const handleTextDragStart = useCallback((e: React.MouseEvent, labelId: string) => {
@@ -1231,9 +1237,12 @@ function DiagramEditor() {
     // Touch wrapper for text drag
     const handleTextTouchStart = useCallback((e: React.TouchEvent, labelId: string) => {
         e.preventDefault()
-        e.stopPropagation()
-        handleTextDragStart(e as any, labelId)
-    }, [handleTextDragStart])
+        // Only stop propagation if we're in select mode - otherwise let it bubble to canvas for label/shape creation
+        if (selectedTool === 'select') {
+            e.stopPropagation()
+            handleTextDragStart(e as any, labelId)
+        }
+    }, [handleTextDragStart, selectedTool])
 
     // Touch event wrappers for canvas that prevent default behavior
     const handleCanvasTouchStart = useCallback((e: React.TouchEvent) => {
@@ -2615,6 +2624,9 @@ function DiagramEditor() {
                                         value={selectedLabel.text}
                                         onChange={(e) => updateLabelText(e.target.value)}
                                         placeholder="Label text..."
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onTouchStart={(e) => e.stopPropagation()}
+                                        onClick={(e) => e.stopPropagation()}
                                     />
                                 </div>
 
@@ -2694,6 +2706,9 @@ function DiagramEditor() {
                                                         selectedLabel.height || 60
                                                     )}
                                                     min="30"
+                                                    onMouseDown={(e) => e.stopPropagation()}
+                                                    onTouchStart={(e) => e.stopPropagation()}
+                                                    onClick={(e) => e.stopPropagation()}
                                                 />
                                             </div>
                                             {selectedLabel.shapeType === 'rectangle' && (
@@ -2707,6 +2722,9 @@ function DiagramEditor() {
                                                             parseInt(e.target.value) || 60
                                                         )}
                                                         min="30"
+                                                        onMouseDown={(e) => e.stopPropagation()}
+                                                        onTouchStart={(e) => e.stopPropagation()}
+                                                        onClick={(e) => e.stopPropagation()}
                                                     />
                                                 </div>
                                             )}

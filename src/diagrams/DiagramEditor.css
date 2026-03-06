@@ -325,6 +325,7 @@
     color: var(--text-primary);
     outline: none;
     min-width: 200px;
+    font-size: 16px; /* Prevent mobile zoom - iOS requires 16px minimum */
 }
 
 .diagram_label_input_overlay input:focus {
@@ -654,7 +655,7 @@
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: 16px; /* Prevent mobile zoom - iOS requires 16px minimum */
 }
 
 .diagram_edit_field input[type="text"]:focus {
@@ -733,7 +734,7 @@
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.75rem;
+    font-size: 16px; /* Prevent mobile zoom - iOS requires 16px minimum */
 }
 
 .diagram_edit_size_inputs input[type="number"]:focus {
